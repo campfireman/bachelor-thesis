@@ -57,7 +57,7 @@
 
 \begin{document}
 
-\title{Exploration of Abalone game-playing agents}
+\title{Using deep reinforcment learning and self-play to master the game abalone without human knowledge}
 \author{Ture Claußen, 1531067, \email{ture.claussen@stud.hs-hannover.de}}
 \authorrunning{T. Claußen}
 \institute{Hochschule Hannover Fakultät IV}
@@ -65,23 +65,67 @@
 {\def\addcontentsline#1#2#3{}\maketitle} % Wird gebraucht, damit der Title nicht im Inhaltsverzeichnis steht
 
 \begin{abstract}
+  Perfect information games provide a great playing ground for the comparison of different algorithms, as they allow for direct comparison in a controlled environment. Whereas more classical approaches like minimax require human knowledge encoded in heuristics, modern approaches like (deep) reinforcement learning have excelled solely based on knowledge gained from self-play. To test how well this generalizes for other games, in the following, this is applied to the game abalone and compared with existing algorithms in a final tournament.
 \end{abstract}
 
 
 \section{Introduction}
+Abalone is a fairly new game, that was devised in 1987 by Michel Lalet and Laurent Lévi. Nevertheless, with more than four million global sales it has established itself as a classic game \cite{noauthor_abalone_2020}. Abalone is a two-player game consisting of a hexagonal board with 61 fields and 14 marbles for black and white respectively. The abstract nature of the game requires the player to plan ahead and find the right strategy in the plethora of moves.
 
-\section{Background}
+As it is a two-player perfect information game it can be solved, in theory, by backward induction. However, in search of the optimal move it is not possible to expand all of the possible paths the game could take, even for modern computers. Hence, more sophisticated approaches for navigating the search space are needed. This simple yet complex nature of this type of game make it very suitable for theoretic analysis. \cite[p. 1]{demichelis_simple_2004}
+
+Ranging from game theory to artificial intelligence, games have sparked theoretical inquiry with many real world applications in economics, psychology, mathematics, neuroscience and many more. \cite[pp. 46]{russell_artificial_2021}
 % 1)WHY
 % 2)WHAT
 
-\section{Related work}
+\section{Background}
+The comparison between a human's and a computer's proficiency in a game is particularly interesting as it allows for very tangible conclusions about the current state of affairs. IBM's "Deep Blue" (DB) win against Gary Kasparov \cite{higgins_brief_2017} in chess caused big public interest just as the win of "AlphaGo" (AG) against Lee Sedol \cite{deepmind_match_nodate} in the game Go. These two milestones also represent a shift in technology. Whereas Deep Blue relied on minimax, AlphaGo relied on a combination of multiple deep neural nets trained in self-play. \cite{silver_mastering_2017}
+
+Building on this success DeepMind, the company behind AG, further improved the architecture. "AlphaGo Zero" and the generalization "AlphaZero" (AZ) learn \textit{tabula rasa}, without the help of human knowledge and surpassed the performance of AG significantly. Since then the architecture has been applied to Chess, Shogi and Atari games by removing the last piece of human knowledge in the system: The rules of the game. \cite{schrittwieser_mastering_2020}
+
+There is a formidable body of work regarding classical game-playing agents and some based on learning algorithms. The most significant contributions are:
+
+\begin{enumerate}
+  \item "Algorithmic fun-abalone" (2002) Considers foundational heuristics for the game and analyzes minimax and its refinements in the form of (heuristic) alpha-beta pruning. Furthermore it sheds light on the performance differences between those. \cite{aichholzer_algorithmic_2002}
+  \item "Abalearn: Efficient Self-Play Learning of the game Abalone" (2003) Utilizes TD-Learning to create a self-learning agent that is on par with intermediate players. \cite{campos_abalearn_2003}
+  \item "A Simple Intelligent Agent for Playing Abalone Game: ABLA" (2004) Implementation of a game-playing agent with minimax, alpha-beta pruning and some custom heuristics. The evaluation of the performance is done by comparing the agent to existing software in the form of ABA-PRO and RandomSoft.\cite{ozcan_simple_2004}
+  \item "Constructing an abalone game-playing agent" (2005) Provides a very thorough explanation and analysis of the game's fundamentals, such as the state space, rules and positions. In regards to the alpha-beta pruning it also explains strategies for ordering the nodes and performance concerns. \cite{lemmens_constructing_2005}
+  \item "Implementing a computer player for abalone using alpha-beta and monte-carlo search" (2009) This master thesis is a very exhaustive analysis of the game, alpha-beta pruning and Monte Carlo tree search, conferring many of the previous results. \cite{chorus_implementing_2009}
+\end{enumerate}
+
+Considering the date of the publications interest into the game has cooled off. However there are some smaller student publications of the more recent years that apply Q-Learning and TD-Learning. \cite{mizrachi_introduction_2017} \cite{lee_abalone_2005}
 
 \section{Aims and objectives}
 
+
 \section{Methodology}
+\begin{figure}
+  \centering
+  \includegraphics[height=8cm, keepaspectratio]{alphazero_architecture_network.png}
+  \caption{The coarse architecture of AlphaZero \cite{silver_mastering_2017}}
+\end{figure}
+
+\begin{adjustwidth}{-5in}{-5in}% adjust the L and R margins by 1 inch
+  \begin{figure}[!h]
+    \centering
+    \subfloat[Residual block]{
+      \includegraphics[width=3.9cm, keepaspectratio]{alphazero_architecture_residual_block.png}
+    }
+    \hfill
+    \subfloat[Policy head]{
+      \includegraphics[width=3cm, keepaspectratio]{alphazero_architecture_policy_head.png}
+    }
+    \hfill
+    \subfloat[Value head]{
+      \includegraphics[width=3cm, keepaspectratio]{alphazero_architecture_value_head.png}
+    }
+    \caption{The different components of AlphaZero in detail \cite{silver_mastering_2017}}
+    \label{sumito}
+  \end{figure}
+\end{adjustwidth}
 % 3) HOW
 
-\subsection{Timeline}
+\section{Timeline}
 
 \section{Preliminary table of contents}
 
