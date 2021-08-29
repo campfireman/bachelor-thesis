@@ -58,7 +58,7 @@
 
 \begin{document}
 
-\title{Using deep reinforcment learning and self-play to master the game abalone}
+\title{Using deep reinforcement learning and self-play to master the game abalone}
 \author{Ture Claußen, 1531067, \email{ture.claussen@stud.hs-hannover.de}}
 \authorrunning{T. Claußen}
 \institute{Hochschule Hannover Fakultät IV}
@@ -71,9 +71,9 @@
 
 
 \section{Introduction}
-Abalone is a fairly new game, that was devised in 1987 by Michel Lalet and Laurent Lévi. Nevertheless, with more than four million global sales it has established itself as a classic game \cite{noauthor_abalone_2020}. Abalone is a two-player game consisting of a hexagonal board with 61 fields and 14 marbles for black and white respectively. The abstract nature of the game requires the player to plan ahead and find the right strategy in the plethora of moves.
+Abalone is a fairly new game that was devised in 1987 by Michel Lalet and Laurent Lévi. Nevertheless, with more than four million global sales it has established itself as a classic game \cite{noauthor_abalone_2020}. Abalone is a two-player game consisting of a hexagonal board with 61 fields and 14 marbles for black and white respectively. The abstract nature of the game requires the player to plan ahead and find the right strategy in the plethora of moves.
 
-As it is a two-player perfect information game it can be solved, in theory, by backward induction. However, in search of the optimal move it is not possible to expand all of the possible paths the game could take, even for modern computers. Hence, more sophisticated approaches for navigating the search space are needed. This simple yet complex nature of this type of game make it very suitable for theoretic analysis. \cite[p. 1]{demichelis_simple_2004}
+As it is a two-player perfect information game it can be solved, in theory, by backward induction. However, in search of the optimal move it is not possible to expand all of the possible paths the game could take, even for modern computers. Hence, more sophisticated approaches for navigating the search space are needed. The simple yet complex nature of this type of game makes it very suitable for theoretic analysis. \cite[p. 1]{demichelis_simple_2004}
 
 Ranging from game theory to artificial intelligence, games have sparked theoretical inquiry with many real world applications in economics, psychology, mathematics, neuroscience and many more. \cite[pp. 46]{russell_artificial_2021}
 % 1)WHY
@@ -94,21 +94,21 @@ There is a formidable body of work regarding classical game-playing agents and s
   \item "Implementing a computer player for abalone using alpha-beta and monte-carlo search" (2009) This master thesis is a very exhaustive analysis of the game, alpha-beta pruning and Monte Carlo tree search, conferring many of the previous results. \cite{chorus_implementing_2009}
 \end{enumerate}
 
-Considering the date of the publications interest into the game has cooled off. However there are some smaller student publications of the more recent years that apply Q-Learning and TD-Learning. \cite{mizrachi_introduction_2017} \cite{lee_abalone_2005}
+Considering the date of the publication, interest in the game has cooled off. However there are some smaller student publications of the more recent years that apply Q-Learning and TD-Learning. \cite{mizrachi_introduction_2017} \cite{lee_abalone_2005}
 
 \section{Aims and objectives}
-The thesis has the objective to modify the architecture of AlphaZero (c.f. fig. \ref{alphazero_architecture} \& \ref{alphazero_architecture_details}) such that it can applied to the game of Abalone. As the computational resources are not as vast as those of Google, it has to be evaluated how the architecture works on smaller networks with less training duration.
+The thesis has the objective to modify the architecture of AlphaZero (c.f. fig. \ref{alphazero_architecture} \& \ref{alphazero_architecture_details}) such that it can be applied to the game of Abalone. As the computational resources are not as vast as those of Google, it has to be evaluated how the architecture works on smaller networks with less training duration.
 
 In detail the steps to achieving that objective are to:
 
 \begin{itemize}
   \item adapt the architecture of AlphaZero and to implement it,
-  \item implement a self-training pipeline,
+  \item build a self-training pipeline,
   \item answer the question: \textit{How well does the architecture of AlphaZero generalize?}
 \end{itemize}
 
 \section{Methodology}
-A key element for the success of AlphaZero might advancement in computational resources, wherefore this project requires sufficiently powerful hardware to adequately replicate the conditions. For smaller scale testing in the initial phase there is the possibility to use a personal workstation with a GTX 1660S and 6 core processor. Moreover, the Hochschule Hannover might be able to provide a more powerful workstation. For the larger scale and final experiments an application for the usage of Google's TPU Research Cloud has been successfully granted. It allows for the usage of "up to 5 on-demand Cloud TPU v3 devices, 5 on-demand Cloud TPU v2 devices, and 100 preemptible Cloud TPU v2 devices for free for 30 days" \cite{noauthor_tpu_nodate}. This can be combined with the free \$300 credit for new Google cloud accounts. \cite{noauthor_free_nodate}
+A key element for the success of AlphaZero might be advancement in computational resources, wherefore this project requires sufficiently powerful hardware to adequately replicate the conditions. For smaller scale testing in the initial phase there is the possibility to use a personal workstation with a GTX 1660S and 6 core processor. Moreover, the Hochschule Hannover might be able to provide a more powerful workstation. For the larger scale and final experiments an application for the usage of Google's TPU Research Cloud has been successfully granted. It allows for the usage of "up to 5 on-demand Cloud TPU v3 devices, 5 on-demand Cloud TPU v2 devices, and 100 preemptible Cloud TPU v2 devices for free for 30 days" \cite{noauthor_tpu_nodate}. This can be combined with the free \$300 credit for new Google cloud accounts. \cite{noauthor_free_nodate}
 
 To assess the performance of the trained algorithm (variants) it will be compared with other algorithms in a tournament. All of the algorithms devised in related papers are not freely accessible wherefore access has been requested via email. As baseline there are the implementations created in a previous project \cite{noauthor_ture_nodate} which would need further improvement to be more competitive. Namely that would be a parallelization of the Minimax algorithm by switching to principal variation splitting or an alternative that preserves pruning. \cite{gao_multithreaded_nodate}
 
@@ -140,9 +140,25 @@ To assess the performance of the trained algorithm (variants) it will be compare
   \label{timetable}
 \end{table}
 
+\newpage
+
 \section{Preliminary table of contents}
 \begin{enumerate}
   \item Introduction
+  \item Related work
+  \item Architecture
+        \begin{enumerate}
+          \item Structure of neural network
+          \item Self-learning mechanism
+          \item MCTS search
+        \end{enumerate}
+  \item Empirical performance evaluation
+        \begin{enumerate}
+          \item Game engine
+          \item Experimental setup
+          \item Results
+        \end{enumerate}
+  \item Conclusion
 \end{enumerate}
 
 \newpage
