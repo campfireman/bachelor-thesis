@@ -1,6 +1,6 @@
 ### PROJECT ###
-src/env # ignore virtual env
-data/ # ignore local data
+src/env 
+data/
 
 ### LATEX ###
 ## Core latex/pdflatex auxiliary files:
