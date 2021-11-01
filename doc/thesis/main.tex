@@ -1,22 +1,12 @@
 \documentclass[fontsize=12pt,paper=a4,twoside,parskip=half-,headsepline,headinclude]{scrreprt}
-% Grundgröße 12pt, zweiseitig
 \usepackage[headsepline,automark]{scrlayer-scrpage}
-% Seitenköpfe automatisch 
 \usepackage[english]{babel}
-% Sprachpaket für Deutsch (Umlaute, Trennung,deutsche Überschriften)
 \usepackage{blindtext}
-% macht nur den Blindtext, den Sie aktuell sehen
 \usepackage{lmodern}
-% schöne PDF-Schrift
 \usepackage{graphicx,hyperref,amssymb}
-%Graphikeinbindung, Hyperref (alles klickbar, Bookmarks),
-%Math. Symbole aus AmsTeX
 \usepackage[utf8]{inputenc}
-% Umlaute und über Tastatur einzugeben
 \usepackage{listings}
-% nette Listing-Formatierung
 
-% Festlegung Kopf- und Fußzeile     
 \defpagestyle{meinstil}{%
 {\headmark \hfill}
 {\hfill \headmark}
@@ -36,8 +26,8 @@
 
  
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\begin{document}    % hier gehts los
-\thispagestyle{empty} % Titelseite
+\begin{document}
+\thispagestyle{empty}
 \includegraphics[width=0.2\textwidth]{../lib/Wortmarke_WI_schwarz}
 
 {  ~ \sffamily
@@ -76,26 +66,22 @@
 \vfill
 
 \begin{center} \sffamily\bfseries Declaration of authorship \end{center}
-% fett und zentriert in der minipage
 
 I hereby declare that I have written this thesis independently without any help from others and without the use of documents or aids other than those stated. I have mentioned all used sources and cited them correctly according to established academic citation rules.
 \vspace*{7ex}
 
 Hannover, \today \hfill Signature
 \pdfbookmark[0]{Inhalt}{contents}
-\tableofcontents  % Inhaltsverzeichnis
+\tableofcontents
 
-\listoffigures      % Abbildungsverzeichnis
+\listoffigures
 
-\listoftables       % Tabellenverzeichnis
+\listoftables
 
 
-%\input{abkuerz.tex}      % Einbinden von Tex-Files
 \input{sections/system-architecture.tex}
 
-\bibliographystyle{alpha}  % Schlüssel als Buchstaben
-\bibliography{ref}      % Literaturverzeichnis
+\bibliographystyle{alpha}
+\bibliography{ref}
 
 \end{document}
-
-
