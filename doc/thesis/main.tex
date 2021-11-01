@@ -24,7 +24,7 @@
 (\textwidth,.4pt)
 }{%
 (\textwidth,.4pt)
-{\pagemark\hfill Vorname Name}
+{\pagemark\hfill Ture Claußen}
 {Version 0.1 vom \today \hfill \pagemark}
 {Version 0.1 vom \today\hfill\pagemark} 
 }
@@ -42,12 +42,12 @@
 
 {  ~ \sffamily
   \vfill
-  {\Huge\bfseries Titel der Arbeit}
+  {\Huge\bfseries Mastering the game of Abalone using deep reinforcement-learning and self-play}
   \bigskip
 
   {\Large
-    Vorname Name \\[2ex]
-    Bachelor-Arbeit im Studiengang "`Angewandte Informatik"'
+    Ture Claußen \\[2ex]
+    Bachelor thesis in "Applied computer science"
     \\[5ex]
     \today }
 }
@@ -60,13 +60,13 @@
 
 \newpage \thispagestyle{empty}
 \begin{tabular}{ll}
-  {\bfseries\sffamily Autor}         & Vorname Name                      \\
-                                     & Matrikelnummer                    \\
-                                     & dauerhafte email-Adresse          \\[5ex]
-  {\bfseries\sffamily Erstprüferin:} & Prof. Dr. Vorname Name            \\
+  {\bfseries\sffamily Autor}         & Ture Claußen                      \\
+                                     & 1531067                           \\
+                                     & tu.cl@pm.me                       \\[5ex]
+  {\bfseries\sffamily Erstprüferin:} & Prof. Dr. Adrian Pigors           \\
                                      & Abteilung Informatik, Fakultät IV \\
                                      & Hochschule Hannover               \\
-                                     & email-Adresse                     \\[5ex]
+                                     & adrian.pigors@hs-hannover.de      \\[5ex]
   {\bfseries\sffamily Zweitprüfer:}  & Prof. Dr. Vorname Name            \\
                                      & Abteilung Informatik, Fakultät IV \\
                                      & Hochschule Hannover               \\
@@ -75,16 +75,13 @@
 
 \vfill
 
-\begin{center} \sffamily\bfseries Selbständigkeitserklärung \end{center}
+\begin{center} \sffamily\bfseries Declaration of authorship \end{center}
 % fett und zentriert in der minipage
 
-Hiermit erkläre ich, dass ich die eingereichte Bachelor-Arbeit
-selbständig und ohne fremde Hilfe verfasst, andere als die von mir angegebenen Quellen
-und Hilfsmittel nicht benutzt und die den benutzten Werken wörtlich oder
-inhaltlich entnommenen Stellen als solche kenntlich gemacht habe.
+I hereby declare that I have written this thesis independently without any help from others and without the use of documents or aids other than those stated. I have mentioned all used sources and cited them correctly according to established academic citation rules.
 \vspace*{7ex}
 
-Hannover, den \today \hfill Unterschrift
+Hannover, \today \hfill Signature
 \pdfbookmark[0]{Inhalt}{contents}
 \tableofcontents  % Inhaltsverzeichnis
 
@@ -92,19 +89,12 @@ Hannover, den \today \hfill Unterschrift
 
 \listoftables       % Tabellenverzeichnis
 
-\blinddocument  % Text
 
 %\input{abkuerz.tex}      % Einbinden von Tex-Files
-%\input{einfuehrung.tex}
-%
-%\include{normen}        % Einbinden von größeren Tex-Files,z.B. Kapiteln
-%\include{aufbau}
-%\include{zitieren}
-%\include{form}
-%\include{allgtips}
-%
-%\bibliographystyle{alpha}  % Schlüssel als Buchstaben
-%\bibliography{thesis}      % Literaturverzeichnis
+\input{sections/system-architecture.tex}
+
+\bibliographystyle{alpha}  % Schlüssel als Buchstaben
+\bibliography{ref}      % Literaturverzeichnis
 
 \end{document}
 
