@@ -1,1 +1,1 @@
-git+git://github.com/campfireman/Abalone-BoAI.git
+git+git://github.com/campfireman/abalone-engine.git
