@@ -16,3 +16,4 @@ nn = AbaloneNN(AbaloneGame(), {
 })
 
 nn.show_info()
+nn.visualize()
