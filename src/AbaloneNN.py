@@ -47,6 +47,7 @@ class AbaloneNN():
         x = keras.layers.ReLU()(x)
         x = keras.layers.Dense(256)(x)
         x = keras.layers.ReLU()(x)
+        x = keras.layers.Flatten()(x)
         x = keras.layers.Dense(1)(x)
         x = keras.activations.tanh(x)
         return x
@@ -55,7 +56,8 @@ class AbaloneNN():
         x = keras.layers.Conv2D(2, (1, 1))(x)
         x = keras.layers.BatchNormalization()(x)
         x = keras.layers.ReLU()(x)
-        x = keras.layers.Dense(len(POSSIBLE_MOVES))(x)
+        x = keras.layers.Flatten()(x)
+        x = keras.layers.Dense(len(POSSIBLE_MOVES) // 2)(x)
         return x
 
     def trace(self):
@@ -71,6 +73,11 @@ class AbaloneNN():
         with writer.as_default():
             tf.summary.trace_export(
                 name="model_trace", step=0, profiler_outdir=logdir)
+
+    def visualize(self):
+        from tensorflow.keras.utils import plot_model
+        plot_model(self.model, to_file='abalone_NN_model.png',
+                   show_shapes=True)
 
     def show_info(self):
         self.model.summary()
