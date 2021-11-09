@@ -24,7 +24,7 @@ class AbaloneNN():
         self.model = keras.Model(
             inputs=self.input_boards, outputs=[self.pi, self.v])
         self.model.compile(
-            loss=['categorical_crossentropy', 'mean_squared_error'], optimizer=keras.optimizers.Adam(args['lr']))
+            loss=['categorical_crossentropy', 'mean_squared_error'], optimizer=keras.optimizers.Adam(args.lr))
 
     def convolutional_block(self, x):
         x = keras.layers.Conv2D(256, (3, 3), padding='same')(x)
