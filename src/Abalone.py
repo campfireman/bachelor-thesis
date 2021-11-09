@@ -1,6 +1,11 @@
+from typing import List, Tuple, Union
+
 import numpy as np
+import tensorflow as tf
+from abalone_engine.enums import Direction, Player, Space
 from abalone_engine.game import Game as Engine
 from abalone_engine.game import Move
+from abalone_engine.players import AbstractPlayer
 from alpha_zero_general.Game import Game
 
 from .utils import move_index_to_standard, move_standard_to_index
@@ -145,3 +150,24 @@ class AbaloneGame(Game):
         for line in board:
             string.append(''.join(line))
         return string
+
+
+class AbalonePlayer(AbstractPlayer):
+    def __init__(self, player: Player):
+        super().__init__(player)
+        self.model = self.load_model()
+
+    def load_model(self) -> tf.keras.Model:
+        pass
+
+    def turn(self, game: Game, moves_history: List[Tuple[Union[Space, Tuple[Space, Space]], Direction]]) -> Tuple[Union[Space, Tuple[Space, Space]], Direction]:
+        n1 = NNet(g)
+        if mini_othello:
+            n1.load_checkpoint(
+                './pretrained_models/othello/pytorch/', '6x100x25_best.pth.tar')
+        else:
+            n1.load_checkpoint(
+                './pretrained_models/othello/pytorch/', '8x8_100checkpoints_best.pth.tar')
+        args1 = dotdict({'numMCTSSims': 50, 'cpuct': 1.0})
+        mcts1 = MCTS(g, n1, args1)
+        def n1p(x): return np.argmax(mcts1.getActionProb(x, temp=0))
