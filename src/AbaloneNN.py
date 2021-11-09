@@ -14,8 +14,10 @@ class AbaloneNN():
         self.args = args
 
         self.input_boards = keras.Input(
-            shape=(self.board_x, self.board_y, 2), name='board')
-        convolutional_block = self.convolutional_block(self.input_boards)
+            shape=(self.board_x, self.board_y), name='board')
+        board = keras.layers.Reshape(
+            (self.board_x, self.board_y, 1))(self.input_boards)
+        convolutional_block = self.convolutional_block(board)
         residual_tower = self.residual_tower(convolutional_block)
         self.pi = self.policy_head(residual_tower)
         self.v = self.value_head(residual_tower)
