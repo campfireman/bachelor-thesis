@@ -1,4 +1,5 @@
 abalone-engine @ git+git://github.com/campfireman/abalone-engine.git@ed888b2b291e9243a0c184018ffa4bc8164fc9b0
+alpha-zero-general @ git+git://github.com/campfireman/alpha-zero-general.git
 absl-py==0.15.0
 astroid==2.8.4
 astunparse==1.6.3
