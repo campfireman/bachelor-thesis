@@ -1,7 +1,7 @@
 import numpy as np
 from abalone_engine.game import Game as Engine
 from abalone_engine.game import Move
-from alpha_zero_general import Game
+from alpha_zero_general.Game import Game
 
 from .utils import move_index_to_standard, move_standard_to_index
 
