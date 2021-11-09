@@ -3,7 +3,7 @@ from typing import List
 import tensorflow as tf
 import tensorflow.keras as keras
 
-from src.experiments.possible_moves import POSSIBLE_MOVES
+from .experiments.possible_moves import POSSIBLE_MOVES
 
 
 class AbaloneNN():
