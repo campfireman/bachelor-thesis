@@ -31,7 +31,7 @@ class AbaloneGame(Game):
             startBoard: a representation of the board (ideally this is the form
                         that will be the input to your neural network)
         """
-        return [
+        return np.array([
             # 0  1  2  3  4  5  6  7  8
             [0, 0, 0, 0, -1, -1, -1, -1, -1],  # 0
             [0, 0, 0, -1, -1, -1, -1, -1, -1],  # 1
@@ -42,7 +42,7 @@ class AbaloneGame(Game):
             [0, 0, 1, 1, 1, 0, 0, 0, 0],  # 6
             [1, 1, 1, 1, 1, 1, 0, 0, 0],  # 7
             [1, 1, 1, 1, 1, 0, 0, 0, 0],  # 8
-        ]
+        ], dtype=float)
 
     def getBoardSize(self):
         """
@@ -71,7 +71,8 @@ class AbaloneGame(Game):
         """
         game = self.engine.from_array(board, player)
         game.standard_move(move_index_to_standard(action))
-        return game.to_array()
+        next_player = -1 if player == 1 else 1
+        return game.to_array(), next_player
 
     def getValidMoves(self, board, player):
         """
@@ -123,6 +124,7 @@ class AbaloneGame(Game):
                             the colors and return the board.
         """
         return self.engine.from_array(board, player).canonical_board()
+        # return self.engine.from_array(board, player).to_array()
 
     def getSymmetries(self, board, pi):
         """
@@ -148,8 +150,14 @@ class AbaloneGame(Game):
         """
         string = ''
         for line in board:
-            string.append(''.join(line))
+            string += ''.join(map(str, line))
         return string
+
+    def display_state(self, board):
+        game = self.engine.from_array(board, player=1)
+        score = game.get_score()
+        score_str = f'BLACK {score[0]} - WHITE {score[1]}'
+        print(score_str, game, '', sep='\n')
 
 
 class AbalonePlayer(AbstractPlayer):

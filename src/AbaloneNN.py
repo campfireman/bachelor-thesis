@@ -18,7 +18,7 @@ class AbaloneNN():
         board = keras.layers.Reshape(
             (self.board_x, self.board_y, 1))(self.input_boards)
         convolutional_block = self.convolutional_block(board)
-        residual_tower = self.residual_tower(convolutional_block)
+        residual_tower = self.residual_tower(convolutional_block, size=3)
         self.pi = self.policy_head(residual_tower)
         self.v = self.value_head(residual_tower)
         self.model = keras.Model(
@@ -59,7 +59,8 @@ class AbaloneNN():
         x = keras.layers.BatchNormalization()(x)
         x = keras.layers.ReLU()(x)
         x = keras.layers.Flatten()(x)
-        x = keras.layers.Dense(len(POSSIBLE_MOVES) // 2)(x)
+        x = keras.layers.Dense(len(POSSIBLE_MOVES) // 2,
+                               activation='softmax')(x)
         return x
 
     def trace(self):
