@@ -1,6 +1,7 @@
 import os
 
 import numpy as np
+import tensorflow as tf
 from alpha_zero_general.NeuralNet import NeuralNet
 from alpha_zero_general.utils import dotdict
 
@@ -39,8 +40,8 @@ class NNetWrapper(NeuralNet):
         """
         # preparing input
         board = board[np.newaxis, :, :]
-        v, pi = self.nnet.model.predict(board)
-        return pi, v
+        pi, v = self.nnet.model.predict(board)
+        return pi[0], v[0]
 
     def save_checkpoint(self, folder='checkpoint', filename='checkpoint.pth.tar'):
         filepath = os.path.join(folder, filename)
@@ -50,11 +51,12 @@ class NNetWrapper(NeuralNet):
             os.mkdir(folder)
         else:
             print("Checkpoint Directory exists! ")
-        self.nnet.model.save_weights(filepath)
+        self.nnet.model.save(filepath)
 
     def load_checkpoint(self, folder='checkpoint', filename='checkpoint.pth.tar'):
         # https://github.com/pytorch/examples/blob/master/imagenet/main.py#L98
         filepath = os.path.join(folder, filename)
+        print(filepath)
         if not os.path.exists(filepath):
             raise("No model in path {}".format(filepath))
-        self.nnet.model.load_weights(filepath)
+        self.nnet.model = tf.keras.models.load_model(filepath)
