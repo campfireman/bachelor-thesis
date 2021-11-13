@@ -117,15 +117,14 @@ class AbaloneGame(Game):
                small non-zero value for draw.
 
         """
-        game = self.engine.from_array(board, player)
-        if game.is_over():
-            return 1 if game.get_winner().value == player else -1
+        score = self.engine.s_score(board)
+        if self.engine.s_is_over(score):
+            return 1 if self.engine.s_winner(score).value == player else -1
         return 0
 
     def getGameEndedLimited(self, board, player, turns):
         if turns > MAX_TURNS:
-            game = self.engine.from_array(board, player)
-            score = game.get_score()
+            score = self.engine.s_score(board)
             marbles_taken_black = (TOTAL_NUM_MARBLES -
                                    score[1]) / TAKEN_MARBLES_TO_WIN
             marbles_taken_white = (TOTAL_NUM_MARBLES -
