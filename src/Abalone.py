@@ -1,3 +1,5 @@
+import logging
+from functools import partial
 from typing import List, Tuple, Union
 
 import numpy as np
@@ -13,6 +15,13 @@ from alpha_zero_general.utils import dotdict
 from .MCTS import MCTS
 from .NeuralNetWrapper import NNetWrapper
 from .utils import move_index_to_standard, move_standard_to_index
+
+MAX_TURNS = 200
+TOTAL_NUM_MARBLES = 14
+TAKEN_MARBLES_TO_WIN = 6
+
+
+log = logging.getLogger(__name__)
 
 
 class AbaloneGame(Game):
@@ -113,6 +122,23 @@ class AbaloneGame(Game):
             return 1 if game.get_winner().value == player else -1
         return 0
 
+    def getGameEndedLimited(self, board, player, turns):
+        if turns > MAX_TURNS:
+            game = self.engine.from_array(board, player)
+            score = game.get_score()
+            marbles_taken_black = (TOTAL_NUM_MARBLES -
+                                   score[1]) / TAKEN_MARBLES_TO_WIN
+            marbles_taken_white = (TOTAL_NUM_MARBLES -
+                                   score[0]) / TAKEN_MARBLES_TO_WIN
+            partial_score = marbles_taken_black - \
+                marbles_taken_white if player == 1 else marbles_taken_white - marbles_taken_black
+            if partial_score == 0:
+                partial_score = 1e-8
+            log.info(
+                f'Exceeded max turns of {MAX_TURNS} setting game result to {partial_score}')
+            return partial_score
+        return self.getGameEnded(board, player)
+
     def getCanonicalForm(self, board, player):
         """
         Input:
@@ -177,9 +203,9 @@ class AbaloneNNPlayer(AbstractPlayer):
             './temp/', 'temp.pth.tar')
         return nn
 
-    def search(self, board) -> int:
-        return np.argmax(self.mcts.getActionProb(board, temp=0))
+    def search(self, board: np.array, turns: int) -> int:
+        return np.argmax(self.mcts.getActionProb(board, turns, temp=0))
 
     def turn(self, game: Game, moves_history: List[Tuple[Union[Space, Tuple[Space, Space]], Direction]]) -> Tuple[Union[Space, Tuple[Space, Space]], Direction]:
         board = game.canonical_board()
-        return Move.from_standard(move_index_to_standard(self.search(board))).to_original()
+        return Move.from_standard(move_index_to_standard(self.search(board, len(moves_history)))).to_original()

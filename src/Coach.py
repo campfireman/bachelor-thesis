@@ -51,7 +51,6 @@ class Coach():
         board = self.game.getInitBoard()
         self.curPlayer = 1
         episodeStep = 0
-        maxEpisodeStep = 200
 
         while True:
             episodeStep += 1
@@ -68,12 +67,9 @@ class Coach():
             board, self.curPlayer = self.game.getNextState(
                 board, self.curPlayer, action)
 
-            r = self.game.getGameEnded(board, self.curPlayer)
+            r = self.game.getGameEndedLimited(
+                board, self.curPlayer, episodeStep)
             if r != 0:
-                return [(x[0], x[2], r * ((-1) ** (x[1] != self.curPlayer))) for x in trainExamples]
-            if episodeStep > maxEpisodeStep:
-                log.info('Setting game as draw')
-                r = 1e-8
                 return [(x[0], x[2], r * ((-1) ** (x[1] != self.curPlayer))) for x in trainExamples]
 
     def learn(self):
