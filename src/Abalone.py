@@ -7,9 +7,10 @@ from abalone_engine.game import Game as Engine
 from abalone_engine.game import Move
 from abalone_engine.players import AbstractPlayer
 from alpha_zero_general.Game import Game
-from alpha_zero_general.MCTS import MCTS
 from alpha_zero_general.utils import dotdict
 
+# from alpha_zero_general.MCTS import MCTS
+from .MCTS import MCTS
 from .NeuralNetWrapper import NNetWrapper
 from .utils import move_index_to_standard, move_standard_to_index
 

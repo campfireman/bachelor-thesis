@@ -6,10 +6,11 @@ from pickle import Pickler, Unpickler
 from random import shuffle
 
 import numpy as np
-from alpha_zero_general.MCTS import MCTS
 from tqdm import tqdm
 
 from .Arena import Arena
+# from alpha_zero_general.MCTS import MCTS
+from .MCTS import MCTS
 
 log = logging.getLogger(__name__)
 
