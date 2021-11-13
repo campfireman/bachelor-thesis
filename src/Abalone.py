@@ -127,8 +127,7 @@ class AbaloneGame(Game):
                             board as is. When the player is black, we can invert
                             the colors and return the board.
         """
-        return self.engine.from_array(board, player).canonical_board()
-        # return self.engine.from_array(board, player).to_array()
+        return player*board
 
     def getSymmetries(self, board, pi):
         """
