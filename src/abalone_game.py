@@ -12,8 +12,8 @@ from alpha_zero_general.Game import Game
 from alpha_zero_general.utils import dotdict
 
 # from alpha_zero_general.MCTS import MCTS
-from .MCTS import MCTS
-from .NeuralNetWrapper import NNetWrapper
+from .mcts import MCTS
+from .neural_net import NNetWrapper
 from .utils import move_index_to_standard, move_standard_to_index
 
 MAX_TURNS = 200

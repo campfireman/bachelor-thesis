@@ -4,8 +4,8 @@ sys.path.append('..')
 sys.path.append('../..')
 
 from alpha_zero_general.utils import dotdict
-from src.Abalone import AbaloneGame
-from src.AbaloneNN import AbaloneNN
+from src.abalone import AbaloneGame
+from src.neural_net import AbaloneNN
 
 nn = AbaloneNN(AbaloneGame(), dotdict({
     'lr': 0.001,
