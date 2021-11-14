@@ -80,11 +80,12 @@ class Arena():
         oneWon = 0
         twoWon = 0
         draws = 0
+        tolerance = 0.01
         for _ in tqdm(range(num), desc="Arena.playGames (1)"):
             gameResult = self.playGame(verbose=verbose)
-            if gameResult == 1:
+            if gameResult > tolerance:
                 oneWon += 1
-            elif gameResult == -1:
+            elif gameResult < -tolerance:
                 twoWon += 1
             else:
                 draws += 1
@@ -93,9 +94,9 @@ class Arena():
 
         for _ in tqdm(range(num), desc="Arena.playGames (2)"):
             gameResult = self.playGame(verbose=verbose)
-            if gameResult == -1:
+            if gameResult > tolerance:
                 oneWon += 1
-            elif gameResult == 1:
+            elif gameResult < -tolerance:
                 twoWon += 1
             else:
                 draws += 1
