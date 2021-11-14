@@ -202,9 +202,9 @@ class AbaloneNNPlayer(AbstractPlayer):
             './temp/', 'temp.pth.tar')
         return nn
 
-    def search(self, board: np.array, turns: int) -> int:
-        return np.argmax(self.mcts.getActionProb(board, turns, temp=0))
+    def search(self, board: np.array) -> int:
+        return np.argmax(self.mcts.getActionProb(board, temp=0))
 
     def turn(self, game: Game, moves_history: List[Tuple[Union[Space, Tuple[Space, Space]], Direction]]) -> Tuple[Union[Space, Tuple[Space, Space]], Direction]:
         board = game.canonical_board()
-        return Move.from_standard(move_index_to_standard(self.search(board, len(moves_history)))).to_original()
+        return Move.from_standard(move_index_to_standard(self.search(board))).to_original()
