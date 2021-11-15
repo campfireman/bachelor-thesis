@@ -31,7 +31,7 @@ class AbaloneNN():
         board = keras.layers.Reshape(
             (self.board_x, self.board_y, 1))(self.input_boards)
         convolutional_block = self.convolutional_block(board)
-        residual_tower = self.residual_tower(convolutional_block, size=3)
+        residual_tower = self.residual_tower(convolutional_block, size=10)
         self.pi = self.policy_head(residual_tower)
         self.v = self.value_head(residual_tower)
         self.model = keras.Model(
@@ -63,8 +63,7 @@ class AbaloneNN():
         x = keras.layers.Dense(256)(x)
         x = keras.layers.ReLU()(x)
         x = keras.layers.Flatten()(x)
-        x = keras.layers.Dense(1)(x)
-        x = keras.activations.tanh(x)
+        x = keras.layers.Dense(1, activation='tanh', name='v')(x)
         return x
 
     def policy_head(self, x):
@@ -73,7 +72,7 @@ class AbaloneNN():
         x = keras.layers.ReLU()(x)
         x = keras.layers.Flatten()(x)
         x = keras.layers.Dense(len(POSSIBLE_MOVES) // 2,
-                               activation='softmax')(x)
+                               activation='softmax', name='pi')(x)
         return x
 
     def trace(self):
