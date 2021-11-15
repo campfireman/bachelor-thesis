@@ -82,10 +82,11 @@ class AbaloneGame(Game):
             nextBoard: board after applying action
             nextPlayer: player who plays in the next turn (should be -player)
         """
-        game = self.engine.from_array(board, player)
-        game.standard_move(move_index_to_standard(action))
+        board = np.copy(board)
         next_player = -1 if player == 1 else 1
-        return game.to_array(), next_player
+        board = self.engine.s_standard_move(
+            board, player, move_index_to_standard(action))
+        return board, next_player
 
     def getValidMoves(self, board, player):
         """
@@ -98,9 +99,8 @@ class AbaloneGame(Game):
                         moves that are valid from the current board and player,
                         0 for invalid moves
         """
-        game = self.engine.from_array(board, player)
         moves = np.zeros(self.getActionSize(), dtype=np.float32)
-        for move in game.generate_legal_moves():
+        for move in self.engine.s_generate_legal_moves(board, player):
             index = move_standard_to_index(
                 Move.from_original(move).to_standard())
             moves[index] = 1
