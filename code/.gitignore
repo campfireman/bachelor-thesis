@@ -1,5 +1,6 @@
 ### PROJECT ###
 temp/
+output*.txt
 
 ### PYTHON ###
 # Byte-compiled / optimized / DLL files
