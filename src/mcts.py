@@ -1,3 +1,4 @@
+import hashlib
 import logging
 import math
 
@@ -41,7 +42,7 @@ class MCTS():
         for i in range(self.args.numMCTSSims):
             self.search(canonicalBoard)
 
-        s = self.game.stringRepresentation(canonicalBoard)
+        s = self.hash_state(canonicalBoard, '', 0)
         counts = [self.Nsa[(s, a)] if (
             s, a) in self.Nsa else 0 for a in range(self.game.getActionSize())]
 
@@ -57,7 +58,12 @@ class MCTS():
         probs = [x / counts_sum for x in counts]
         return probs
 
-    def search(self, canonicalBoard, root=None):
+    def hash_state(self, board, parent_hash, depth):
+        hash = self.game.stringRepresentation(
+            board) + hashlib.md5((parent_hash + str(depth)).encode()).hexdigest()
+        return hash
+
+    def search(self, canonicalBoard, prev='', depth=0):
         """
         This function performs one iteration of MCTS. It is recursively called
         till a leaf node is found. The action chosen at each node is one that
@@ -77,11 +83,7 @@ class MCTS():
             v: the negative of the value of the current canonicalBoard
         """
 
-        s = self.game.stringRepresentation(canonicalBoard)
-        if s == root:
-            print('loop')
-        if root is None:
-            root = s
+        s = self.hash_state(canonicalBoard, prev, depth)
 
         if s not in self.Es:
             self.Es[s] = self.game.getGameEnded(canonicalBoard, 1)
@@ -132,7 +134,7 @@ class MCTS():
         next_s, next_player = self.game.getNextState(canonicalBoard, 1, a)
         next_s = self.game.getCanonicalForm(next_s, next_player)
 
-        v = self.search(next_s, root=root)
+        v = self.search(next_s, prev=s, depth=depth + 1)
 
         if (s, a) in self.Qsa:
             self.Qsa[(s, a)] = (self.Nsa[(s, a)] *
