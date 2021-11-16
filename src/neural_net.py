@@ -16,6 +16,7 @@ args = dotdict({
     'batch_size': 64,
     'cuda': False,
     'num_channels': 512,
+    'residual_tower_size': 6,
 })
 
 
@@ -31,7 +32,8 @@ class AbaloneNN():
         board = keras.layers.Reshape(
             (self.board_x, self.board_y, 1))(self.input_boards)
         convolutional_block = self.convolutional_block(board)
-        residual_tower = self.residual_tower(convolutional_block, size=10)
+        residual_tower = self.residual_tower(
+            convolutional_block, size=args.residual_tower_size)
         self.pi = self.policy_head(residual_tower)
         self.v = self.value_head(residual_tower)
         self.model = keras.Model(
