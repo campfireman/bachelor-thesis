@@ -1,5 +1,6 @@
 \documentclass[fontsize=12pt,paper=a4,twoside,parskip=half-,headsepline,headinclude]{scrreprt}
 \usepackage[headsepline,automark]{scrlayer-scrpage}
+\usepackage{scrhack}
 
 \usepackage[english]{babel}
 \usepackage[utf8]{inputenc}
@@ -82,8 +83,9 @@ Hannover, \today \hfill Signature
 
 \listoftables
 
-\include{sections/system-architecture}
-\include{sections/analysis}
+\include{chapters/introduction}
+\include{chapters/system-architecture}
+\include{chapters/analysis}
 
 \bibliographystyle{alpha}
 \bibliography{ref}
