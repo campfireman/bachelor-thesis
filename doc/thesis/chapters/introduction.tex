@@ -1,10 +1,23 @@
 \chapter{Introduction}
 
-Programming is severely limited by our ability to properly model the problem in advance. Problems with large complexity would require large efforts, that at a certain point just become unfeasable. Instead, learning the task from a blank slate, \emph{tablula rasa}, would allow to imitate human adaptability.
+In the field of computer science board games have been a popular environment to test the capabilities of state of the art methods against human opponents. Many board games have a long history in the human civilization making them a tangible measure of performance. The most prominent examples are the games of Chess and Go, in which the defeat of the current best players by machines have been representative of fundamental progress in computing.
+
+% success against gary kasparov, searching, optimizing for heuristic
+IBM's "Deep Blue" win against Gary Kasparov in 1996 \cite{higgins_brief_2017} used search algorithms to look ahead into the game tree and chose the move that maximized a heuristic function. This approach is a prime example for symbolic AI approaches, "good-old-fashioned-AI" ("GOFAI") \cite{haugeland_artificial_1985}, which rely on logic, search and symbolic representations.
+
+However, these methods and traditional programming are severely limited by our ability to properly model the problem in advance. For example in the case of Deep Blue it requires us to encode our knowledge about the game in a heuristic function to evaluate the board, which we can search and optimize for. Problems with large complexity would require large efforts, that at a certain point just become unfeasable. Instead, learning the task from a blank slate, \emph{tablula rasa}, would allow to imitate human adaptability.
 
 \begin{quote}
     Instead of trying to produce a programme to simulate the adult mind, why not rather try to produce one which simulates the child’s? If this were then subjected to an appropriate course of education one would obtain the adult brain. Presumably the child-brain is something like a note-book as one buys it from the stationers. Rather little mechanism, and lots of blank sheets. [...] Our hope is that there is so little mechanism in the child-brain that something like it can be easily programmed.
     \cite{turing_icomputing_1950}
 \end{quote}
 
-In the field of artificial intelligence the construction of game-playing
+% this new approach of learning becaming hugely popular due to unlocking new computational powers, alpha go proved power of these methods
+The recent success of "AlphaGo" in 2016 against the long-time world-champion Lee Sedol \cite{deepmind_match_nodate} in the game Go is a milestones represents another shift in technology. The increasing availability in computational power has enabled two subsymbolic approaches to find large success in unclaimed territory such as copmuter vision or natural language processing. Namely those are neural networks and (stochastic) gradient descent. \cite{nilsson_artificial_1998}
+
+AlphaGo was initially trained on  \cite{silver_mastering_2017}
+
+Building on this success DeepMind, the company behind AG, further improved the architecture. "AlphaGo Zero" and the generalization "AlphaZero" (AZ) learn \textit{tabula rasa}, without the help of human knowledge and surpassed the performance of AG significantly. Since then the architecture has been applied to Chess, Shogi and Atari games by removing the last piece of human knowledge in the system: The rules of the game. \cite{schrittwieser_mastering_2020}
+
+
+% abalone is a newer board game less popular, can provide interesting grounds for applying these new methods and the challenges that come with them
