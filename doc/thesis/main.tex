@@ -1,10 +1,15 @@
 \documentclass[fontsize=12pt,paper=a4,twoside,parskip=half-,headsepline,headinclude]{scrreprt}
 \usepackage[headsepline,automark]{scrlayer-scrpage}
+
 \usepackage[english]{babel}
-\usepackage{lmodern}
-\usepackage{graphicx,hyperref,amssymb}
 \usepackage[utf8]{inputenc}
+
+\usepackage{lmodern}
+\usepackage{subfig}
 \usepackage{listings}
+
+\usepackage{graphicx,hyperref,amssymb}
+\graphicspath{{../figures/}}
 
 \defpagestyle{meinstil}{%
 {\headmark \hfill}
@@ -77,8 +82,8 @@ Hannover, \today \hfill Signature
 
 \listoftables
 
-
-\input{sections/system-architecture.tex}
+\include{sections/system-architecture}
+\include{sections/analysis}
 
 \bibliographystyle{alpha}
 \bibliography{ref}
