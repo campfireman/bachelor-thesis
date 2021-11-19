@@ -5,19 +5,16 @@ import sys
 import time
 from collections import deque
 from dataclasses import dataclass
-from pickle import Pickler, Unpickler
 from random import shuffle
 from typing import Tuple
 
 import numpy as np
 from alpha_zero_general.Coach import Coach
 from alpha_zero_general.Game import Game
-from alpha_zero_general.utils import dotdict
-from tqdm import tqdm
 
 from src.neural_net import NNetWrapper
 
-from .arena import Arena
+from .arena import ParallelArena as Arena
 from .mcts import MCTS
 
 log = logging.getLogger(__name__)
@@ -33,11 +30,12 @@ class CoachArguments:
     # Number of game examples to train the neural networks.
     maxlen_of_queue: int = 2000000
     # Number of games moves for MCTS to simulate.
-    num_MCTS_sims: int = 2
+    num_MCTS_sims: int = 25
     # Number of games to play during arena play to determine if new net will be accepted.
-    num_arena_comparisons: int = 6
+    num_arena_comparisons: int = 4
     cpuct: float = 1
-    n_self_play_workers: int = 4
+    num_self_play_workers: int = 4
+    num_arena_workers: int = 2
 
     checkpoint: str = './temp/'
     load_model: bool = False
@@ -48,6 +46,7 @@ class CoachArguments:
 
 class ParallelCoach(Coach):
     NNET_NAME_CURRENT = 'temp.pth.tar'
+    NNET_NAME_NEW = 'temp_new.pth.tar'
     NNET_NAME_BEST = 'best.pth.tar'
 
     @staticmethod
@@ -100,8 +99,9 @@ class ParallelCoach(Coach):
                     cur_nnet_id = update_nnet(nnet)
                 start = time.time()
 
-    def spawn_self_play_workers(self, no_workers: int, manager: mp.Manager) -> Tuple[mp.Queue, mp.Value]:
-        log.info(f'Spawning {self.args.n_self_play_workers} self play workers')
+    def spawnum_self_play_workers(self, no_workers: int, manager: mp.Manager) -> Tuple[mp.Queue, mp.Value]:
+        log.info(
+            f'Spawning {self.args.num_self_play_workers} self play workers')
 
         train_examples_queue = mp.Queue()
         nnet_id = manager.Value(value=0, typecode='int')
@@ -135,8 +135,8 @@ class ParallelCoach(Coach):
         """
         self.initialize_nnet()
         with mp.Manager() as manager:
-            train_example_queue, nnet_id = self.spawn_self_play_workers(
-                self.args.n_self_play_workers, manager)
+            train_example_queue, nnet_id = self.spawnum_self_play_workers(
+                self.args.num_self_play_workers, manager)
 
             # wait for first round of games to finish
             while train_example_queue.qsize() < self.args.num_eps:
@@ -146,13 +146,16 @@ class ParallelCoach(Coach):
             for i in range(1, self.args.num_iters + 1):
                 log.info(f'Starting Iter #{i} ...')
 
-                trainExamples = []
                 iteration_examples = deque([], self.args.maxlen_of_queue)
+
+                example_counter = 0
                 while not train_example_queue.empty():
                     game = train_example_queue.get()
-                    trainExamples.extend(game)
-                    iteration_examples.append(game)
-                shuffle(trainExamples)
+                    iteration_examples += game
+                    example_counter += 1
+                log.info(
+                    f'Loaded {example_counter} self play games from queue')
+
                 # save the iteration examples to the history
                 self.trainExamplesHistory.append(iteration_examples)
 
@@ -164,20 +167,25 @@ class ParallelCoach(Coach):
                 # NB! the examples were collected using the model from the previous iteration, so (i-1)
                 self.saveTrainExamples(i - 1)
 
+                trainExamples = []
+                for e in self.trainExamplesHistory:
+                    trainExamples.extend(e)
+                shuffle(trainExamples)
+
                 # training new network, keeping a copy of the old one
                 self.nnet.save_checkpoint(
                     folder=self.args.checkpoint, filename=self.NNET_NAME_CURRENT)
                 self.pnet.load_checkpoint(
                     folder=self.args.checkpoint, filename=self.NNET_NAME_CURRENT)
-                pmcts = MCTS(self.game, self.pnet, self.args)
 
                 self.nnet.train(trainExamples)
-                nmcts = MCTS(self.game, self.nnet, self.args)
+                self.nnet.save_checkpoint(
+                    folder=self.args.checkpoint, filename=self.NNET_NAME_NEW)
 
                 log.info('PITTING AGAINST PREVIOUS VERSION')
-                arena = Arena(lambda x: np.argmax(pmcts.getActionProb(x, temp=0)),
-                              lambda x: np.argmax(nmcts.getActionProb(x, temp=0)), self.game, display=self.game.display_state)
-                pwins, nwins, draws = arena.playGames(
+                arena = Arena(os.path.join(self.args.checkpoint, self.NNET_NAME_CURRENT),
+                              os.path.join(self.args.checkpoint, self.NNET_NAME_NEW), self.game, self.args, display=self.game.display_state, workers=self.args.num_arena_workers, verbose=True)
+                pwins, nwins, draws = arena.player_games(
                     self.args.num_arena_comparisons, verbose=False)
 
                 log.info('NEW/PREV WINS : %d / %d ; DRAWS : %d' %
