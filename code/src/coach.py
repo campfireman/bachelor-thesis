@@ -4,6 +4,7 @@ import os
 import sys
 import time
 from collections import deque
+from dataclasses import dataclass
 from pickle import Pickler, Unpickler
 from random import shuffle
 from typing import Tuple
@@ -22,12 +23,35 @@ from .mcts import MCTS
 log = logging.getLogger(__name__)
 
 
+@dataclass
+class CoachArguments:
+    numIters: int = 1000
+    numEps: int = 10
+    tempThreshold: int = 15
+    # During arena playoff, new neural net will be accepted if threshold or more of games are won.
+    updateThreshold: float = 0.6
+    # Number of game examples to train the neural networks.
+    maxlenOfQueue: int = 2000000
+    # Number of games moves for MCTS to simulate.
+    numMCTSSims: int = 2
+    # Number of games to play during arena play to determine if new net will be accepted.
+    arenaCompare: int = 6
+    cpuct: float = 1
+    n_self_play_workers: int = 4
+
+    checkpoint: str = './temp/'
+    load_model: bool = False
+    load_folder_file: Tuple[str, str] = (
+        '/home/ture/projects/bachelor-thesis/code/src/temp', 'temp.pth.tar')
+    numItersForTrainExamplesHistory: int = 20
+
+
 class ParallelCoach(Coach):
     NNET_NAME_CURRENT = 'temp.pth.tar'
     NNET_NAME_BEST = 'best.pth.tar'
 
     @staticmethod
-    def run_self_play_worker(proc_id: int, args: dotdict, game: Game, train_example_queue: mp.Queue, nnet_path: str, nnet_id: mp.Value, cpu: bool = True):
+    def run_self_play_worker(proc_id: int, args: CoachArguments, game: Game, train_example_queue: mp.Queue, nnet_path: str, nnet_id: mp.Value, cpu: bool = True):
         def update_nnet(nnet: NNetWrapper) -> int:
             nnet.load_checkpoint(full_path=nnet_path)
             return nnet_id.value

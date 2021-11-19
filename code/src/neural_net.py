@@ -1,23 +1,26 @@
 import os
+from dataclasses import dataclass
 from typing import List
 
 import numpy as np
 import tensorflow as tf
 import tensorflow.keras as keras
 from alpha_zero_general.NeuralNet import NeuralNet
-from alpha_zero_general.utils import dotdict
 
 from .experiments.possible_moves import POSSIBLE_MOVES
 
-args = dotdict({
-    'lr': 0.001,
-    'dropout': 0.3,
-    'epochs': 10,
-    'batch_size': 64,
-    'cuda': False,
-    'num_channels': 512,
-    'residual_tower_size': 6,
-})
+
+@dataclass
+class NeuralNetArguments:
+    lr: float = 0.001
+    dropout: float = 0.3
+    epochs: int = 10
+    batch_size: int = 64
+    num_channels: int = 512
+    residual_tower_size: int = 6
+
+
+args = NeuralNetArguments()
 
 
 class AbaloneNN():
