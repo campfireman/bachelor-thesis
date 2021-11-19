@@ -27,8 +27,8 @@ class CoachArguments:
     temp_treshhold: int = 15
     # During arena playoff, new neural net will be accepted if threshold or more of games are won.
     update_treshold: float = 0.6
-    # Number of game examples to train the neural networks.
-    maxlen_of_queue: int = 2000000
+    # Max number of game examples in the queue between coach and self play workers
+    maxlen_of_queue: int = 2000
     # Number of games moves for MCTS to simulate.
     num_MCTS_sims: int = 25
     # Number of games to play during arena play to determine if new net will be accepted.
