@@ -25,17 +25,17 @@ log = logging.getLogger(__name__)
 
 @dataclass
 class CoachArguments:
-    numIters: int = 1000
-    numEps: int = 10
-    tempThreshold: int = 15
+    num_iters: int = 1000
+    num_eps: int = 10
+    temp_treshhold: int = 15
     # During arena playoff, new neural net will be accepted if threshold or more of games are won.
-    updateThreshold: float = 0.6
+    update_treshold: float = 0.6
     # Number of game examples to train the neural networks.
-    maxlenOfQueue: int = 2000000
+    maxlen_of_queue: int = 2000000
     # Number of games moves for MCTS to simulate.
-    numMCTSSims: int = 2
+    num_MCTS_sims: int = 2
     # Number of games to play during arena play to determine if new net will be accepted.
-    arenaCompare: int = 6
+    num_arena_comparisons: int = 6
     cpuct: float = 1
     n_self_play_workers: int = 4
 
@@ -43,7 +43,7 @@ class CoachArguments:
     load_model: bool = False
     load_folder_file: Tuple[str, str] = (
         '/home/ture/projects/bachelor-thesis/code/src/temp', 'temp.pth.tar')
-    numItersForTrainExamplesHistory: int = 20
+    num_iters_for_train_examples_history: int = 20
 
 
 class ParallelCoach(Coach):
@@ -63,7 +63,7 @@ class ParallelCoach(Coach):
 
         cur_nnet_id = update_nnet(nnet)
         train_examples = []
-        board = game.getInitBoard()
+        board = game.get_init_board()
         cur_player = 1
         episode_step = 0
         start = time.time()
@@ -71,19 +71,19 @@ class ParallelCoach(Coach):
         while True:
             mcts = MCTS(game, nnet, args)
             episode_step += 1
-            canonicalBoard = game.getCanonicalForm(board, cur_player)
-            temp = int(episode_step < args.tempThreshold)
+            canonicalBoard = game.get_canonical_form(board, cur_player)
+            temp = int(episode_step < args.temp_treshhold)
 
             pi = mcts.getActionProb(canonicalBoard, temp=temp)
-            sym = game.getSymmetries(canonicalBoard, pi)
+            sym = game.get_symmetries(canonicalBoard, pi)
             for b, p in sym:
                 train_examples.append([b, cur_player, p, None])
 
             action = np.random.choice(len(pi), p=pi)
-            board, cur_player = game.getNextState(
+            board, cur_player = game.get_next_state(
                 board, cur_player, action)
 
-            r = game.getGameEndedLimited(
+            r = game.get_game_ended_limited(
                 board, cur_player, episode_step)
             if r != 0:
                 end = time.time()
@@ -91,7 +91,7 @@ class ParallelCoach(Coach):
                     f'Finished game with nnet id: {nnet_id.value} in {(end-start):.2f}s')
                 train_example_queue.put(
                     [(x[0], x[2], r * ((-1) ** (x[1] != cur_player))) for x in train_examples])
-                board = game.getInitBoard()
+                board = game.get_init_board()
                 cur_player = 1
                 episode_step = 0
                 if nnet_id.value > cur_nnet_id:
@@ -127,11 +127,11 @@ class ParallelCoach(Coach):
 
     def learn(self):
         """
-        Performs numIters iterations with numEps episodes of self-play in each
+        Performs num_iters iterations with num_eps episodes of self-play in each
         iteration. After every iteration, it retrains neural network with
-        examples in trainExamples (which has a maximum length of maxlenofQueue).
+        examples in trainExamples (which has a maximum length of maxlen_of_queue).
         It then pits the new neural network against the old one and accepts it
-        only if it wins >= updateThreshold fraction of games.
+        only if it wins >= update_treshold fraction of games.
         """
         self.initialize_nnet()
         with mp.Manager() as manager:
@@ -139,15 +139,15 @@ class ParallelCoach(Coach):
                 self.args.n_self_play_workers, manager)
 
             # wait for first round of games to finish
-            while train_example_queue.qsize() < self.args.numEps:
+            while train_example_queue.qsize() < self.args.num_eps:
                 log.info(f'Not enough train examples waiting')
                 time.sleep(10.0)
 
-            for i in range(1, self.args.numIters + 1):
+            for i in range(1, self.args.num_iters + 1):
                 log.info(f'Starting Iter #{i} ...')
 
                 trainExamples = []
-                iteration_examples = deque([], self.args.maxlenOfQueue)
+                iteration_examples = deque([], self.args.maxlen_of_queue)
                 while not train_example_queue.empty():
                     game = train_example_queue.get()
                     trainExamples.extend(game)
@@ -156,7 +156,7 @@ class ParallelCoach(Coach):
                 # save the iteration examples to the history
                 self.trainExamplesHistory.append(iteration_examples)
 
-                if len(self.trainExamplesHistory) > self.args.numItersForTrainExamplesHistory:
+                if len(self.trainExamplesHistory) > self.args.num_iters_for_train_examples_history:
                     log.warning(
                         f"Removing the oldest entry in trainExamples. len(trainExamplesHistory) = {len(self.trainExamplesHistory)}")
                     self.trainExamplesHistory.pop(0)
@@ -178,11 +178,11 @@ class ParallelCoach(Coach):
                 arena = Arena(lambda x: np.argmax(pmcts.getActionProb(x, temp=0)),
                               lambda x: np.argmax(nmcts.getActionProb(x, temp=0)), self.game, display=self.game.display_state)
                 pwins, nwins, draws = arena.playGames(
-                    self.args.arenaCompare, verbose=False)
+                    self.args.num_arena_comparisons, verbose=False)
 
                 log.info('NEW/PREV WINS : %d / %d ; DRAWS : %d' %
                          (nwins, pwins, draws))
-                if pwins + nwins == 0 or float(nwins) / (pwins + nwins) < self.args.updateThreshold:
+                if pwins + nwins == 0 or float(nwins) / (pwins + nwins) < self.args.update_treshold:
                     log.info('REJECTING NEW MODEL')
                     self.nnet.load_checkpoint(
                         folder=self.args.checkpoint, filename=self.NNET_NAME_CURRENT)

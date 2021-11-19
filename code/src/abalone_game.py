@@ -38,7 +38,7 @@ class AbaloneGame(Game):
     def __init__(self):
         self.engine = Engine
 
-    def getInitBoard(self):
+    def get_init_board(self):
         """
         Returns:
             startBoard: a representation of the board (ideally this is the form
@@ -57,21 +57,21 @@ class AbaloneGame(Game):
             [1, 1, 1, 1, 1, 0, 0, 0, 0],  # 8
         ], dtype='int8')
 
-    def getBoardSize(self):
+    def get_board_size(self):
         """
         Returns:
             (x,y): a tuple of board dimensions
         """
         return (9, 9)
 
-    def getActionSize(self):
+    def get_action_size(self):
         """
         Returns:
             actionSize: number of all possible actions
         """
         return 1452
 
-    def getNextState(self, board, player, action):
+    def get_next_state(self, board, player, action):
         """
         Input:
             board: current board
@@ -88,25 +88,25 @@ class AbaloneGame(Game):
             board, player, move_index_to_standard(action))
         return board, next_player
 
-    def getValidMoves(self, board, player):
+    def get_valid_moves(self, board, player):
         """
         Input:
             board: current board
             player: current player
 
         Returns:
-            validMoves: a binary vector of length self.getActionSize(), 1 for
+            validMoves: a binary vector of length self.get_action_size(), 1 for
                         moves that are valid from the current board and player,
                         0 for invalid moves
         """
-        moves = np.zeros(self.getActionSize(), dtype=np.float32)
+        moves = np.zeros(self.get_action_size(), dtype=np.float32)
         for move in self.engine.s_generate_legal_moves(board, player):
             index = move_standard_to_index(
                 Move.from_original(move).to_standard())
             moves[index] = 1
         return moves
 
-    def getGameEnded(self, board, player):
+    def get_game_ended(self, board, player):
         """
         Input:
             board: current board
@@ -122,7 +122,7 @@ class AbaloneGame(Game):
             return 1 if self.engine.s_winner(score).value == player else -1
         return 0
 
-    def getGameEndedLimited(self, board, player, turns):
+    def get_game_ended_limited(self, board, player, turns):
         if turns > MAX_TURNS:
             score = self.engine.s_score(board)
             marbles_taken_black = (TOTAL_NUM_MARBLES -
@@ -136,9 +136,9 @@ class AbaloneGame(Game):
             log.info(
                 f'Exceeded max turns of {MAX_TURNS} setting game result to {partial_score}')
             return partial_score
-        return self.getGameEnded(board, player)
+        return self.get_game_ended(board, player)
 
-    def getCanonicalForm(self, board, player):
+    def get_canonical_form(self, board, player):
         """
         Input:
             board: current board
@@ -154,11 +154,11 @@ class AbaloneGame(Game):
         """
         return player*board
 
-    def getSymmetries(self, board, pi):
+    def get_symmetries(self, board, pi):
         """
         Input:
             board: current board
-            pi: policy vector of size self.getActionSize()
+            pi: policy vector of size self.get_action_size()
 
         Returns:
             symmForms: a list of [(board,pi)] where each tuple is a symmetrical
@@ -167,7 +167,7 @@ class AbaloneGame(Game):
         """
         return [(board, pi)]
 
-    def stringRepresentation(self, board):
+    def string_representation(self, board):
         """
         Input:
             board: current board
@@ -193,7 +193,7 @@ class AbaloneNNPlayer(AbstractPlayer):
         super().__init__(player)
         self.game = AbaloneGame()
         self.model = self.load_model()
-        args = dotdict({'numMCTSSims': 50, 'cpuct': 1.0})
+        args = dotdict({'num_MCTS_sims': 50, 'cpuct': 1.0})
         self.mcts = MCTS(self.game, self.model, args)
 
     def load_model(self) -> tf.keras.Model:

@@ -39,32 +39,32 @@ class Arena():
         """
         players = [self.player2, None, self.player1]
         cur_player = 1
-        board = self.game.getInitBoard()
+        board = self.game.get_init_board()
         it = 0
-        while self.game.getGameEndedLimited(board, cur_player, it) == 0:
+        while self.game.get_game_ended_limited(board, cur_player, it) == 0:
             it += 1
             if verbose:
                 assert self.display
                 print("Turn ", str(it), "Player ", str(cur_player))
                 self.display(board)
             action = players[cur_player +
-                             1](self.game.getCanonicalForm(board, cur_player))
+                             1](self.game.get_canonical_form(board, cur_player))
 
-            valids = self.game.getValidMoves(
-                self.game.getCanonicalForm(board, cur_player), 1)
+            valids = self.game.get_valid_moves(
+                self.game.get_canonical_form(board, cur_player), 1)
 
             if valids[action] == 0:
                 log.error(f'Action {action} is not valid!')
                 log.debug(f'valids = {valids}')
                 assert valids[action] > 0
-            board, cur_player = self.game.getNextState(
+            board, cur_player = self.game.get_next_state(
                 board, cur_player, action)
         if verbose:
             assert self.display
             print("Game over: Turn ", str(it), "Result ",
-                  str(self.game.getGameEndedLimited(board, 1, it)))
+                  str(self.game.get_game_ended_limited(board, 1, it)))
             self.display(board)
-        return cur_player * self.game.getGameEndedLimited(board, cur_player, it)
+        return cur_player * self.game.get_game_ended_limited(board, cur_player, it)
 
     def playGames(self, num, verbose=False):
         """
