@@ -1,6 +1,7 @@
 ### PROJECT ###
 temp/
 output*.txt
+.vscode
 
 ### PYTHON ###
 # Byte-compiled / optimized / DLL files
