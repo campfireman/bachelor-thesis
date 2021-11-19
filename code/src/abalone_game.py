@@ -203,7 +203,7 @@ class AbaloneNNPlayer(AbstractPlayer):
         return nn
 
     def search(self, board: np.array) -> int:
-        return np.argmax(self.mcts.getActionProb(board, temp=0))
+        return np.argmax(self.mcts.get_action_prob(board, temp=0))
 
     def turn(self, game: Game, moves_history: List[Tuple[Union[Space, Tuple[Space, Space]], Direction]]) -> Tuple[Union[Space, Tuple[Space, Space]], Direction]:
         board = game.canonical_board()

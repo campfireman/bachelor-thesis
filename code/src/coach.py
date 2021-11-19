@@ -73,7 +73,7 @@ class ParallelCoach(Coach):
             canonicalBoard = game.get_canonical_form(board, cur_player)
             temp = int(episode_step < args.temp_treshhold)
 
-            pi = mcts.getActionProb(canonicalBoard, temp=temp)
+            pi = mcts.get_action_prob(canonicalBoard, temp=temp)
             sym = game.get_symmetries(canonicalBoard, pi)
             for b, p in sym:
                 train_examples.append([b, cur_player, p, None])

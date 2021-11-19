@@ -29,7 +29,7 @@ class MCTS():
         self.R_s = {}  # stores game.get_game_ended ended for board s
         self.V_s = {}  # stores game.get_valid_moves for board s
 
-    def getActionProb(self, canonicalBoard, temp=1):
+    def get_action_prob(self, canonicalBoard, temp=1):
         """
         This function performs num_MCTS_sims simulations of MCTS starting from
         canonicalBoard.

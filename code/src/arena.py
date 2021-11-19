@@ -53,8 +53,8 @@ class ParallelArena():
         pnet = NNetWrapper(self.game)
         pmcts = MCTS(self.game, pnet, self.args)
         nnet.load_checkpoint(full_path=self.player2)
-        players = [lambda x: np.argmax(pmcts.getActionProb(
-            x, temp=0)), None, lambda x: np.argmax(nmcts.getActionProb(x, temp=0))]
+        players = [lambda x: np.argmax(pmcts.get_action_prob(
+            x, temp=0)), None, lambda x: np.argmax(nmcts.get_action_prob(x, temp=0))]
         cur_player = 1
         board = self.game.get_init_board()
         it = 0
