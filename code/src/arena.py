@@ -97,7 +97,6 @@ class ParallelArena():
 
         with mp.Pool(processes=self.workers) as pool:
             results = pool.map(self.play_game, range(0, num))
-            print(f'results: {results}')
 
             for game_result in tqdm(results, desc="Arena.player_games (1)"):
                 if game_result > tolerance:
@@ -108,7 +107,6 @@ class ParallelArena():
                     draws += 1
             results = pool.map(self.play_game, range(0, num))
             pool.map(self.play_game, results)
-            print(f'results: {results}')
 
             self.player1, self.player2 = self.player2, self.player1
 
