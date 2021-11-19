@@ -136,9 +136,10 @@ class NNetWrapper(NeuralNet):
             print("Checkpoint Directory exists! ")
         self.nnet.model.save(filepath)
 
-    def load_checkpoint(self, folder='checkpoint', filename='checkpoint.pth.tar'):
+    def load_checkpoint(self, folder='checkpoint', filename='checkpoint.pth.tar', full_path=None):
         # https://github.com/pytorch/examples/blob/master/imagenet/main.py#L98
-        filepath = os.path.join(folder, filename)
+        filepath = os.path.join(
+            folder, filename) if full_path is None else full_path
         if not os.path.exists(filepath):
-            raise("No model in path {}".format(filepath))
+            raise FileNotFoundError(f"No model in path {filepath}")
         self.nnet.model = tf.keras.models.load_model(filepath)
