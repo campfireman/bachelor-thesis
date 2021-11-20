@@ -189,17 +189,16 @@ class AbaloneGame(Game):
 
 
 class AbaloneNNPlayer(AbstractPlayer):
-    def __init__(self, player: Player):
+    def __init__(self, player: Player, nnet_fullpath: str, num_MCTS_sims: int = 50, cpuct: float = 1.0):
         super().__init__(player)
         self.game = AbaloneGame()
-        self.model = self.load_model()
-        args = dotdict({'num_MCTS_sims': 50, 'cpuct': 1.0})
+        self.model = self.load_model(nnet_fullpath)
+        args = dotdict({'num_MCTS_sims': num_MCTS_sims, 'cpuct': cpuct})
         self.mcts = MCTS(self.game, self.model, args)
 
-    def load_model(self) -> tf.keras.Model:
+    def load_model(self, nnet_fullpath) -> NNetWrapper:
         nn = NNetWrapper(self.game)
-        nn.load_checkpoint(
-            './temp/', 'temp.pth.tar')
+        nn.load_checkpoint(full_path=nnet_fullpath)
         return nn
 
     def search(self, board: np.array) -> int:

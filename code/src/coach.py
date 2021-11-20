@@ -12,6 +12,7 @@ import numpy as np
 from alpha_zero_general.Coach import Coach
 from alpha_zero_general.Game import Game
 
+from src.abalone_game import AbaloneNNPlayer
 from src.neural_net import NNetWrapper
 
 from .arena import ParallelArena as Arena
@@ -23,16 +24,16 @@ log = logging.getLogger(__name__)
 @dataclass
 class CoachArguments:
     num_iters: int = 1000
-    num_eps: int = 10
+    num_eps: int = 2
     temp_treshhold: int = 15
     # During arena playoff, new neural net will be accepted if threshold or more of games are won.
     update_treshold: float = 0.6
     # Max number of game examples in the queue between coach and self play workers
     maxlen_of_queue: int = 2000
     # Number of games moves for MCTS to simulate.
-    num_MCTS_sims: int = 25
+    num_MCTS_sims: int = 4
     # Number of games to play during arena play to determine if new net will be accepted.
-    num_arena_comparisons: int = 4
+    num_arena_comparisons: int = 2
     cpuct: float = 1
     num_self_play_workers: int = 4
     num_arena_workers: int = 2
@@ -87,7 +88,7 @@ class ParallelCoach(Coach):
             if r != 0:
                 end = time.time()
                 log.info(
-                    f'Finished game with nnet id: {nnet_id.value} in {(end-start):.2f}s')
+                    f'Finished game with nnet id: {cur_nnet_id} in {(end-start):.2f}s')
                 train_example_queue.put(
                     [(x[0], x[2], r * ((-1) ** (x[1] != cur_player))) for x in train_examples])
                 board = game.get_init_board()
@@ -183,10 +184,19 @@ class ParallelCoach(Coach):
                     folder=self.args.checkpoint, filename=self.NNET_NAME_NEW)
 
                 log.info('PITTING AGAINST PREVIOUS VERSION')
-                arena = Arena(os.path.join(self.args.checkpoint, self.NNET_NAME_CURRENT),
-                              os.path.join(self.args.checkpoint, self.NNET_NAME_NEW), self.game, self.args, display=self.game.display_state, workers=self.args.num_arena_workers, verbose=True)
-                pwins, nwins, draws = arena.player_games(
-                    self.args.num_arena_comparisons, verbose=False)
+                arena = Arena(
+                    AbaloneNNPlayer,
+                    (),
+                    {'nnet_fullpath': os.path.join(self.args.checkpoint, self.NNET_NAME_CURRENT),
+                     'num_MCTS_sims': self.args.num_MCTS_sims, 'cpuct': self.args.cpuct},
+                    AbaloneNNPlayer,
+                    (),
+                    {'nnet_fullpath': os.path.join(self.args.checkpoint, self.NNET_NAME_NEW),
+                     'num_MCTS_sims': self.args.num_MCTS_sims, 'cpuct': self.args.cpuct},
+                    self.args,
+                    verbose=False
+                )
+                pwins, nwins, draws = arena.player_games()
 
                 log.info('NEW/PREV WINS : %d / %d ; DRAWS : %d' %
                          (nwins, pwins, draws))
