@@ -19,7 +19,8 @@ class ParallelArena():
         player2_class: object,
         player2_args: Tuple,
         player2_kwargs: dict,
-        args,
+        matches: int,
+        workers: int,
         verbose=False
     ):
         self.player1_class = player1_class
@@ -28,7 +29,8 @@ class ParallelArena():
         self.player2_class = player2_class
         self.player2_args = player2_args
         self.player2_kwargs = player2_kwargs
-        self.args = args
+        self.matches = matches
+        self.workers = workers
         self.verbose = verbose
 
     def print_game_result(self, game: Game):
@@ -40,15 +42,15 @@ class ParallelArena():
     def play_match(self, n: int):
         log.info(f'Playing match: {n}')
         os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
-        player1 = self.player1_class(
-            Player.BLACK, *self.player1_args, **self.player1_kwargs)
-        player2 = self.player2_class(
-            Player.WHITE, *self.player2_args, **self.player2_kwargs)
         one_won = 0
         two_won = 0
         draws = 0
         tolerance = 0.01
 
+        player1 = self.player1_class(
+            Player.BLACK, *self.player1_args, **self.player1_kwargs)
+        player2 = self.player2_class(
+            Player.WHITE, *self.player2_args, **self.player2_kwargs)
         game, _ = Game.run_game_new(player1, player2, is_verbose=self.verbose)
         game_result = game.get_rewards(game.get_score())[0]
         if game_result > tolerance:
@@ -59,8 +61,10 @@ class ParallelArena():
             draws += 1
         self.print_game_result(game)
 
-        player1.player = Player.WHITE
-        player2.player = Player.BLACK
+        player1 = self.player1_class(
+            Player.WHITE, *self.player1_args, **self.player1_kwargs)
+        player2 = self.player2_class(
+            Player.BLACK, *self.player2_args, **self.player2_kwargs)
         game, _ = Game.run_game_new(player2, player1, is_verbose=self.verbose)
         game_result = game.get_rewards(game.get_score())[0]
 
@@ -84,11 +88,11 @@ class ParallelArena():
             draws:  games won by nobody
         """
 
-        with mp.Pool(processes=self.args.num_arena_workers) as pool:
+        with mp.Pool(processes=self.workers) as pool:
             log.info('starting matches')
             scores = pool.map(
                 self.play_match,
-                range(0, self.args.num_arena_comparisons)
+                range(0, self.matches)
             )
 
             result = (0, 0, 0)

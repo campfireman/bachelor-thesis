@@ -9,11 +9,14 @@ from random import shuffle
 from typing import Tuple
 
 import numpy as np
+from abalone_engine.players import (AbaProPlayer, AlphaBetaPlayerFast,
+                                    RandomPlayer)
 from alpha_zero_general.Coach import Coach
 from alpha_zero_general.Game import Game
 
 from src.abalone_game import AbaloneNNPlayer
 from src.neural_net import NNetWrapper
+from src.utils import CsvTable
 
 from .arena import ParallelArena as Arena
 from .mcts import MCTS
@@ -32,12 +35,17 @@ class CoachArguments:
     maxlen_of_queue: int = 2000
     # Number of games moves for MCTS to simulate.
     num_MCTS_sims: int = 4
-    # Number of games to play during arena play to determine if new net will be accepted.
-    num_arena_comparisons: int = 2
     cpuct: float = 1
     num_self_play_workers: int = 4
+    # Number of games to play during arena play to determine if new net will be accepted.
+    num_self_comparisons: int = 2
+    # At which interval playoffs against heuristic agent and random agent are being performed
+    agent_comparisons_step_size: int = 5
+    num_random_agent_comparisons: int = 2
+    num_heuristic_agent_comparisons: int = 2
     num_arena_workers: int = 2
 
+    data_directory: str = './'
     checkpoint: str = './temp/'
     load_model: bool = False
     load_folder_file: Tuple[str, str] = (
@@ -135,6 +143,17 @@ class ParallelCoach(Coach):
         only if it wins >= update_treshold fraction of games.
         """
         self.initialize_nnet()
+        training_start = time.time()
+        random_player_game_stats_csv = CsvTable(
+            self.args.data_directory,
+            f'{training_start}_random_player_game_stats.csv',
+            ['iteration', 'timestamp', 'wins', 'losses', 'draws'],
+        )
+        heuristic_player_game_stats_csv = CsvTable(
+            self.args.data_directory,
+            f'{training_start}_heuristic_player_game_stats.csv',
+            ['iteration', 'timestamp', 'wins', 'losses', 'draws'],
+        )
         with mp.Manager() as manager:
             train_example_queue, nnet_id = self.spawnum_self_play_workers(
                 self.args.num_self_play_workers, manager)
@@ -193,7 +212,8 @@ class ParallelCoach(Coach):
                     (),
                     {'nnet_fullpath': os.path.join(self.args.checkpoint, self.NNET_NAME_NEW),
                      'num_MCTS_sims': self.args.num_MCTS_sims, 'cpuct': self.args.cpuct},
-                    self.args,
+                    self.args.num_self_comparisons,
+                    self.args.num_arena_workers,
                     verbose=False
                 )
                 pwins, nwins, draws = arena.player_games()
@@ -211,3 +231,45 @@ class ParallelCoach(Coach):
                         folder=self.args.checkpoint, filename=self.getCheckpointFile(i))
                     self.nnet.save_checkpoint(
                         folder=self.args.checkpoint, filename=self.NNET_NAME_BEST)
+
+                self.nnet.save_checkpoint(
+                    folder=self.args.checkpoint, filename=self.NNET_NAME_CURRENT)
+
+                if i != 0 and i % self.args.agent_comparisons_step_size:
+                    log.info('PITTING AGAINST RANDOM PLAYER')
+                    arena = Arena(
+                        AbaloneNNPlayer,
+                        (),
+                        {'nnet_fullpath': os.path.join(self.args.checkpoint, self.NNET_NAME_CURRENT),
+                         'num_MCTS_sims': self.args.num_MCTS_sims, 'cpuct': self.args.cpuct},
+                        RandomPlayer,
+                        (),
+                        {},
+                        self.args.num_random_agent_comparisons,
+                        self.args.num_arena_workers,
+                        verbose=False
+                    )
+                    nwins, rwins, draws = arena.player_games()
+                    random_player_game_stats_csv.add_row(
+                        [i, time.time(), nwins, rwins, draws])
+                    log.info('NN/RNDM WINS : %d / %d ; DRAWS : %d' %
+                             (nwins, rwins, draws))
+
+                    log.info('PITTING AGAINST HEURISTIC PLAYER')
+                    arena = Arena(
+                        AbaloneNNPlayer,
+                        (),
+                        {'nnet_fullpath': os.path.join(self.args.checkpoint, self.NNET_NAME_CURRENT),
+                         'num_MCTS_sims': self.args.num_MCTS_sims, 'cpuct': self.args.cpuct},
+                        AbaProPlayer,
+                        (),
+                        {},
+                        self.args.num_random_agent_comparisons,
+                        self.args.num_arena_workers,
+                        verbose=False
+                    )
+                    nwins, hwins, draws = arena.player_games()
+                    heuristic_player_game_stats_csv.add_row(
+                        [i, time.time(), nwins, hwins, draws])
+                    log.info('NN/HRSTC WINS : %d / %d ; DRAWS : %d' %
+                             (nwins, hwins, draws))
