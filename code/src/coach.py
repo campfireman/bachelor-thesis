@@ -247,7 +247,7 @@ class ParallelCoach(Coach):
                 self.nnet.save_checkpoint(
                     folder=self.args.checkpoint, filename=self.NNET_NAME_CURRENT)
 
-                if i != 0 and i % self.args.agent_comparisons_step_size:
+                if i == 1 or i % self.args.agent_comparisons_step_size == 0:
                     log.info('PITTING AGAINST RANDOM PLAYER')
                     arena = Arena(
                         AbaloneNNPlayer,
