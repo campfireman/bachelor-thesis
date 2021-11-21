@@ -138,7 +138,7 @@ class ParallelCoach(Coach):
         """
         Performs num_iters iterations with num_eps episodes of self-play in each
         iteration. After every iteration, it retrains neural network with
-        examples in trainExamples (which has a maximum length of maxlen_of_queue).
+        examples in train_examples (which has a maximum length of maxlen_of_queue).
         It then pits the new neural network against the old one and accepts it
         only if it wins >= update_treshold fraction of games.
         """
@@ -187,20 +187,20 @@ class ParallelCoach(Coach):
                     f'Loaded {examples_read_from_queue} self play games from queue')
 
                 # save the iteration examples to the history
-                self.trainExamplesHistory.append(iteration_examples)
+                self.train_examples_history.append(iteration_examples)
 
-                if len(self.trainExamplesHistory) > self.args.num_iters_for_train_examples_history:
+                if len(self.train_examples_history) > self.args.num_iters_for_train_examples_history:
                     log.warning(
-                        f"Removing the oldest entry in trainExamples. len(trainExamplesHistory) = {len(self.trainExamplesHistory)}")
-                    self.trainExamplesHistory.pop(0)
+                        f"Removing the oldest entry in train_examples. len(train_examples_history) = {len(self.train_examples_history)}")
+                    self.train_examples_history.pop(0)
                 # backup history to a file
                 # NB! the examples were collected using the model from the previous iteration, so (i-1)
-                self.saveTrainExamples(i - 1)
+                self.savetrain_examples(i - 1)
 
-                trainExamples = []
-                for e in self.trainExamplesHistory:
-                    trainExamples.extend(e)
-                shuffle(trainExamples)
+                train_examples = []
+                for e in self.train_examples_history:
+                    train_examples.extend(e)
+                shuffle(train_examples)
 
                 # training new network, keeping a copy of the old one
                 self.nnet.save_checkpoint(
@@ -209,7 +209,7 @@ class ParallelCoach(Coach):
                     folder=self.args.checkpoint, filename=self.NNET_NAME_CURRENT)
 
                 training_duration_start = time.time()
-                self.nnet.train(trainExamples)
+                self.nnet.train(train_examples)
                 training_duration = time.time() - training_duration_start
                 self.nnet.save_checkpoint(
                     folder=self.args.checkpoint, filename=self.NNET_NAME_NEW)
@@ -287,4 +287,4 @@ class ParallelCoach(Coach):
                              (nwins, hwins, draws))
                 iteration_duration = time.time() - iteration_start
                 performance_stats_csv.add_row(
-                    [i, time.time(), iteration_duration, training_duration, examples_read_from_queue, len(trainExamples)])
+                    [i, time.time(), iteration_duration, training_duration, examples_read_from_queue, len(train_examples)])
