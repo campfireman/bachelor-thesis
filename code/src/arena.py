@@ -77,7 +77,7 @@ class ParallelArena():
         self.print_game_result(game)
         return (one_won, two_won, draws)
 
-    def player_games(self):
+    def play_games(self):
         """
         Plays num games in which player1 starts num/2 games and player2 starts
         num/2 games.

@@ -228,7 +228,7 @@ class ParallelCoach(Coach):
                     self.args.num_arena_workers,
                     verbose=False
                 )
-                pwins, nwins, draws = arena.player_games()
+                pwins, nwins, draws = arena.play_games()
 
                 log.info('NEW/PREV WINS : %d / %d ; DRAWS : %d' %
                          (nwins, pwins, draws))
@@ -261,7 +261,7 @@ class ParallelCoach(Coach):
                         self.args.num_arena_workers,
                         verbose=False
                     )
-                    nwins, rwins, draws = arena.player_games()
+                    nwins, rwins, draws = arena.play_games()
                     random_player_game_stats_csv.add_row(
                         [i, time.time(), nwins, rwins, draws])
                     log.info('NN/RNDM WINS : %d / %d ; DRAWS : %d' %
@@ -280,7 +280,7 @@ class ParallelCoach(Coach):
                         self.args.num_arena_workers,
                         verbose=False
                     )
-                    nwins, hwins, draws = arena.player_games()
+                    nwins, hwins, draws = arena.play_games()
                     heuristic_player_game_stats_csv.add_row(
                         [i, time.time(), nwins, hwins, draws])
                     log.info('NN/HRSTC WINS : %d / %d ; DRAWS : %d' %

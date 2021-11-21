@@ -4,7 +4,7 @@ from abalone_engine.players import AbaProPlayer, RandomPlayer
 from src.arena import ParallelArena
 
 
-def test_player_games():
+def test_play_games():
     test_net_path = os.path.join(os.path.dirname(
         os.path.realpath(__file__)), 'lib/nnet.tar')
     arena = ParallelArena(
@@ -12,4 +12,4 @@ def test_player_games():
         RandomPlayer, (), {},
         2,
         2,)
-    pwins, nwins, draws = arena.player_games()
+    pwins, nwins, draws = arena.play_games()
