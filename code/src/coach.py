@@ -143,7 +143,15 @@ class ParallelCoach(Coach):
         only if it wins >= update_treshold fraction of games.
         """
         self.initialize_nnet()
+
+        # collect stats in csv files
         training_start = time.time()
+        performance_stats_csv = CsvTable(
+            self.args.data_directory,
+            f'{training_start}_performance_stats.csv',
+            ['iteration', 'timestamp', 'iteration_duration',
+                'training_duration', 'examples_read_from_queue', 'length_train_examples'],
+        )
         random_player_game_stats_csv = CsvTable(
             self.args.data_directory,
             f'{training_start}_random_player_game_stats.csv',
@@ -154,6 +162,7 @@ class ParallelCoach(Coach):
             f'{training_start}_heuristic_player_game_stats.csv',
             ['iteration', 'timestamp', 'wins', 'losses', 'draws'],
         )
+
         with mp.Manager() as manager:
             train_example_queue, nnet_id = self.spawnum_self_play_workers(
                 self.args.num_self_play_workers, manager)
@@ -164,17 +173,18 @@ class ParallelCoach(Coach):
                 time.sleep(10.0)
 
             for i in range(1, self.args.num_iters + 1):
+                iteration_start = time.time()
                 log.info(f'Starting Iter #{i} ...')
 
                 iteration_examples = deque([], self.args.maxlen_of_queue)
 
-                example_counter = 0
+                examples_read_from_queue = 0
                 while not train_example_queue.empty():
                     game = train_example_queue.get()
                     iteration_examples += game
-                    example_counter += 1
+                    examples_read_from_queue += 1
                 log.info(
-                    f'Loaded {example_counter} self play games from queue')
+                    f'Loaded {examples_read_from_queue} self play games from queue')
 
                 # save the iteration examples to the history
                 self.trainExamplesHistory.append(iteration_examples)
@@ -198,7 +208,9 @@ class ParallelCoach(Coach):
                 self.pnet.load_checkpoint(
                     folder=self.args.checkpoint, filename=self.NNET_NAME_CURRENT)
 
+                training_duration_start = time.time()
                 self.nnet.train(trainExamples)
+                training_duration = time.time() - training_duration_start
                 self.nnet.save_checkpoint(
                     folder=self.args.checkpoint, filename=self.NNET_NAME_NEW)
 
@@ -261,7 +273,7 @@ class ParallelCoach(Coach):
                         (),
                         {'nnet_fullpath': os.path.join(self.args.checkpoint, self.NNET_NAME_CURRENT),
                          'num_MCTS_sims': self.args.num_MCTS_sims, 'cpuct': self.args.cpuct},
-                        AbaProPlayer,
+                        RandomPlayer,
                         (),
                         {},
                         self.args.num_random_agent_comparisons,
@@ -273,3 +285,6 @@ class ParallelCoach(Coach):
                         [i, time.time(), nwins, hwins, draws])
                     log.info('NN/HRSTC WINS : %d / %d ; DRAWS : %d' %
                              (nwins, hwins, draws))
+                iteration_duration = time.time() - iteration_start
+                performance_stats_csv.add_row(
+                    [i, time.time(), iteration_duration, training_duration, examples_read_from_queue, len(trainExamples)])
