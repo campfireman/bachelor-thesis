@@ -1,11 +1,14 @@
 import os
 from dataclasses import dataclass
-from typing import List
+from typing import List, Tuple
 
 import numpy as np
+import numpy.typing as npt
 import tensorflow as tf
 import tensorflow.keras as keras
 from alpha_zero_general.NeuralNet import NeuralNet
+
+from src.abalone_game import Game
 
 from .experiments.possible_moves import POSSIBLE_MOVES
 
@@ -24,7 +27,7 @@ args = NeuralNetArguments()
 
 
 class AbaloneNN():
-    def __init__(self, game, args):
+    def __init__(self, game: Game, args: 'CoachArguments'):
         # game params
         self.board_x, self.board_y = game.get_board_size()
         self.action_size = game.get_action_size()
@@ -44,13 +47,13 @@ class AbaloneNN():
         self.model.compile(
             loss=['categorical_crossentropy', 'mean_squared_error'], optimizer=keras.optimizers.Adam(args.lr))
 
-    def convolutional_block(self, x):
+    def convolutional_block(self, x: tf.Tensor) -> tf.Tensor:
         x = keras.layers.Conv2D(256, (3, 3), padding='same')(x)
         x = keras.layers.BatchNormalization()(x)
         x = keras.layers.ReLU()(x)
         return x
 
-    def residual_tower(self, x, size: int = 19):
+    def residual_tower(self, x: tf.Tensor, size: int = 19) -> tf.Tensor:
         for i in range(0, size):
             x_input = x
             x = self.convolutional_block(x)
@@ -61,7 +64,7 @@ class AbaloneNN():
             x = keras.layers.ReLU()(x)
         return x
 
-    def value_head(self, x):
+    def value_head(self, x: tf.Tensor) -> tf.Tensor:
         x = keras.layers.Conv2D(2, (1, 1))(x)
         x = keras.layers.BatchNormalization()(x)
         x = keras.layers.ReLU()(x)
@@ -71,7 +74,7 @@ class AbaloneNN():
         x = keras.layers.Dense(1, activation='tanh', name='v')(x)
         return x
 
-    def policy_head(self, x):
+    def policy_head(self, x: tf.Tensor) -> tf.Tensor:
         x = keras.layers.Conv2D(2, (1, 1))(x)
         x = keras.layers.BatchNormalization()(x)
         x = keras.layers.ReLU()(x)
@@ -109,7 +112,7 @@ class NNetWrapper(NeuralNet):
         self.board_x, self.board_y = game.get_board_size()
         self.action_size = game.get_action_size()
 
-    def train(self, examples):
+    def train(self, examples: List[Tuple[npt.NDArray, List[float], float]]):
         """
         examples: list of examples, each example is of form (board, pi, v)
         """
@@ -120,7 +123,7 @@ class NNetWrapper(NeuralNet):
         self.nnet.model.fit(x=input_boards, y=[
                             target_pis, target_vs], batch_size=args.batch_size, epochs=args.epochs)
 
-    def predict(self, board):
+    def predict(self, board: npt.NDArray) -> Tuple[npt.NDArray, float]:
         """
         board: np array with board
         """
@@ -129,7 +132,7 @@ class NNetWrapper(NeuralNet):
         pi, v = self.nnet.model.predict(board)
         return pi[0], v[0]
 
-    def save_checkpoint(self, folder='checkpoint', filename='checkpoint.pth.tar'):
+    def save_checkpoint(self, folder: str = 'checkpoint', filename: str = 'checkpoint.pth.tar'):
         filepath = os.path.join(folder, filename)
         if not os.path.exists(folder):
             print(
@@ -139,7 +142,7 @@ class NNetWrapper(NeuralNet):
             print("Checkpoint Directory exists! ")
         self.nnet.model.save(filepath)
 
-    def load_checkpoint(self, folder='checkpoint', filename='checkpoint.pth.tar', full_path=None):
+    def load_checkpoint(self, folder: str = 'checkpoint', filename: str = 'checkpoint.pth.tar', full_path: str = None):
         # https://github.com/pytorch/examples/blob/master/imagenet/main.py#L98
         filepath = os.path.join(
             folder, filename) if full_path is None else full_path

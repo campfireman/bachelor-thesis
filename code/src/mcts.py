@@ -1,8 +1,10 @@
 import hashlib
 import logging
 import math
+from typing import List
 
 import numpy as np
+import numpy.typing as npt
 
 EPS = 1e-8
 
@@ -29,7 +31,7 @@ class MCTS():
         self.R_s = {}  # stores game.get_game_ended ended for board s
         self.V_s = {}  # stores game.get_valid_moves for board s
 
-    def get_action_prob(self, canonicalBoard, temp=1):
+    def get_action_prob(self, canonicalBoard: npt.NDArray, temp: int = 1) -> List[float]:
         """
         This function performs num_MCTS_sims simulations of MCTS starting from
         canonicalBoard.
@@ -58,12 +60,12 @@ class MCTS():
         probs = [x / counts_sum for x in counts]
         return probs
 
-    def hash_state(self, board, parent_hash, depth):
+    def hash_state(self, board: npt.NDArray, parent_hash: str, depth: int) -> str:
         hash = self.game.string_representation(
             board) + hashlib.md5((parent_hash + str(depth)).encode()).hexdigest()
         return hash
 
-    def search(self, canonicalBoard, prev='', depth=0):
+    def search(self, canonicalBoard: npt.NDArray, prev: str = '', depth: int = 0) -> float:
         """
         This function performs one iteration of MCTS. It is recursively called
         till a leaf node is found. The action chosen at each node is one that

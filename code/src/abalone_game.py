@@ -1,9 +1,8 @@
 import logging
-from functools import partial
 from typing import List, Tuple, Union
 
 import numpy as np
-import tensorflow as tf
+import numpy.typing as npt
 from abalone_engine.enums import Direction, Player, Space
 from abalone_engine.game import Game as Engine
 from abalone_engine.game import Move
@@ -38,7 +37,7 @@ class AbaloneGame(Game):
     def __init__(self):
         self.engine = Engine
 
-    def get_init_board(self):
+    def get_init_board(self) -> npt.NDArray:
         """
         Returns:
             startBoard: a representation of the board (ideally this is the form
@@ -57,21 +56,21 @@ class AbaloneGame(Game):
             [1, 1, 1, 1, 1, 0, 0, 0, 0],  # 8
         ], dtype='int8')
 
-    def get_board_size(self):
+    def get_board_size(self) -> Tuple[int, int]:
         """
         Returns:
             (x,y): a tuple of board dimensions
         """
         return (9, 9)
 
-    def get_action_size(self):
+    def get_action_size(self) -> int:
         """
         Returns:
             actionSize: number of all possible actions
         """
         return 1452
 
-    def get_next_state(self, board, player, action):
+    def get_next_state(self, board: npt.NDArray, player: int, action: int) -> npt.NDArray:
         """
         Input:
             board: current board
@@ -88,7 +87,7 @@ class AbaloneGame(Game):
             board, player, move_index_to_standard(action))
         return board, next_player
 
-    def get_valid_moves(self, board, player):
+    def get_valid_moves(self, board: npt.NDArray, player: int):
         """
         Input:
             board: current board
@@ -106,7 +105,7 @@ class AbaloneGame(Game):
             moves[index] = 1
         return moves
 
-    def get_game_ended(self, board, player):
+    def get_game_ended(self, board: npt.NDArray, player: int) -> int:
         """
         Input:
             board: current board
@@ -122,7 +121,7 @@ class AbaloneGame(Game):
             return 1 if self.engine.s_winner(score).value == player else -1
         return 0
 
-    def get_game_ended_limited(self, board, player, turns):
+    def get_game_ended_limited(self, board: npt.NDArray, player: int, turns: int) -> float:
         if turns > MAX_TURNS:
             score = self.engine.s_score(board)
             marbles_taken_black = (TOTAL_NUM_MARBLES -
@@ -138,7 +137,7 @@ class AbaloneGame(Game):
             return partial_score
         return self.get_game_ended(board, player)
 
-    def get_canonical_form(self, board, player):
+    def get_canonical_form(self, board: npt.NDArray, player: int) -> npt.NDArray:
         """
         Input:
             board: current board
@@ -154,7 +153,7 @@ class AbaloneGame(Game):
         """
         return player*board
 
-    def get_symmetries(self, board, pi):
+    def get_symmetries(self, board: npt.NDArray, pi: List[float]) -> List[Tuple[npt.NDArray, List[float]]]:
         """
         Input:
             board: current board
@@ -167,7 +166,7 @@ class AbaloneGame(Game):
         """
         return [(board, pi)]
 
-    def string_representation(self, board):
+    def string_representation(self, board: npt.NDArray) -> str:
         """
         Input:
             board: current board
@@ -181,7 +180,7 @@ class AbaloneGame(Game):
             string += ''.join(map(str, line))
         return string
 
-    def display_state(self, board):
+    def display_state(self, board: npt.NDArray):
         game = self.engine.from_array(board, player=1)
         score = game.get_score()
         score_str = f'BLACK {score[0]} - WHITE {score[1]}'
