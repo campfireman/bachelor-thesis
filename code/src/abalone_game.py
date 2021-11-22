@@ -10,6 +10,8 @@ from abalone_engine.players import AbstractPlayer
 from alpha_zero_general.Game import Game
 from alpha_zero_general.utils import dotdict
 
+from src.settings import CoachArguments
+
 # from alpha_zero_general.MCTS import MCTS
 from .mcts import MCTS
 from .neural_net import NNetWrapper
@@ -196,7 +198,7 @@ class AbaloneNNPlayer(AbstractPlayer):
         self.mcts = MCTS(self.game, self.model, args)
 
     def load_model(self, nnet_fullpath) -> NNetWrapper:
-        nn = NNetWrapper(self.game)
+        nn = NNetWrapper(self.game, CoachArguments())
         nn.load_checkpoint(full_path=nnet_fullpath)
         return nn
 
