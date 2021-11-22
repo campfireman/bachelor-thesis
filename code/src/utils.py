@@ -16,16 +16,14 @@ def move_standard_to_index(move: str) -> int:
 
 class CsvTable:
     def __init__(self, path: str, filename: str, header: List):
-        self.file = open(os.path.join(path, filename), 'w')
-        self.csv_writer = csv.writer(self.file, delimiter=',')
+        self.filepath = os.path.join(path, filename)
         self.header = header
-        self.csv_writer.writerow(self.header)
+        self.add_row(self.header)
 
     def add_row(self, row: List):
-        if len(row) != len(self.header):
-            raise ArgumentError(
-                f'Incorrect dimension of row, header has {len(self.header)} and row has {len(row)}')
-        self.csv_writer.writerow(row)
-
-    def __del__(self):
-        self.file.close()
+        with open(self.filepath, 'a+') as file:
+            if len(row) != len(self.header):
+                raise ArgumentError(
+                    f'Incorrect dimension of row, header has {len(self.header)} and row has {len(row)}')
+            csv_writer = csv.writer(file, delimiter=',')
+            csv_writer.writerow(row)
