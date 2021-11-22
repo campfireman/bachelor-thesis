@@ -48,7 +48,7 @@ class CoachArguments:
     num_heuristic_agent_comparisons: int = 2
     num_arena_workers: int = 2
 
-    data_directory: str = './'
+    data_directory: str = './data'
     checkpoint: str = './temp/'
     load_model: bool = False
     load_folder_file: Tuple[str, str] = (
@@ -64,10 +64,21 @@ class CoachArguments:
     residual_tower_size: int = 6
 
 
-class ParallelCoach(Coach):
+class ParallelCoach:
     NNET_NAME_CURRENT = 'temp.pth.tar'
     NNET_NAME_NEW = 'temp_new.pth.tar'
     NNET_NAME_BEST = 'best.pth.tar'
+
+    def __init__(self, game: Game, nnet: NNetWrapper, args: CoachArguments):
+        self.game = game
+        self.nnet = nnet
+        self.args = args
+        self.pnet = self.nnet.__class__(
+            self.game, self.args)  # the competitor network
+        self.mcts = MCTS(self.game, self.nnet, self.args)
+        # history of examples from args.num_iters_for_train_examples latest iterations
+        self.train_examples_history = []
+        self.skip_first_self_play = False  # can be overriden in load_train_examples()
 
     def get_checkpoint_file(self, iteration):
         return 'checkpoint_' + str(iteration) + '.pth.tar'
@@ -79,7 +90,7 @@ class ParallelCoach(Coach):
         filename = os.path.join(
             folder, self.get_checkpoint_file(iteration) + ".examples")
         with open(filename, "wb+") as f:
-            Pickler(f).dump(self.dtrainExamplesHistory)
+            Pickler(f).dump(self.dtrain_examples_history)
         f.closed
 
     def load_train_examples(self):
@@ -94,11 +105,11 @@ class ParallelCoach(Coach):
         else:
             log.info("File with trainExamples found. Loading it...")
             with open(examplesFile, "rb") as f:
-                self.trainExamplesHistory = Unpickler(f).load()
+                self.train_examples_history = Unpickler(f).load()
             log.info('Loading done!')
 
             # examples based on the model were already collected (loaded)
-            self.skipFirstSelfPlay = True
+            self.skip_first_self_play = True
 
     @staticmethod
     def run_self_play_worker(proc_id: int, args: CoachArguments, game: Game, train_example_queue: mp.Queue, nnet_path: str, nnet_id: mp.Value, cpu: bool = True):
@@ -231,18 +242,18 @@ class ParallelCoach(Coach):
                     f'Loaded {examples_read_from_queue} self play games from queue')
 
                 # save the iteration examples to the history
-                self.trainExamplesHistory.append(iteration_examples)
+                self.train_examples_history.append(iteration_examples)
 
-                if len(self.trainExamplesHistory) > self.args.num_iters_for_train_examples_history:
+                if len(self.train_examples_history) > self.args.num_iters_for_train_examples_history:
                     log.warning(
-                        f"Removing the oldest entry in train_examples. len(train_examples_history) = {len(self.trainExamplesHistory)}")
-                    self.trainExamplesHistory.pop(0)
+                        f"Removing the oldest entry in train_examples. len(train_examples_history) = {len(self.train_examples_history)}")
+                    self.train_examples_history.pop(0)
                 # backup history to a file
                 # NB! the examples were collected using the model from the previous iteration, so (i-1)
                 self.save_train_examples(i - 1)
 
                 train_examples = []
-                for e in self.trainExamplesHistory:
+                for e in self.train_examples_history:
                     train_examples.extend(e)
                 shuffle(train_examples)
 
