@@ -5,6 +5,7 @@ import sys
 import time
 from collections import deque
 from dataclasses import dataclass
+from pickle import Pickler, Unpickler
 from random import shuffle
 from typing import Tuple
 
@@ -67,6 +68,37 @@ class ParallelCoach(Coach):
     NNET_NAME_CURRENT = 'temp.pth.tar'
     NNET_NAME_NEW = 'temp_new.pth.tar'
     NNET_NAME_BEST = 'best.pth.tar'
+
+    def get_checkpoint_file(self, iteration):
+        return 'checkpoint_' + str(iteration) + '.pth.tar'
+
+    def save_train_examples(self, iteration):
+        folder = self.args.checkpoint
+        if not os.path.exists(folder):
+            os.makedirs(folder)
+        filename = os.path.join(
+            folder, self.get_checkpoint_file(iteration) + ".examples")
+        with open(filename, "wb+") as f:
+            Pickler(f).dump(self.dtrainExamplesHistory)
+        f.closed
+
+    def load_train_examples(self):
+        modelFile = os.path.join(
+            self.args.load_folder_file[0], self.args.load_folder_file[1])
+        examplesFile = modelFile + ".examples"
+        if not os.path.isfile(examplesFile):
+            log.warning(f'File "{examplesFile}" with trainExamples not found!')
+            r = input("Continue? [y|n]")
+            if r != "y":
+                sys.exit()
+        else:
+            log.info("File with trainExamples found. Loading it...")
+            with open(examplesFile, "rb") as f:
+                self.trainExamplesHistory = Unpickler(f).load()
+            log.info('Loading done!')
+
+            # examples based on the model were already collected (loaded)
+            self.skipFirstSelfPlay = True
 
     @staticmethod
     def run_self_play_worker(proc_id: int, args: CoachArguments, game: Game, train_example_queue: mp.Queue, nnet_path: str, nnet_id: mp.Value, cpu: bool = True):
@@ -207,7 +239,7 @@ class ParallelCoach(Coach):
                     self.trainExamplesHistory.pop(0)
                 # backup history to a file
                 # NB! the examples were collected using the model from the previous iteration, so (i-1)
-                self.saveTrainExamples(i - 1)
+                self.save_train_examples(i - 1)
 
                 train_examples = []
                 for e in self.trainExamplesHistory:
@@ -252,7 +284,7 @@ class ParallelCoach(Coach):
                     log.info('ACCEPTING NEW MODEL')
                     nnet_id.value += 1
                     self.nnet.save_checkpoint(
-                        folder=self.args.checkpoint, filename=self.getCheckpointFile(i))
+                        folder=self.args.checkpoint, filename=self.get_checkpoint_file(i))
                     self.nnet.save_checkpoint(
                         folder=self.args.checkpoint, filename=self.NNET_NAME_BEST)
 
