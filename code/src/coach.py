@@ -187,18 +187,18 @@ class ParallelCoach(Coach):
                     f'Loaded {examples_read_from_queue} self play games from queue')
 
                 # save the iteration examples to the history
-                self.train_examples_history.append(iteration_examples)
+                self.trainExamplesHistory.append(iteration_examples)
 
-                if len(self.train_examples_history) > self.args.num_iters_for_train_examples_history:
+                if len(self.trainExamplesHistory) > self.args.num_iters_for_train_examples_history:
                     log.warning(
-                        f"Removing the oldest entry in train_examples. len(train_examples_history) = {len(self.train_examples_history)}")
-                    self.train_examples_history.pop(0)
+                        f"Removing the oldest entry in train_examples. len(train_examples_history) = {len(self.trainExamplesHistory)}")
+                    self.trainExamplesHistory.pop(0)
                 # backup history to a file
                 # NB! the examples were collected using the model from the previous iteration, so (i-1)
-                self.savetrain_examples(i - 1)
+                self.saveTrainExamples(i - 1)
 
                 train_examples = []
-                for e in self.train_examples_history:
+                for e in self.trainExamplesHistory:
                     train_examples.extend(e)
                 shuffle(train_examples)
 
