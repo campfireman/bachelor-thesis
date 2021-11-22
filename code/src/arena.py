@@ -44,6 +44,8 @@ class ParallelArena():
         os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
         one_won = 0
         two_won = 0
+        one_cumul_reward = 0.0
+        two_cumul_reward = 0.0
         draws = 0
         tolerance = 0.01
 
@@ -52,7 +54,10 @@ class ParallelArena():
         player2 = self.player2_class(
             Player.WHITE, *self.player2_args, **self.player2_kwargs)
         game, _ = Game.run_game_new(player1, player2, is_verbose=self.verbose)
-        game_result = game.get_rewards(game.get_score())[0]
+        rewards = game.get_rewards(game.get_score())
+        one_cumul_reward += rewards[0]
+        two_cumul_reward += rewards[1]
+        game_result = rewards[0]
         if game_result > tolerance:
             one_won += 1
         elif game_result < -tolerance:
@@ -66,7 +71,10 @@ class ParallelArena():
         player2 = self.player2_class(
             Player.BLACK, *self.player2_args, **self.player2_kwargs)
         game, _ = Game.run_game_new(player2, player1, is_verbose=self.verbose)
-        game_result = game.get_rewards(game.get_score())[0]
+        rewards = game.get_rewards(game.get_score())
+        one_cumul_reward += rewards[1]
+        two_cumul_reward += rewards[0]
+        game_result = rewards[0]
 
         if game_result > tolerance:
             two_won += 1
@@ -75,9 +83,9 @@ class ParallelArena():
         else:
             draws += 1
         self.print_game_result(game)
-        return (one_won, two_won, draws)
+        return (one_won, two_won, draws, one_cumul_reward, two_cumul_reward)
 
-    def play_games(self):
+    def play_games(self) -> Tuple[int, int, int, float, float]:
         """
         Plays num games in which player1 starts num/2 games and player2 starts
         num/2 games.
@@ -95,7 +103,7 @@ class ParallelArena():
                 range(0, self.matches)
             )
 
-            result = (0, 0, 0)
+            result = (0, 0, 0, 0.0, 0.0)
             for score in scores:
                 result = np.add(result, score)
             return result

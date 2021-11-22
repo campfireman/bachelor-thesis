@@ -156,12 +156,14 @@ class ParallelCoach(Coach):
         random_player_game_stats_csv = CsvTable(
             self.args.data_directory,
             f'{training_start}_random_player_game_stats.csv',
-            ['iteration', 'timestamp', 'wins', 'losses', 'draws'],
+            ['iteration', 'timestamp', 'wins', 'losses', 'draws',
+                'nnet_cumul_rewards', 'random_cumul_rewards'],
         )
         heuristic_player_game_stats_csv = CsvTable(
             self.args.data_directory,
             f'{training_start}_heuristic_player_game_stats.csv',
-            ['iteration', 'timestamp', 'wins', 'losses', 'draws'],
+            ['iteration', 'timestamp', 'wins', 'losses', 'draws',
+                'nnet_cumul_rewards', 'random_cumul_rewards'],
         )
 
         with mp.Manager() as manager:
@@ -229,7 +231,7 @@ class ParallelCoach(Coach):
                     self.args.num_arena_workers,
                     verbose=False
                 )
-                pwins, nwins, draws = arena.play_games()
+                pwins, nwins, draws, _, _ = arena.play_games()
 
                 log.info('NEW/PREV WINS : %d / %d ; DRAWS : %d' %
                          (nwins, pwins, draws))
@@ -262,9 +264,9 @@ class ParallelCoach(Coach):
                         self.args.num_arena_workers,
                         verbose=False
                     )
-                    nwins, rwins, draws = arena.play_games()
+                    nwins, rwins, draws, nrewards, rrewards = arena.play_games()
                     random_player_game_stats_csv.add_row(
-                        [i, time.time(), nwins, rwins, draws])
+                        [i, time.time(), nwins, rwins, draws, nrewards, rrewards])
                     log.info('NN/RNDM WINS : %d / %d ; DRAWS : %d' %
                              (nwins, rwins, draws))
 
@@ -281,9 +283,9 @@ class ParallelCoach(Coach):
                         self.args.num_arena_workers,
                         verbose=False
                     )
-                    nwins, hwins, draws = arena.play_games()
+                    nwins, hwins, draws, nrewards, hrewards = arena.play_games()
                     heuristic_player_game_stats_csv.add_row(
-                        [i, time.time(), nwins, hwins, draws])
+                        [i, time.time(), nwins, hwins, draws, nrewards, hrewards])
                     log.info('NN/HRSTC WINS : %d / %d ; DRAWS : %d' %
                              (nwins, hwins, draws))
                 iteration_duration = time.time() - iteration_start
