@@ -90,7 +90,7 @@ class ParallelCoach:
         filename = os.path.join(
             folder, self.get_checkpoint_file(iteration) + ".examples")
         with open(filename, "wb+") as f:
-            Pickler(f).dump(self.dtrain_examples_history)
+            Pickler(f).dump(self.train_examples_history)
         f.closed
 
     def load_train_examples(self):
