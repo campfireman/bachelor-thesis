@@ -41,7 +41,7 @@ def main():
     g = Game()
 
     log.info('Loading %s...', nn.__name__)
-    nnet = nn(g)
+    nnet = nn(g, args)
 
     if args.load_model:
         log.info('Loading checkpoint "%s/%s"...', *args.load_folder_file)

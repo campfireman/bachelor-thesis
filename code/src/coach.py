@@ -27,6 +27,7 @@ log = logging.getLogger(__name__)
 @dataclass
 class CoachArguments:
     tpu_name: str = ''
+    bucket_name: str = 'balthasar'
     num_iters: int = 1000
     num_eps: int = 2
     temp_treshhold: int = 15
@@ -53,6 +54,14 @@ class CoachArguments:
         '/home/ture/projects/bachelor-thesis/code/src/temp', 'temp.pth.tar')
     num_iters_for_train_examples_history: int = 20
 
+    # neural net arguments
+    lr: float = 0.001
+    dropout: float = 0.3
+    epochs: int = 10
+    batch_size: int = 64
+    num_channels: int = 512
+    residual_tower_size: int = 6
+
 
 class ParallelCoach(Coach):
     NNET_NAME_CURRENT = 'temp.pth.tar'
@@ -68,7 +77,7 @@ class ParallelCoach(Coach):
         log.info(f'Worker {proc_id} checking in')
         if cpu:
             os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
-        nnet = NNetWrapper(game)
+        nnet = NNetWrapper(game, args)
 
         cur_nnet_id = update_nnet(nnet)
         train_examples = []

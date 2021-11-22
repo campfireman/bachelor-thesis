@@ -1,5 +1,4 @@
 import os
-from dataclasses import dataclass
 from typing import List, Tuple
 
 import numpy as np
@@ -11,19 +10,6 @@ from alpha_zero_general.NeuralNet import NeuralNet
 from src.abalone_game import Game
 
 from .experiments.possible_moves import POSSIBLE_MOVES
-
-
-@dataclass
-class NeuralNetArguments:
-    lr: float = 0.001
-    dropout: float = 0.3
-    epochs: int = 10
-    batch_size: int = 64
-    num_channels: int = 512
-    residual_tower_size: int = 6
-
-
-args = NeuralNetArguments()
 
 
 class AbaloneNN():
@@ -107,10 +93,11 @@ class AbaloneNN():
 
 
 class NNetWrapper(NeuralNet):
-    def __init__(self, game):
+    def __init__(self, game, args: 'CoachArguments'):
         self.nnet = AbaloneNN(game, args)
         self.board_x, self.board_y = game.get_board_size()
         self.action_size = game.get_action_size()
+        self.args = args
 
     def train(self, examples: List[Tuple[npt.NDArray, List[float], float]]):
         """
@@ -121,7 +108,7 @@ class NNetWrapper(NeuralNet):
         target_pis = np.asarray(target_pis)
         target_vs = np.asarray(target_vs)
         self.nnet.model.fit(x=input_boards, y=[
-                            target_pis, target_vs], batch_size=args.batch_size, epochs=args.epochs)
+                            target_pis, target_vs], batch_size=self.args.batch_size, epochs=args.epochs)
 
     def predict(self, board: npt.NDArray) -> Tuple[npt.NDArray, float]:
         """
