@@ -49,11 +49,14 @@ class CoachArguments:
     num_arena_workers: int = 2
 
     data_directory: str = './data'
-    checkpoint: str = './temp/'
     load_model: bool = False
     load_folder_file: Tuple[str, str] = (
         '/home/ture/projects/bachelor-thesis/code/src/temp', 'temp.pth.tar')
     num_iters_for_train_examples_history: int = 20
+
+    @property
+    def checkpoint(self) -> str:
+        return os.path.join(self.data_directory, 'temp')
 
     # neural net arguments
     lr: float = 0.001
