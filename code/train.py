@@ -1,3 +1,4 @@
+import json
 import logging
 import os
 from typing import Tuple
@@ -17,10 +18,25 @@ log = logging.getLogger(__name__)
 coloredlogs.install(level='INFO')  # Change this to DEBUG to see more info.
 
 
-args = CoachArguments()
-
-
 def main():
+    training_settings = os.environ.get('TRAINING_SETTINGS', None)
+    if training_settings:
+        log.info('Loading settings from %s', training_settings)
+        with open(training_settings, 'r') as settings_json:
+            settings = json.loads(settings_json.read())
+            args = CoachArguments(**settings)
+    else:
+        args = CoachArguments()
+
+    if args.tpu_name:
+        log.info('Connecting to TPU %s', args.tpu_name)
+        import tensorflow as tf
+        resolver = tf.distribute.cluster_resolver.TPUClusterResolver(
+            tpu=args.tpu_name)
+        tf.config.experimental_connect_to_cluster(resolver)
+        tf.tpu.experimental.initialize_tpu_system(resolver)
+        strategy = tf.distribute.experimental.TPUStrategy(resolver)
+
     log.info('Loading %s...', Game.__name__)
     g = Game()
 

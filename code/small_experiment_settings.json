@@ -1,0 +1,4 @@
+{
+    "num_self_play_workers": 1,
+    "num_arena_workers": 2
+}

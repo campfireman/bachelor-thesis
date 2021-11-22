@@ -26,6 +26,7 @@ log = logging.getLogger(__name__)
 
 @dataclass
 class CoachArguments:
+    tpu_name: str = ''
     num_iters: int = 1000
     num_eps: int = 2
     temp_treshhold: int = 15
