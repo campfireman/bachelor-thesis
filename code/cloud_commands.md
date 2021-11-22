@@ -8,6 +8,7 @@ gcloud compute instances create-with-container casper \
     --machine-type e2-medium \
     --zone=europe-west4-a \
     --create-disk=auto-delete=yes,device-name=casper,image=projects/debian-cloud/global/images/debian-10-buster-v20211105,mode=rw,size=60,type=projects/bachelor-thesis-332216/zones/europe-west4-a/diskTypes/pd-balanced \
+    --container-env=TRAINING_SETTINGS=/src/src/experiments/small_experiment_settings.json \
     --scopes=cloud-platform
 
 gcloud compute tpus execution-groups create \
@@ -26,3 +27,7 @@ gcloud compute instances create casper \
 
 
     --create-disk=auto-delete=yes,device-name=casper,image=projects/debian-cloud/global/images/debian-10-buster-v20211105,mode=rw,size=60,type=projects/bachelor-thesis-332216/zones/europe-west4-a/diskTypes/pd-balanced \
+
+sudo journalctl -u konlet*
+
+```
