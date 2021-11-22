@@ -108,7 +108,7 @@ class NNetWrapper(NeuralNet):
         target_pis = np.asarray(target_pis)
         target_vs = np.asarray(target_vs)
         self.nnet.model.fit(x=input_boards, y=[
-                            target_pis, target_vs], batch_size=self.args.batch_size, epochs=args.epochs)
+                            target_pis, target_vs], batch_size=self.args.batch_size, epochs=self.args.epochs)
 
     def predict(self, board: npt.NDArray) -> Tuple[npt.NDArray, float]:
         """
