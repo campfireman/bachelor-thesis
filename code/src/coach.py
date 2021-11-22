@@ -1,4 +1,3 @@
-from src.settings import CoachArguments
 import logging
 import multiprocessing as mp
 import os
@@ -11,13 +10,13 @@ from random import shuffle
 from typing import Tuple
 
 import numpy as np
-from abalone_engine.players import (AbaProPlayer, AlphaBetaPlayerFast,
-                                    RandomPlayer)
+from abalone_engine.players import AbaProPlayer, AlphaBetaPlayer, RandomPlayer
 from alpha_zero_general.Coach import Coach
 from alpha_zero_general.Game import Game
 
 from src.abalone_game import AbaloneNNPlayer
 from src.neural_net import NNetWrapper
+from src.settings import CoachArguments
 from src.utils import CsvTable
 
 from .arena import ParallelArena as Arena
@@ -290,7 +289,7 @@ class ParallelCoach:
                         (),
                         {'nnet_fullpath': os.path.join(self.args.checkpoint, self.NNET_NAME_CURRENT),
                          'num_MCTS_sims': self.args.num_MCTS_sims, 'cpuct': self.args.cpuct},
-                        RandomPlayer,
+                        AlphaBetaPlayer,
                         (),
                         {},
                         self.args.num_random_agent_comparisons,
