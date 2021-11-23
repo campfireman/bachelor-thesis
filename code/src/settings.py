@@ -3,6 +3,8 @@ import os
 from dataclasses import asdict, dataclass
 from typing import Tuple
 
+from tensorflow.python.lib.io import file_io
+
 
 @dataclass
 class CoachArguments:
@@ -51,3 +53,9 @@ class CoachArguments:
     @property
     def checkpoint(self) -> str:
         return os.path.join(self.data_directory, 'temp')
+
+    def save(self, timestamp: float):
+        filepath = os.path.join(self.data_directory,
+                                f'{timestamp}_settings.json')
+        with file_io.FileIO(filepath, 'w') as file:
+            file.write(json.dumps(asdict(self), indent=4))

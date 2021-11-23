@@ -53,7 +53,6 @@ class ParallelCoach:
             folder, self.get_checkpoint_file(iteration) + ".examples")
         with file_io.FileIO(filename, "wb+") as f:
             Pickler(f).dump(self.train_examples_history)
-        f.closed
 
     def load_train_examples(self):
         modelFile = os.path.join(
@@ -179,6 +178,7 @@ class ParallelCoach:
             ['iteration', 'timestamp', 'wins', 'losses', 'draws',
                 'nnet_cumul_rewards', 'random_cumul_rewards'],
         )
+        self.args.save(training_start)
 
         with mp.Manager() as manager:
             train_example_queue, nnet_id = self.spawnum_self_play_workers(
