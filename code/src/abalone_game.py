@@ -8,7 +8,6 @@ from abalone_engine.game import Game as Engine
 from abalone_engine.game import Move
 from abalone_engine.players import AbstractPlayer
 from alpha_zero_general.Game import Game
-from alpha_zero_general.utils import dotdict
 
 from src.settings import CoachArguments
 
@@ -190,12 +189,12 @@ class AbaloneGame(Game):
 
 
 class AbaloneNNPlayer(AbstractPlayer):
-    def __init__(self, player: Player, nnet_fullpath: str, num_MCTS_sims: int = 50, cpuct: float = 1.0):
+    def __init__(self, player: Player, nnet_fullpath: str, args: CoachArguments):
         super().__init__(player)
         self.game = AbaloneGame()
         self.model = self.load_model(nnet_fullpath)
-        args = dotdict({'num_MCTS_sims': num_MCTS_sims, 'cpuct': cpuct})
-        self.mcts = MCTS(self.game, self.model, args)
+        self.args = args
+        self.mcts = MCTS(self.game, self.model, self.args)
 
     def load_model(self, nnet_fullpath) -> NNetWrapper:
         nn = NNetWrapper(self.game, CoachArguments())
