@@ -1,10 +1,15 @@
+from src.settings import CoachArguments
 import hashlib
 import logging
 import math
+import time
 from typing import List
 
 import numpy as np
 import numpy.typing as npt
+from alpha_zero_general.Game import Game
+
+from src.neural_net import NNetWrapper
 
 EPS = 1e-8
 
@@ -16,7 +21,7 @@ class MCTS():
     This class handles the MCTS tree.
     """
 
-    def __init__(self, game, nnet, args):
+    def __init__(self, game: Game, nnet: NNetWrapper, args: CoachArguments):
         self.game = game
         self.nnet = nnet
         self.args = args
@@ -95,7 +100,7 @@ class MCTS():
 
         if s not in self.P_s:
             # leaf node
-            self.P_s[s], v = self.nnet.predict(canonicalBoard)
+            self.P_s[s], v = self.nnet.predict_small_batch(canonicalBoard)
             valids = self.game.get_valid_moves(canonicalBoard, 1)
             self.P_s[s] = self.P_s[s] * valids  # masking invalid moves
             sum_Ps_s = np.sum(self.P_s[s])

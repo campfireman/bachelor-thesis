@@ -6,6 +6,7 @@ import numpy.typing as npt
 import tensorflow as tf
 import tensorflow.keras as keras
 from alpha_zero_general.NeuralNet import NeuralNet
+from tensorflow.python.keras.backend import dtype
 
 from src.abalone_game import Game
 
@@ -117,6 +118,12 @@ class NNetWrapper(NeuralNet):
         # preparing input
         board = board[np.newaxis, :, :]
         pi, v = self.nnet.model.predict(board)
+        return pi[0], v[0]
+
+    def predict_small_batch(self, board):
+        board = board[np.newaxis, :, :]
+        pi, v = self.nnet.model(
+            board, training=False)
         return pi[0], v[0]
 
     def save_checkpoint(self, folder: str = 'checkpoint', filename: str = 'checkpoint.pth.tar'):
