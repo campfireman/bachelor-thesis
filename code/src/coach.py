@@ -13,6 +13,7 @@ import numpy as np
 from abalone_engine.players import AbaProPlayer, AlphaBetaPlayer, RandomPlayer
 from alpha_zero_general.Coach import Coach
 from alpha_zero_general.Game import Game
+from tensorflow.python.lib.io import file_io
 
 from src.abalone_game import AbaloneNNPlayer
 from src.neural_net import NNetWrapper
@@ -50,7 +51,7 @@ class ParallelCoach:
             os.makedirs(folder)
         filename = os.path.join(
             folder, self.get_checkpoint_file(iteration) + ".examples")
-        with open(filename, "wb+") as f:
+        with file_io.FileIO(filename, "wb+") as f:
             Pickler(f).dump(self.train_examples_history)
         f.closed
 
@@ -65,7 +66,7 @@ class ParallelCoach:
                 sys.exit()
         else:
             log.info("File with trainExamples found. Loading it...")
-            with open(examplesFile, "rb") as f:
+            with file_io.FileIO(examplesFile, "rb") as f:
                 self.train_examples_history = Unpickler(f).load()
             log.info('Loading done!')
 

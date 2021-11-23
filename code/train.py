@@ -4,6 +4,7 @@ import os
 from typing import Tuple
 
 import coloredlogs
+from tensorflow.python.lib.io import file_io
 
 from src.abalone_game import AbaloneGame as Game
 from src.coach import CoachArguments
@@ -22,7 +23,7 @@ def main():
     training_settings = os.environ.get('TRAINING_SETTINGS', None)
     if training_settings:
         log.info('Loading settings from %s', training_settings)
-        with open(training_settings, 'r') as settings_json:
+        with file_io.FileIO(training_settings, 'r') as settings_json:
             settings = json.loads(settings_json.read())
             args = CoachArguments(**settings)
     else:

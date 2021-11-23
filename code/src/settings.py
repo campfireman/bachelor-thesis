@@ -1,5 +1,6 @@
+import json
 import os
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 from typing import Tuple
 
 
@@ -26,15 +27,11 @@ class CoachArguments:
     num_heuristic_agent_comparisons: int = 2
     num_arena_workers: int = 2
 
-    data_directory: str = './data'
+    data_directory_name: str = './data'
     load_model: bool = False
     load_folder_file: Tuple[str, str] = (
         '/home/ture/projects/bachelor-thesis/code/src/temp', 'temp.pth.tar')
     num_iters_for_train_examples_history: int = 20
-
-    @property
-    def checkpoint(self) -> str:
-        return os.path.join(self.data_directory, 'temp')
 
     # neural net arguments
     lr: float = 0.001
@@ -43,3 +40,14 @@ class CoachArguments:
     batch_size: int = 64
     num_channels: int = 512
     residual_tower_size: int = 6
+
+    @property
+    def data_directory(self) -> str:
+        if self.tpu_name:
+            return os.path.join(
+                'gs://', self.args.bucket_name, os.path.normpath(self.data_directory_name))
+        return self.data_directory_name
+
+    @property
+    def checkpoint(self) -> str:
+        return os.path.join(self.data_directory, 'temp')
