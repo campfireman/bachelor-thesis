@@ -3,6 +3,8 @@ import os
 from ctypes import ArgumentError
 from typing import List
 
+from tensorflow.python.lib.io import file_io
+
 from .experiments.possible_moves import POSSIBLE_MOVES
 
 
@@ -21,7 +23,7 @@ class CsvTable:
         self.add_row(self.header)
 
     def add_row(self, row: List):
-        with open(self.filepath, 'a+') as file:
+        with file_io.FileIO(self.filepath, 'a+') as file:
             if len(row) != len(self.header):
                 raise ArgumentError(
                     f'Incorrect dimension of row, header has {len(self.header)} and row has {len(row)}')
