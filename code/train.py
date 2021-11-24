@@ -4,6 +4,7 @@ import os
 from typing import Tuple
 
 import coloredlogs
+import tensorflow as tf
 from tensorflow.python.lib.io import file_io
 
 from src.abalone_game import AbaloneGame as Game
@@ -31,12 +32,15 @@ def main():
 
     if args.tpu_name:
         log.info('Connecting to TPU %s', args.tpu_name)
-        import tensorflow as tf
         resolver = tf.distribute.cluster_resolver.TPUClusterResolver(
             tpu=args.tpu_name)
         tf.config.experimental_connect_to_cluster(resolver)
         tf.tpu.experimental.initialize_tpu_system(resolver)
         strategy = tf.distribute.experimental.TPUStrategy(resolver)
+    else:
+        gpus = tf.config.experimental.list_physical_devices('GPU')
+        for gpu in gpus:
+            tf.config.experimental.set_memory_growth(gpu, True)
 
     log.info('Loading %s...', Game.__name__)
     g = Game()

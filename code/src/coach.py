@@ -73,13 +73,13 @@ class ParallelCoach:
             self.skip_first_self_play = True
 
     @staticmethod
-    def run_self_play_worker(proc_id: int, args: CoachArguments, game: Game, train_example_queue: mp.Queue, nnet_path: str, nnet_id: mp.Value, cpu: bool = True):
+    def run_self_play_worker(proc_id: int, args: CoachArguments, game: Game, train_example_queue: mp.Queue, nnet_path: str, nnet_id: mp.Value):
         def update_nnet(nnet: NNetWrapper) -> int:
             nnet.load_checkpoint(full_path=nnet_path)
             return nnet_id.value
 
         log.info(f'Worker {proc_id} checking in')
-        if cpu:
+        if args.self_play_worker_cpu:
             os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
         nnet = NNetWrapper(game, args)
 
