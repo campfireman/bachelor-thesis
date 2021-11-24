@@ -1,3 +1,4 @@
+import argparse
 import json
 import logging
 import os
@@ -20,13 +21,9 @@ log = logging.getLogger(__name__)
 coloredlogs.install(level='INFO')  # Change this to DEBUG to see more info.
 
 
-def main():
-    training_settings = os.environ.get('TRAINING_SETTINGS', None)
-    if training_settings:
-        log.info('Loading settings from %s', training_settings)
-        with file_io.FileIO(training_settings, 'r') as settings_json:
-            settings = json.loads(settings_json.read())
-            args = CoachArguments(**settings)
+def main(coach_arguments: dict = None):
+    if coach_arguments:
+        args = CoachArguments(**coach_arguments)
     else:
         args = CoachArguments()
 
@@ -67,6 +64,19 @@ def main():
 
 
 if __name__ == "__main__":
+    # use spawn method to be portable and allow for resource monitoring
     import multiprocessing
     multiprocessing.set_start_method('spawn')
-    main()
+    argparse.ArgumentParser()
+
+    parser = argparse.ArgumentParser(description='Initialize training process')
+    parser.add_argument('--args', dest='coach_arguments_path', type=str, default='',
+                        help='an integer for the accumulator')
+    args = parser.parse_args()
+
+    coach_arguments = {}
+    if args.coach_arguments_path:
+        log.info('Loading settings from %s', args.coach_arguments_path)
+        with file_io.FileIO(args.coach_arguments_path, 'r') as settings_json:
+            coach_arguments = json.loads(settings_json.read())
+    main(coach_arguments)
