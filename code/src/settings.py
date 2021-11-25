@@ -43,6 +43,7 @@ class CoachArguments:
     batch_size: int = 64
     num_channels: int = 512
     residual_tower_size: int = 6
+    cuda: bool = True
 
     @property
     def data_directory(self) -> str:

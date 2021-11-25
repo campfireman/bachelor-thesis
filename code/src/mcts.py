@@ -1,4 +1,3 @@
-from src.settings import CoachArguments
 import hashlib
 import logging
 import math
@@ -10,10 +9,12 @@ import numpy.typing as npt
 from alpha_zero_general.Game import Game
 
 from src.neural_net import NNetWrapper
+from src.settings import CoachArguments
 
 EPS = 1e-8
 
 log = logging.getLogger(__name__)
+TIMES = []
 
 
 class MCTS():
@@ -46,8 +47,15 @@ class MCTS():
                    proportional to Nsa[(s,a)]**(1./temp)
         """
         self.init_stores()
+        # times = []
         for i in range(self.args.num_MCTS_sims):
+            # start = time.time()
             self.search(canonicalBoard)
+            # end = time.time() - start
+            # times.append(end)
+        # TIMES.extend(times)
+        # print(f'time per search: {np.average(TIMES)}')
+        # print(len(TIMES))
 
         s = self.hash_state(canonicalBoard, '', 0)
         counts = [self.N_sa[(s, a)] if (
@@ -100,7 +108,12 @@ class MCTS():
 
         if s not in self.P_s:
             # leaf node
-            self.P_s[s], v = self.nnet.predict_small_batch(canonicalBoard)
+            # start = time.time()
+            # self.P_s[s], v = self.nnet.predict_small_batch(canonicalBoard)
+            self.P_s[s], v = self.nnet.predict(canonicalBoard)
+            # end = time.time() - start
+            # TIMES.append(end)
+            # print(f'running avg: {np.average(TIMES)}')
             valids = self.game.get_valid_moves(canonicalBoard, 1)
             self.P_s[s] = self.P_s[s] * valids  # masking invalid moves
             sum_Ps_s = np.sum(self.P_s[s])

@@ -10,13 +10,15 @@ from random import shuffle
 from typing import Tuple
 
 import numpy as np
+# import torch.multiprocessing as mp
 from abalone_engine.players import AbaProPlayer, AlphaBetaPlayer, RandomPlayer
 from alpha_zero_general.Coach import Coach
 from alpha_zero_general.Game import Game
 from tensorflow.python.lib.io import file_io
 
 from src.abalone_game import AbaloneNNPlayer
-from src.neural_net import NNetWrapper
+# from src.neural_net import NNetWrapper
+from src.neural_net_torch import NNetWrapper
 from src.settings import CoachArguments
 from src.utils import CsvTable
 
@@ -81,6 +83,7 @@ class ParallelCoach:
         log.info(f'Worker {proc_id} checking in')
         if args.self_play_worker_cpu:
             os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
+            args.cuda = False
         nnet = NNetWrapper(game, args)
 
         cur_nnet_id = update_nnet(nnet)

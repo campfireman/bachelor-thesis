@@ -5,14 +5,15 @@ import os
 from typing import Tuple
 
 import coloredlogs
-import tensorflow as tf
+# import tensorflow as tf
 from tensorflow.python.lib.io import file_io
 
 from src.abalone_game import AbaloneGame as Game
 from src.coach import CoachArguments
 from src.coach import ParallelCoach as Coach
 # from src.coach import Coach
-from src.neural_net import NNetWrapper as nn
+# from src.neural_net import NNetWrapper as nn
+from src.neural_net_torch import NNetWrapper as nn
 
 #os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
 
@@ -34,10 +35,10 @@ def main(coach_arguments: dict = None):
         tf.config.experimental_connect_to_cluster(resolver)
         tf.tpu.experimental.initialize_tpu_system(resolver)
         strategy = tf.distribute.experimental.TPUStrategy(resolver)
-    else:
-        gpus = tf.config.experimental.list_physical_devices('GPU')
-        for gpu in gpus:
-            tf.config.experimental.set_memory_growth(gpu, True)
+    # else:
+    #     gpus = tf.config.experimental.list_physical_devices('GPU')
+    #     for gpu in gpus:
+    #         tf.config.experimental.set_memory_growth(gpu, True)
 
     log.info('Loading %s...', Game.__name__)
     g = Game()

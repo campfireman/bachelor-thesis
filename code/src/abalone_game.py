@@ -9,11 +9,11 @@ from abalone_engine.game import Move
 from abalone_engine.players import AbstractPlayer
 from alpha_zero_general.Game import Game
 
+from src.neural_net_torch import NNetWrapper
 from src.settings import CoachArguments
 
 # from alpha_zero_general.MCTS import MCTS
 from .mcts import MCTS
-from .neural_net import NNetWrapper
 from .utils import move_index_to_standard, move_standard_to_index
 
 MAX_TURNS = 200
