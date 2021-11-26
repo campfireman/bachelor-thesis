@@ -1,7 +1,5 @@
 
-import argparse
 import os
-import sys
 import time
 from typing import List, Tuple
 
@@ -13,8 +11,6 @@ import torch.nn.functional as F
 import torch.optim as optim
 from alpha_zero_general.Game import Game
 from alpha_zero_general.utils import *
-from torch.autograd import Variable
-from torchvision import datasets, transforms
 from tqdm import tqdm
 
 from src.neural_net import NNetWrapperBase
