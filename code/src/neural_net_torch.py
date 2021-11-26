@@ -3,35 +3,26 @@ import argparse
 import os
 import sys
 import time
+from typing import List, Tuple
 
 import numpy as np
+import numpy.typing as npt
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
+from alpha_zero_general.Game import Game
 from alpha_zero_general.NeuralNet import NeuralNet
 from alpha_zero_general.utils import *
 from torch.autograd import Variable
 from torchvision import datasets, transforms
 from tqdm import tqdm
 
-sys.path.append('..')
-
-
-sys.path.append('../../')
-
-# args = dotdict({
-#     'lr': 0.001,
-#     'dropout': 0.3,
-#     'epochs': 10,
-#     'batch_size': 64,
-#     'cuda': torch.cuda.is_available(),
-#     'num_channels': 512,
-# })
+from src.settings import CoachArguments
 
 
 class NNetWrapper(NeuralNet):
-    def __init__(self, game, args):
+    def __init__(self, game: Game, args: CoachArguments):
         self.nnet = AbaloneNNetTorchMini(game, args)
         self.board_x, self.board_y = game.get_board_size()
         self.action_size = game.get_action_size()
@@ -40,7 +31,7 @@ class NNetWrapper(NeuralNet):
         if self.args.cuda:
             self.nnet.cuda()
 
-    def train(self, examples):
+    def train(self, examples: List[Tuple[npt.NDArray, npt.NDArray, float]]):
         """
         examples: list of examples, each example is of form (board, pi, v)
         """
@@ -84,7 +75,7 @@ class NNetWrapper(NeuralNet):
                 total_loss.backward()
                 optimizer.step()
 
-    def predict(self, board):
+    def predict(self, board: npt.NDArray):
         """
         board: np array with board
         """
@@ -103,13 +94,13 @@ class NNetWrapper(NeuralNet):
         # print('PREDICTION TIME TAKEN : {0:03f}'.format(time.time()-start))
         return torch.exp(pi).data.cpu().numpy()[0], v.data.cpu().numpy()[0]
 
-    def loss_pi(self, targets, outputs):
+    def loss_pi(self, targets: List[npt.NDArray], outputs: List[npt.NDArray]):
         return -torch.sum(targets * outputs) / targets.size()[0]
 
-    def loss_v(self, targets, outputs):
+    def loss_v(self, targets: List[float], outputs: List[float]):
         return torch.sum((targets - outputs.view(-1)) ** 2) / targets.size()[0]
 
-    def save_checkpoint(self, folder='checkpoint', filename='checkpoint.pth.tar', full_path=None):
+    def save_checkpoint(self, folder: str = 'checkpoint', filename: str = 'checkpoint.pth.tar', full_path: str = None):
         filepath = full_path
         if full_path is None:
             filepath = os.path.join(folder, filename)
@@ -123,7 +114,7 @@ class NNetWrapper(NeuralNet):
             'state_dict': self.nnet.state_dict(),
         }, filepath)
 
-    def load_checkpoint(self, folder='checkpoint', filename='checkpoint.pth.tar', full_path=None):
+    def load_checkpoint(self, folder: str = 'checkpoint', filename: str = 'checkpoint.pth.tar', full_path: str = None):
         # https://github.com/pytorch/examples/blob/master/imagenet/main.py#L98
         filepath = full_path
         if full_path is None:
@@ -135,8 +126,112 @@ class NNetWrapper(NeuralNet):
         self.nnet.load_state_dict(checkpoint['state_dict'])
 
 
-class AbaloneNNetTorchMini(nn.Module):
-    def __init__(self, game, args):
+class TorchNNet(nn.Module):
+    def show_info(self):
+        from prettytable import PrettyTable
+
+        table = PrettyTable(["Modules", "Parameters"])
+        total_params = 0
+        for name, parameter in self.named_parameters():
+            if not parameter.requires_grad:
+                continue
+            param = parameter.numel()
+            table.add_row([name, param])
+            total_params += param
+        print(table)
+        print(f"Total Trainable Params: {total_params}")
+
+
+class ConvBlock(nn.Module):
+    def __init__(self, board_x: int, board_y: int, action_size: int):
+        super(ConvBlock, self).__init__()
+        self.conv1 = nn.Conv2d(1, 256, 3, stride=1, padding=1)
+        self.bn1 = nn.BatchNorm2d(256)
+        self.board_x = board_x
+        self.board_y = board_y
+        self.action_size = action_size
+
+    def forward(self, s: torch.Tensor):
+        # batch_size x channels x board_x x board_y
+        s = s.view(-1, 1, self.board_x, self.board_y)
+        s = F.relu(self.bn1(self.conv1(s)))
+        return s
+
+
+class ResBlock(nn.Module):
+    def __init__(self, inplanes: int = 256, planes: int = 256, stride: int = 1):
+        super(ResBlock, self).__init__()
+        self.conv1 = nn.Conv2d(inplanes, planes, kernel_size=3, stride=stride,
+                               padding=1, bias=False)
+        self.bn1 = nn.BatchNorm2d(planes)
+        self.conv2 = nn.Conv2d(planes, planes, kernel_size=3, stride=stride,
+                               padding=1, bias=False)
+        self.bn2 = nn.BatchNorm2d(planes)
+
+    def forward(self, x):
+        residual = x
+        out = self.conv1(x)
+        out = F.relu(self.bn1(out))
+        out = self.conv2(out)
+        out = self.bn2(out)
+        out += residual
+        out = F.relu(out)
+        return out
+
+
+class OutBlock(nn.Module):
+    def __init__(self, board_x: int, board_y: int, action_size: int):
+        super(OutBlock, self).__init__()
+        self.board_x = board_x
+        self.board_y = board_y
+        self.action_size = action_size
+        self.conv = nn.Conv2d(256, 3, kernel_size=1)  # value head
+        self.bn = nn.BatchNorm2d(3)
+        self.fc1 = nn.Linear(1*self.board_x*self.board_y, 32)
+        self.fc2 = nn.Linear(32, 1)
+
+        self.conv1 = nn.Conv2d(256, 2, kernel_size=1)  # policy head
+        self.bn1 = nn.BatchNorm2d(2)
+        self.logsoftmax = nn.LogSoftmax(dim=1)
+        self.fc = nn.Linear(self.board_x*self.board_y*2, self.action_size)
+
+    def forward(self, s: torch.Tensor):
+        v = F.relu(self.bn(self.conv(s)))  # value head
+        # batch_size X channel X height X width
+        v = v.view(-1, 1*self.board_x*self.board_y)
+        v = F.relu(self.fc1(v))
+        v = torch.tanh(self.fc2(v))
+
+        p = F.relu(self.bn1(self.conv1(s)))  # policy head
+        p = p.view(-1, self.board_x*self.board_y*2)
+        p = self.fc(p)
+        p = self.logsoftmax(p).exp()
+        return p, v
+
+
+class AbaloneNNetTorch(TorchNNet):
+    def __init__(self, game: Game, args: CoachArguments):
+        # game params
+        self.board_x, self.board_y = game.get_board_size()
+        self.action_size = game.get_action_size()
+        self.args = args
+
+        super(AbaloneNNetTorch, self).__init__()
+        self.conv = ConvBlock(self.board_x, self.board_y, self.action_size)
+        for block in range(self.args.residual_tower_size):
+            setattr(self, "res_%i" % block, ResBlock())
+        self.outblock = OutBlock(self.board_x, self.board_y, self.action_size)
+
+    def forward(self, s: torch.Tensor):
+        s = self.conv(s)
+        for block in range(self.args.residual_tower_size):
+            s = getattr(self, "res_%i" % block)(s)
+        s = self.outblock(s)
+        return s
+
+
+class AbaloneNNetTorchMini(TorchNNet):
+    def __init__(self, game: Game, args: CoachArguments):
         # game params
         self.board_x, self.board_y = game.get_board_size()
         self.action_size = game.get_action_size()
@@ -167,7 +262,7 @@ class AbaloneNNetTorchMini(nn.Module):
 
         self.fc4 = nn.Linear(512, 1)
 
-    def forward(self, s):
+    def forward(self, s: torch.Tensor):
         #                                                           s: batch_size x board_x x board_y
         # batch_size x 1 x board_x x board_y
         s = s.view(-1, 1, self.board_x, self.board_y)
