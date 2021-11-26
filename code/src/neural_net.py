@@ -130,6 +130,9 @@ class AbaloneNNetMini():
         self.model.compile(loss=['categorical_crossentropy',
                            'mean_squared_error'], optimizer=keras.optimizers.Adam(args.lr))
 
+    def show_info(self):
+        self.model.summary()
+
 
 class NNetWrapper(NeuralNet):
     def __init__(self, game, args: 'CoachArguments'):
@@ -149,20 +152,20 @@ class NNetWrapper(NeuralNet):
         self.nnet.model.fit(x=input_boards, y=[
                             target_pis, target_vs], batch_size=self.args.batch_size, epochs=self.args.epochs)
 
-    def predict(self, board: npt.NDArray) -> Tuple[npt.NDArray, float]:
-        """
-        board: np array with board
-        """
+    def predict_old(self, board: npt.NDArray) -> Tuple[npt.NDArray, float]:
         # preparing input
         board = board[np.newaxis, :, :]
         pi, v = self.nnet.model.predict(board)
         return pi[0], v[0]
 
-    def predict_small_batch(self, board):
+    def predict(self, board):
+        """
+        board: np array with board
+        """
         board = board[np.newaxis, :, :]
         pi, v = self.nnet.model(
             board, training=False)
-        return pi[0], v[0]
+        return pi[0].numpy(), v[0].numpy()
 
     def save_checkpoint(self, folder: str = 'checkpoint', filename: str = 'checkpoint.pth.tar'):
         filepath = os.path.join(folder, filename)
