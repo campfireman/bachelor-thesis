@@ -5,7 +5,6 @@ import numpy as np
 import numpy.typing as npt
 import tensorflow as tf
 import tensorflow.keras as keras
-from alpha_zero_general.NeuralNet import NeuralNet
 from tensorflow.python.keras.backend import dtype
 
 from src.abalone_game import Game
@@ -89,9 +88,6 @@ class AbaloneNNet():
         plot_model(self.model, to_file='abalone_NN_model.png',
                    show_shapes=True)
 
-    def show_info(self):
-        self.model.summary()
-
 
 class AbaloneNNetMini():
     def __init__(self, game, args):
@@ -130,11 +126,28 @@ class AbaloneNNetMini():
         self.model.compile(loss=['categorical_crossentropy',
                            'mean_squared_error'], optimizer=keras.optimizers.Adam(args.lr))
 
+
+class NNetWrapperBase():
+    def train(self, examples: List[Tuple[npt.NDArray, List[float], float]]):
+        raise NotImplementedError
+
+    def predict_old(self, board: npt.NDArray) -> Tuple[npt.NDArray, float]:
+        raise NotImplementedError
+
+    def predict(self, board: npt.NDArray):
+        raise NotImplementedError
+
+    def save_checkpoint(self, folder: str = 'checkpoint', filename: str = 'checkpoint.pth.tar'):
+        raise NotImplementedError
+
+    def load_checkpoint(self, folder: str = 'checkpoint', filename: str = 'checkpoint.pth.tar', full_path: str = None):
+        raise NotImplementedError
+
     def show_info(self):
-        self.model.summary()
+        raise NotImplementedError
 
 
-class NNetWrapper(NeuralNet):
+class NNetWrapper(NNetWrapperBase):
     def __init__(self, game, args: 'CoachArguments'):
         self.nnet = AbaloneNNetMini(game, args)
         self.board_x, self.board_y = game.get_board_size()
@@ -158,7 +171,7 @@ class NNetWrapper(NeuralNet):
         pi, v = self.nnet.model.predict(board)
         return pi[0], v[0]
 
-    def predict(self, board):
+    def predict(self, board: npt.NDArray):
         """
         board: np array with board
         """
@@ -184,3 +197,6 @@ class NNetWrapper(NeuralNet):
         if not os.path.exists(filepath):
             raise FileNotFoundError(f"No model in path {filepath}")
         self.nnet.model = tf.keras.models.load_model(filepath)
+
+    def show_info(self):
+        self.nnet.model.summary()

@@ -5,15 +5,15 @@ import os
 from typing import Tuple
 
 import coloredlogs
-# import tensorflow as tf
+import tensorflow as tf
 from tensorflow.python.lib.io import file_io
 
 from src.abalone_game import AbaloneGame as Game
 from src.coach import CoachArguments
 from src.coach import ParallelCoach as Coach
+
 # from src.coach import Coach
-# from src.neural_net import NNetWrapper as nn
-from src.neural_net_torch import NNetWrapper as nn
+
 
 #os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
 
@@ -28,23 +28,32 @@ def main(coach_arguments: dict = None):
     else:
         args = CoachArguments()
 
-    if args.tpu_name:
-        log.info('Connecting to TPU %s', args.tpu_name)
-        resolver = tf.distribute.cluster_resolver.TPUClusterResolver(
-            tpu=args.tpu_name)
-        tf.config.experimental_connect_to_cluster(resolver)
-        tf.tpu.experimental.initialize_tpu_system(resolver)
-        strategy = tf.distribute.experimental.TPUStrategy(resolver)
-    # else:
-    #     gpus = tf.config.experimental.list_physical_devices('GPU')
-    #     for gpu in gpus:
-    #         tf.config.experimental.set_memory_growth(gpu, True)
+    if args.framework == 'torch':
+        from src.neural_net_torch import NNetWrapper as nn
+    elif args.framework == 'tensorflow':
+        from src.neural_net import NNetWrapper as nn
+
+        if args.tpu_name:
+            log.info('Connecting to TPU %s', args.tpu_name)
+            resolver = tf.distribute.cluster_resolver.TPUClusterResolver(
+                tpu=args.tpu_name)
+            tf.config.experimental_connect_to_cluster(resolver)
+            tf.tpu.experimental.initialize_tpu_system(resolver)
+            strategy = tf.distribute.experimental.TPUStrategy(resolver)
+        else:
+            gpus = tf.config.experimental.list_physical_devices('GPU')
+            for gpu in gpus:
+                tf.config.experimental.set_memory_growth(gpu, True)
+    else:
+        log.error('No known ML framework specified')
+        return
 
     log.info('Loading %s...', Game.__name__)
     g = Game()
 
     log.info('Loading %s...', nn.__name__)
     nnet = nn(g, args)
+    nnet.show_info()
 
     if args.load_model:
         log.info('Loading checkpoint "%s/%s"...', *args.load_folder_file)

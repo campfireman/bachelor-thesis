@@ -12,16 +12,16 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 from alpha_zero_general.Game import Game
-from alpha_zero_general.NeuralNet import NeuralNet
 from alpha_zero_general.utils import *
 from torch.autograd import Variable
 from torchvision import datasets, transforms
 from tqdm import tqdm
 
+from src.neural_net import NNetWrapperBase
 from src.settings import CoachArguments
 
 
-class NNetWrapper(NeuralNet):
+class NNetWrapper(NNetWrapperBase):
     def __init__(self, game: Game, args: CoachArguments):
         self.nnet = AbaloneNNetTorchMini(game, args)
         self.board_x, self.board_y = game.get_board_size()
@@ -123,16 +123,15 @@ class NNetWrapper(NeuralNet):
             raise ("No model in path {}".format(filepath))
         map_location = None if self.args.cuda else 'cpu'
         checkpoint = torch.load(filepath, map_location=map_location)
+
         self.nnet.load_state_dict(checkpoint['state_dict'])
 
-
-class TorchNNet(nn.Module):
     def show_info(self):
         from prettytable import PrettyTable
 
         table = PrettyTable(["Modules", "Parameters"])
         total_params = 0
-        for name, parameter in self.named_parameters():
+        for name, parameter in self.nnet.named_parameters():
             if not parameter.requires_grad:
                 continue
             param = parameter.numel()
@@ -209,7 +208,7 @@ class OutBlock(nn.Module):
         return p, v
 
 
-class AbaloneNNetTorch(TorchNNet):
+class AbaloneNNetTorch(nn.Module):
     def __init__(self, game: Game, args: CoachArguments):
         # game params
         self.board_x, self.board_y = game.get_board_size()
@@ -230,7 +229,7 @@ class AbaloneNNetTorch(TorchNNet):
         return s
 
 
-class AbaloneNNetTorchMini(TorchNNet):
+class AbaloneNNetTorchMini(nn.Module):
     def __init__(self, game: Game, args: CoachArguments):
         # game params
         self.board_x, self.board_y = game.get_board_size()

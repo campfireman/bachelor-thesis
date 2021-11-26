@@ -14,7 +14,9 @@ from src.settings import CoachArguments
 EPS = 1e-8
 
 log = logging.getLogger(__name__)
-TIMES = []
+TIMES_TOTAL = []
+TIMES_PREDICT = []
+TIMES_LEGAL = []
 
 
 class MCTS():
@@ -47,15 +49,21 @@ class MCTS():
                    proportional to Nsa[(s,a)]**(1./temp)
         """
         self.init_stores()
-        # times = []
+        times = []
         for i in range(self.args.num_MCTS_sims):
-            # start = time.time()
+            start = time.time()
             self.search(canonicalBoard)
-            # end = time.time() - start
-            # times.append(end)
-        # TIMES.extend(times)
-        # print(f'time per search: {np.average(TIMES)}')
-        # print(len(TIMES))
+            end = time.time() - start
+            times.append(end)
+        TIMES_TOTAL.extend(times)
+        if len(TIMES_TOTAL) == 3000:
+            print(f'+++ RESULT +++')
+        else:
+            print(len(TIMES_TOTAL))
+
+        print(f'time per search: {np.average(TIMES_TOTAL)}')
+        print(f'time per predict: {np.average(TIMES_PREDICT)}')
+        # print(f'time per legal: {np.average(TIMES_LEGAL)}')
 
         s = self.hash_state(canonicalBoard, '', 0)
         counts = [self.N_sa[(s, a)] if (
@@ -108,13 +116,14 @@ class MCTS():
 
         if s not in self.P_s:
             # leaf node
-            # start = time.time()
-            # self.P_s[s], v = self.nnet.predict_small_batch(canonicalBoard)
+            start = time.time()
             self.P_s[s], v = self.nnet.predict(canonicalBoard)
-            # end = time.time() - start
-            # TIMES.append(end)
-            # print(f'running avg: {np.average(TIMES)}')
+            end = time.time() - start
+            TIMES_PREDICT.append(end)
+            start = time.time()
             valids = self.game.get_valid_moves(canonicalBoard, 1)
+            end = time.time() - start
+            TIMES_LEGAL.append(end)
             self.P_s[s] = self.P_s[s] * valids  # masking invalid moves
             sum_Ps_s = np.sum(self.P_s[s])
             if sum_Ps_s > 0:

@@ -37,6 +37,7 @@ class CoachArguments:
     num_iters_for_train_examples_history: int = 100
 
     # neural net arguments
+    framework: str = 'torch'
     lr: float = 0.001
     dropout: float = 0.3
     epochs: int = 10

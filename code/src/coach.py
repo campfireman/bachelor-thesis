@@ -17,8 +17,7 @@ from alpha_zero_general.Game import Game
 from tensorflow.python.lib.io import file_io
 
 from src.abalone_game import AbaloneNNPlayer
-# from src.neural_net import NNetWrapper
-from src.neural_net_torch import NNetWrapper
+from src.neural_net import NNetWrapperBase
 from src.settings import CoachArguments
 from src.utils import CsvTable
 
@@ -33,7 +32,7 @@ class ParallelCoach:
     NNET_NAME_NEW = 'temp_new.pth.tar'
     NNET_NAME_BEST = 'best.pth.tar'
 
-    def __init__(self, game: Game, nnet: NNetWrapper, args: CoachArguments):
+    def __init__(self, game: Game, nnet: NNetWrapperBase, args: CoachArguments):
         self.game = game
         self.nnet = nnet
         self.args = args
@@ -75,8 +74,8 @@ class ParallelCoach:
             self.skip_first_self_play = True
 
     @staticmethod
-    def run_self_play_worker(proc_id: int, args: CoachArguments, game: Game, train_example_queue: mp.Queue, nnet_path: str, nnet_id: mp.Value):
-        def update_nnet(nnet: NNetWrapper) -> int:
+    def run_self_play_worker(proc_id: int, args: CoachArguments, game: Game, nnet_class: NNetWrapperBase, train_example_queue: mp.Queue, nnet_path: str, nnet_id: mp.Value):
+        def update_nnet(nnet: NNetWrapperBase) -> int:
             nnet.load_checkpoint(full_path=nnet_path)
             return nnet_id.value
 
@@ -84,7 +83,7 @@ class ParallelCoach:
         if args.self_play_worker_cpu:
             os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
             args.cuda = False
-        nnet = NNetWrapper(game, args)
+        nnet = nnet_class(game, args)
 
         cur_nnet_id = update_nnet(nnet)
         train_examples = []
@@ -138,7 +137,7 @@ class ParallelCoach:
             process = mp.Process(
                 target=ParallelCoach.run_self_play_worker,
                 args=(
-                    i, self.args, self.game,
+                    i, self.args, self.game, self.nnet.__class__,
                     train_examples_queue, nnet_path, nnet_id
                 )
             )
