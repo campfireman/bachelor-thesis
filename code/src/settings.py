@@ -23,6 +23,7 @@ class CoachArguments:
     num_self_play_workers: int = 4
     num_arena_workers: int = 2
     self_play_worker_cpu: bool = True
+    arena_worker_cpu: bool = True
     # Number of games to play during arena play to determine if new net will be accepted.
     num_self_comparisons: int = 4
     # At which interval playoffs against heuristic agent and random agent are being performed
@@ -38,6 +39,7 @@ class CoachArguments:
 
     # neural net arguments
     framework: str = 'torch'
+    nnet_size: str = 'large'
     lr: float = 0.001
     dropout: float = 0.3
     epochs: int = 10

@@ -8,6 +8,7 @@ import tensorflow.keras as keras
 from tensorflow.python.keras.backend import dtype
 
 from src.abalone_game import Game
+from src.settings import CoachArguments
 
 from .experiments.possible_moves import POSSIBLE_MOVES
 
@@ -148,8 +149,11 @@ class NNetWrapperBase():
 
 
 class NNetWrapper(NNetWrapperBase):
-    def __init__(self, game, args: 'CoachArguments'):
-        self.nnet = AbaloneNNetMini(game, args)
+    def __init__(self, game, args: CoachArguments):
+        if args.nnet_size == 'large':
+            self.nnet = AbaloneNNet(game, args)
+        else:
+            self.nnet = AbaloneNNetMini(game, args)
         self.board_x, self.board_y = game.get_board_size()
         self.action_size = game.get_action_size()
         self.args = args

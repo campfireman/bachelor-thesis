@@ -1,4 +1,5 @@
 import logging
+import os
 from typing import List, Tuple, Union
 
 import numpy as np
@@ -191,13 +192,16 @@ class AbaloneGame(Game):
 class AbaloneNNPlayer(AbstractPlayer):
     def __init__(self, player: Player, nnet_fullpath: str, args: CoachArguments):
         super().__init__(player)
+        if args.arena_worker_cpu:
+            os.environ['CUDA_VISIBLE_DEVICES'] = -1
+            args.cuda = False
         self.game = AbaloneGame()
         self.model = self.load_model(nnet_fullpath)
         self.args = args
         self.mcts = MCTS(self.game, self.model, self.args)
 
     def load_model(self, nnet_fullpath) -> NNetWrapper:
-        nn = NNetWrapper(self.game, CoachArguments())
+        nn = NNetWrapper(self.game, self.args)
         nn.load_checkpoint(full_path=nnet_fullpath)
         return nn
 

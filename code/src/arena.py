@@ -41,7 +41,6 @@ class ParallelArena():
 
     def play_match(self, n: int):
         log.info(f'Playing match: {n}')
-        #os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
         one_won = 0
         two_won = 0
         one_cumul_reward = 0.0

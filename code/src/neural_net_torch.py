@@ -23,7 +23,10 @@ from src.settings import CoachArguments
 
 class NNetWrapper(NNetWrapperBase):
     def __init__(self, game: Game, args: CoachArguments):
-        self.nnet = AbaloneNNetTorchMini(game, args)
+        if args.nnet_size == 'large':
+            self.nnet = AbaloneNNetTorch(game, args)
+        else:
+            self.nnet = AbaloneNNetTorchMini(game, args)
         self.board_x, self.board_y = game.get_board_size()
         self.action_size = game.get_action_size()
         self.args = args
