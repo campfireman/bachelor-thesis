@@ -22,7 +22,8 @@ from src.settings import CoachArguments
 from src.utils import CsvTable
 
 from .arena import ParallelArena as Arena
-from .mcts import MCTS
+import pyximport; pyximport.install()
+from mcts import MCTS
 
 log = logging.getLogger(__name__)
 

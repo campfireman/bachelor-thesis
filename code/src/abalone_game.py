@@ -6,6 +6,7 @@ import numpy as np
 import numpy.typing as npt
 from abalone_engine.enums import Direction, Player, Space
 from abalone_engine.game import Game as Engine
+from game_static import s_get_legal_moves
 from abalone_engine.game import Move
 from abalone_engine.players import AbstractPlayer
 from alpha_zero_general.Game import Game
@@ -14,7 +15,8 @@ from src.neural_net_torch import NNetWrapper
 from src.settings import CoachArguments
 
 # from alpha_zero_general.MCTS import MCTS
-from .mcts import MCTS
+import pyximport; pyximport.install()
+from mcts import MCTS
 from .utils import move_index_to_standard, move_standard_to_index
 
 MAX_TURNS = 200
@@ -100,12 +102,13 @@ class AbaloneGame(Game):
                         moves that are valid from the current board and player,
                         0 for invalid moves
         """
-        moves = np.zeros(self.get_action_size(), dtype=np.float32)
-        for move in self.engine.s_generate_legal_moves(board, player):
-            index = move_standard_to_index(
-                Move.from_original(move).to_standard())
-            moves[index] = 1
-        return moves
+        # moves = np.zeros(self.get_action_size(), dtype=np.float32)
+        # for move in self.engine.s_generate_legal_moves(board, player):
+        #     index = move_standard_to_index(
+        #         Move.from_original(move).to_standard())
+        #     moves[index] = 1
+
+        return s_get_legal_moves(board, player)
 
     def get_game_ended(self, board: npt.NDArray, player: int) -> int:
         """

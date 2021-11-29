@@ -32,7 +32,7 @@ class CoachArguments:
     num_heuristic_agent_comparisons: int = 2
 
     data_directory_name: str = './data'
-    load_model: bool = True
+    load_model: bool = False
     load_folder_file: Tuple[str, str] = (
         '/home/ture/projects/bachelor-thesis/code/data/temp', 'best.pth.tar')
     num_iters_for_train_examples_history: int = 100
