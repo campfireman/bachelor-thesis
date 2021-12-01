@@ -1,5 +1,5 @@
 \chapter{Analysis}
-Before we move to the nuts and bolts of AlphaZero and our concrete implementation, we should establish a general understanding of the problem. That includes establishing the necessary theoretical background in artificial intelligence in general, as well as insight into the specialized knowledge such as deep reinforcement learning.
+Before we move to the nuts and bolts of AlphaZero and our concrete implementation, we should establish a general understanding of the problem. That includes building the necessary theoretical background in artificial intelligence in general, as well as insight into the specialized knowledge such as deep reinforcement learning in particular.
 
 \section{Artificial intelligence}
 % explain some of the history of AI:
@@ -7,27 +7,27 @@ Before we move to the nuts and bolts of AlphaZero and our concrete implementatio
 % - little bit of history: focus on symbolic vs subsymbolic
 
 \subsection{Rational agent}
-Stemming from the latin word \textit{agere} meaning "to act", an agent is something that acts. As we expect our agent to take sensible or intelligent actions we further qualify this definition by calling it rational. This means that it acts so as
-\begin{quote}
-    to achieve the best outcome or, when there is uncertainty, the best expected outcome.
-\end{quote} \cite[p. 36]{russell_artificial_2021}
+Stemming from the latin word \textit{agere} meaning "to act", an agent is something that acts. As we expect our agent to take sensible or intelligent actions we further qualify this definition by calling it rational. This means that it acts so as "to achieve the best outcome or, when there is uncertainty, the best expected outcome". \cite[p. 36]{russell_artificial_2021}
 
-The agent exists in an environment which it percieves through sensors and it acts takes actions through its actuators. We refer to the content of  the sensors output for one observation as \textit{percept}. The cat uses eyes, ears and other sensors to percieve the world and its legs, claws and so on to interact with the world. This forms a loop of observing, deliberating and finally taking an action, whereafter the agent oberserves again as depicted in figure \ref{agent-environment-loop}. Internally our agent has some an \textit{agent function} that takes the entire history of percepts observed and the built-in knowledge and maps it an action. A concrete implementation of this abstract function is called \textit{agent program}.
+The agent exists in an environment which it percieves through sensors and it acts takes actions through its actuators. We refer to the content of the sensors output for one observation as \textit{percept}. The cat uses eyes, ears and other organs to percieve the world and its legs, claws and so on to interact with the world. An antonomous car might use radar and cameras for acquiring information and steering and motors for navigation.
+
+Internally our agent might have some buit-in knowledge about the world, such as rules on how the environments works. The \textit{agent function} takes the entire history of percepts observed and this built-in knowledge and maps it an action. A concrete implementation of this abstract function is called \textit{agent program}. The agent program might just be a simple tabular mapping from percepts to actions or could use a complex algorithm with an additional model.
+
+\subsection{Task environment}
+
+As we are trying to build an agent that tries to achieve some specified goal, we can consider our environment as a problem or \textit{task} our agent tries to solve. Putting together both agent and the environment we see a loop of observing,  deliberating and finally taking an action as depicted in figure \ref{agent_environment_loop}.
 
 \begin{figure}
     \centering
     \includesvg[height=7cm]{agent_environment_loop.svg}
     \caption{The agent-environment interaction loop}
-    \label{agent-environment-loop}
+    \label{agent_environment_loop}
 \end{figure}
 
-The agent program might just be a simple tabular mapping from percepts to actions or could use a complex model of rules about the environment.
-
 \section{Environment}
+Now that we have a general understanding for agents and environments, we can use this knowledge to have a closer look at Abalone. It is a fairly new game, that was devised in 1987 by Michel Lalet and Laurent Lévi. Nevertheless, with more than four million global sales it has established itself as a classic game \cite{noauthor_abalone_2020}. Abalone is a two-player game consisting of a hexagonal board with 61 fields and 14 marbles for black and white respectively.
 
 \subsection{Abalone rules}
-Abalone is a fairly new game, that was devised in 1987 by Michel Lalet and Laurent Lévi. Nevertheless, with more than four million global sales it has established itself as a classic game \cite{noauthor_abalone_2020}. Abalone is a two-player game consisting of a hexagonal board with 61 fields and 14 marbles for black and white respectively.
-
 The goal of the game is to push six of the opponent's marbles off the playing field. The game's starting position is depicted in figure \ref{basics} (a). One, two, or three adjacent marbles (of the player's own color) may be moved in any of the six possible directions during a player's turn. We differentiate between broadside or "side-step" moves and "in-line" moves, depending on how the chain of marbles moves relative to its direction, which is shown in figure \ref{basics} (b) and (c).
 
 \begin{figure}[!h]
@@ -66,12 +66,35 @@ A move pushing the opponent's marbles is called "sumito" and comes in three vari
     \label{sumito}
 \end{figure}
 
+\subsection{PEAS and task properties}
+Based on the PEAS framework we can specify Abalone as a task environment and show the key componentents for the implementation of our agent. \cite[p.107]{russell_artificial_2021}
+
+\begin{description}
+    \item[Performance measure] Win/loss, number of moves, time to deliberate
+    \item[Environment] Digital playing board
+    \item[Actuators] Move marbles, display text to CLI
+    \item[Sensors] Position of marbles
+\end{description}
+
+There are a few categorizations that are extremely helpful for narrowing down potential applicability of different classes of algorithms. A key property is the observability of the environment. If the environment is \textit{fully observable}, the sensors detect all the information that is in any way relevant for taking an action. Conversly if not all information can be oberserved we call it \textit{partial observability}. For example in poker the other players' cards and the upcoming cards cannot be seen but are highly relevant to the agents actions. As the current board state of Abalone fully comprises all information necessary to make a move, we can classify it as fully observable.
+
+The values the state of the environment and time can be categorized into discrete and continuous. The autonomous vehicle for instance is dealing with continous time and also continous states. The speeds of the car take a smooth range of real values and time can be meaningfully split into increasingly small intervals. However, Abalone is entirely discrete. The set of all states is a finite collection of all (legal) permutations of the board and the marbles. Time progresses on the basis of turns.
+
+The actions that the agents takes might also be \textit{non-deterministic}. When dealing with systems of high complexity the next state might not only depend on the previous state and the action taken. There might be other car drivers taking unexpected actions or a comet hitting our car. In Abalone none of these issues arise as it is deterministic.
+
+Further expanding on the passage of time we have to take into account if actions have consequences for future states. If each combination of perecpt and action is independent of each other we call it \textit{episodic} and \textit{sequential} otherwise. If we had to classify a production line of circuit boards as either defective or functional, it would be an episodic environment. The classification of an individual board does not matter for the next one. In the case of Abalone moves taken have long drawn out consequences for later stages of the game.
+
+Another aspect of time is whether the environment changes while the agent takes time to deliberate on the next move. In a \textit{dynamic} environment like the autonomous vehicle operates in, the environment changes continously. In the time the car decides whether to right, to avoid collision with a wall, this decision might have already become obsolete. As any turn based game, Abalone is a \textit{static} environment, as the board only changes after a move is made.
+
+Lastly, an additional dimension to consider is the number of agents involved. The classification of circuit boards only involves one agent whereas Abalone is a \textit{multi-agent} environment. We also have to distinguish whether those multiple agents compete for the performance measure. In Abalone the one players win is the other players loss. In contrast, the other vehicles apart from our autonomous vehicle all profit when it avoids a collision and vice versa. Therefore, they cooperate.
+
+Summing this up \textbf{Abalone is a fully observable, deterministic, two-agent, competitive, sequential, static and discrete environment}. Another popular term for this type of environment is a \textit{perfect information zero-sum game}.
+
 \subsection{Abalone complexity}
 
-An important characteristic of a game environment is its complexity, which can be described in two relevant dimensions.
+As Abalone has a finite amount of discrete states, we can make precise statements about its complexity, which can be described in two relevant dimensions.
 
 \paragraph{State space complexity}
-
 The state space is the set of all possible states the agent can be in.\cite[p. 150]{russell_artificial_2021} For Abalone this means we have to consider all possible board configurations with different numbers of marbles present. Additionally, we would have to remove duplicates that arise from the symmetries of the board. In the case of abalone we have 6 rotations and 6 axes we can mirror the board on. The following formula gives us a good upper bound:
 
 $$
@@ -114,3 +137,26 @@ As those numbers in isolation are hard to grasp it is useful to put Abalone's co
     \caption{Abalone in comparison with other games \cite{chorus_implementing_2009}}
     \label{complexity_table}
 \end{table}
+
+
+\section{Classic agent}
+
+\subsection{Minimax algorithm}
+
+\subsection{Heuristic functions}
+As the size of the game tree is very large, the search on the tree usually does not reach terminal leaves that indicate a clear loss or win. Rather one has to evaluate the intermediary result of a given transposition based on a heuristic function. As algorithms like minimax optimize the potential outcome of the next moves based on this function, the heuristics solely determine the performance of such an agent.
+
+This function should judge the positions based on expert knowledge of the game to distinguish good from bad moves.
+
+\subsection{Alpha-beta pruning}
+Alpha-beta-pruning is an improvement of the minimax algorithm, that tries to eliminate unnecessary traversals down the search tree, which, in the best case, leads to a reduction of moves from $ O(b^d) $ to $ O(\sqrt{b^d}) $. The implementation of the alpha beta agent could be improved in several ways.
+
+The heuristic function is a linear combination of the above mentioned heuristics was implemented as a linear combination:
+
+\subsection{Monte Carlo Tree Search}
+
+\section{Learning agent}
+
+\subsection{Markov decision process}
+
+\subsection{Reinforcement learning}
