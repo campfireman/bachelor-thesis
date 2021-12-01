@@ -174,14 +174,35 @@ Putting this together we can see in figure \ref{minimax} a graphical representat
 \end{figure}
 
 \subsection{Heuristic functions}
-As the size of the game tree is very large, the search on the tree usually does not reach terminal leaves that indicate a clear loss or win. Rather one has to evaluate the intermediary result of a given transposition based on a heuristic function. As algorithms like minimax optimize the potential outcome of the next moves based on this function, the heuristics solely determine the performance of such an agent.
+As the number of nodes of the game tree gets very large, the search on the tree usually does not reach terminal leaves that indicate a clear loss or win. For example minimax has already visited $ 60 ^ 4 = 1.2960.000 $ nodes at a depth of $ d = 4 $.
 
-This function should judge the positions based on expert knowledge of the game to distinguish good from bad moves.
+Therefore, one has to limit the search to a computationally feasable depth and evaluate the intermediary result of a given transposition based on a so called \textit{heuristic function}. This function replaces our previous $ utility(s) $ for terminal states and is based on human knowledge. The function should give a precise feedback, on the quality of a state from the perspective of the given player. A sensible function for Abalone might be a linear combination in the form of:
+
+$ h(s) = \omega_0f_0(s) + ... + \omega_nf_n(s) $
+
+With functions $ f_i $ calculating different values such as
+
+\begin{itemize}
+    \item Adjacency: As a majority of marbles is required to push opponent's marbles and conversely an equal amount of marbles is needed to avoid being pushed, it can be assumed that keeping one's marbles grouped together is a good move.
+    \item Distance to center: Marbles that are close to the brink of the board put them into danger of being attacked, wherefore it is generally good to place all of the marbles into the center of the board. For each player's marbles we measure their distance from the center of the board as the smallest amount of moves it would take to reach the center (Manhattan distance).
+    \item Win and loss: As a more definitive measure we can indicate whether the current state is a terminal state and hence a winning or losing state.
+    \item Etc.
+\end{itemize}
+
+By applying different weights $ \omega_i $ to the functions $ f_i $ we essentially give incentives to the agent to prioritize certain behavior. If the win or loss function returns a value of either -1 or +1, we might combine it with a weight of 10.000 to make sure we choose winning states and avoid losing states above all. Armed with this heuristic function we can find good moves with minimax search even in highly complex state spaces.
+
+However, the problem with heuristic is we need expert knowledge and a lot of empirical testing to find a suitable heuristic. In some cases like with Go, such a heuristic function might not be competitive with even moderate human players. In other cases such as chess this strategy is very powerful. As mentioned in the introduction IBM's Deep Blue could beat the world's best player Gary Kasparov based this heuristic based adverserial search.
 
 \subsection{Alpha-beta pruning}
-Alpha-beta-pruning is an improvement of the minimax algorithm, that tries to eliminate unnecessary traversals down the search tree, which, in the best case, leads to a reduction of moves from $ O(b^d) $ to $ O(\sqrt{b^d}) $. The implementation of the alpha beta agent could be improved in several ways.
+We can further improve minimax search markedly by using Alpha-beta-pruning. This method tries to eliminate unnecessary traversals down the search tree, which, in the best case, leads to a reduction of nodes from $ O(b^d) $ to $ O(\sqrt{b^d}) $.
 
-The heuristic function is a linear combination of the above mentioned heuristics was implemented as a linear combination:
+\begin{figure}
+    \centering
+    % \includesvg[height=7cm]{alpha_beta_pruning.svg}
+    \includegraphics[height=7cm, keepaspectratio]{alpha_beta_pruning.png}
+    \caption{Our previous example but with alpha beta pruning applied. The greyed out nodes indicate, that these in fact could be pruned from the tree}
+    \label{alpha_beta_pruning}
+\end{figure}
 
 \subsection{Monte Carlo Tree Search}
 
