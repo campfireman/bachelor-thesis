@@ -19,7 +19,8 @@ As we are trying to build an agent that tries to achieve some specified goal, we
 
 \begin{figure}
     \centering
-    \includesvg[height=7cm]{agent_environment_loop.svg}
+    % \includesvg[height=7cm]{agent_environment_loop.svg}
+    \includegraphics[height=7cm, keepaspectratio]{agent_environment_loop.png}
     \caption{The agent-environment interaction loop}
     \label{agent_environment_loop}
 \end{figure}
@@ -95,17 +96,19 @@ Summing this up \textbf{Abalone is a fully observable, deterministic, two-agent,
 As Abalone has a finite amount of discrete states, we can make precise statements about its complexity, which can be described in two relevant dimensions.
 
 \paragraph{State space complexity}
-The state space is the set of all possible states the agent can be in.\cite[p. 150]{russell_artificial_2021} For Abalone this means we have to consider all possible board configurations with different numbers of marbles present. Additionally, we would have to remove duplicates that arise from the symmetries of the board. In the case of abalone we have 6 rotations and 6 axes we can mirror the board on. The following formula gives us a good upper bound:
+The state space is the set of all possible states the environment can be in.\cite[p. 150]{russell_artificial_2021} For Abalone this means we have to consider all possible board configurations with different numbers of marbles present. Additionally, we would have to remove duplicates that arise from the symmetries of the board. In the case of abalone we have 6 rotations and 6 axes we can mirror the board on. The following formula gives us a good upper bound:
 
 $$
     \sum_{k=8}^{14}\sum_{m=9}^{14}\frac{61!}{k!(61-k)!}\times\frac{(61-k)!}{m!((61-k)-m)!}
 $$
 
-\paragraph{Game tree complexity} The game tree defines the dependencies between board positions (nodes), moves (edges) and the resulting board positions. The number of nodes in a tree is given by:
+\paragraph{Game tree complexity} The game tree defines all transitions between board positions (nodes) through moves (edges). The \textit{search tree} is potentially a subset of the game tree, if not all paths are visited. In the case of Abalone the game tree is unbound and has an infinite height as actions might be taken repeatedly forming loops. To get a measure of the complexity the number of nodes in a tree is given by:
+
 $$
     b^d
 $$
-First we consider the branching factor $ b $, or the number of possible moves for any given state. We can only approximate this, as this number greatly varies between different states On average abalone has $ b = 60 $ possible moves per state as measured in figure \ref{branching_factor}. The depth $ d $ of the tree depends the number of turns per game. For some leaves this might be quite early, but as Abalone allows for actions to be taken repeatedly the height is potentiallly infinite. Looking at the average again a game takes in the region of $ d = 87 $ turns, giving us a total of $60^{87}$ nodes. \cite{lemmens_constructing_2005}
+
+First we consider the branching factor $ b $, or the number of possible moves for any given state. We can only approximate this, as this number greatly varies between different states. On average abalone has $ b = 60 $ possible moves per state as measured in figure \ref{branching_factor}. The depth $ d $ of the tree depends the number of turns per game. Looking at the average again a game takes in the region of $ d = 87 $ turns, giving us a total of $60^{87}$ nodes. To be precise this is the complexity of an average search tree not the game tree, as mentioned above. \cite{lemmens_constructing_2005}
 
 \begin{figure}
     \centering
@@ -140,8 +143,35 @@ As those numbers in isolation are hard to grasp it is useful to put Abalone's co
 
 
 \section{Classic agent}
+Now that we have an intricate understanding of the environment for our agent we have also narrowed down the choice of algorithms we can employ. In general, perfect information games can be solved by adverserial search algorithms. That means in theory we can find the optimal solution by traversing the entire game tree to terminal states (game ending state). The theory behind this type of agent was already laid out as early as 1945 by Konrad Zuse's program generating legal chess moves \cite{knuth_early_1980}, but was described most comprehensively by Claude Shannon in 1950 in "rogramming a Computer for Playing Chess". \cite{shannon_xxii_1950}
 
 \subsection{Minimax algorithm}
+Minimax assumes two roles: The minimizer and the maximizer. We start the search from the current board state as the role of the maximizer and then alternate between the two. The result of the minimax search gives us the maximum utility for the given state, assuming both players behave optimally. Let us define the functions
+\begin{itemize}
+    \item $\text{utility(s, p)}$ returns the utility or the payoff for the terminal state $s$ seen from the perspective of player $p$. In the case of abalone this might be -1, 0 and 1 for a loss, draw and a win.
+    \item $\text{is-terminal(s)}$ returns whether the given state $s$ is a terminal state or not
+    \item $\text{to-move}(s)$ returns the current player for the state $s$
+    \item $\text{result}(s, a)$ returns the resulting state if in state $s$ and taking action $a$
+\end{itemize}
+such that we can define minimax recursively as:
+$$
+    \text{minimax}(s) =
+    \begin{cases}
+        \text{utility}(s, max)                                                & \text{is-terminal}(s)    \\
+        \text{max}_{a\in\text{actions}(s)}\text{minimax}(\text{result}(s, a)) & \text{to-move}(s) == max \\
+        \text{min}_{a\in\text{actions}(s)}\text{minimax}(\text{result}(s, a)) & \text{to-move}(s) == min \\
+    \end{cases}
+$$
+
+Putting this together we can see in figure \ref{minimax} a graphical representation of the search tree for an abstract example. The algorithm traverses down to a leaf node, evaluates its utility and passes the value back up to the parent node. Depending on whether it is a minimizer or a maximizer it chooses the smallest or the largest value passed up its children. This value again is passed up to the parent until we reach the parent node which is always a maximizer, yielding us the maximum utility we can achieve given our opponent plays optimally.
+
+\begin{figure}
+    \centering
+    % \includesvg[height=7cm]{minimax.svg}
+    \includegraphics[height=7cm, keepaspectratio]{minimax.png}
+    \caption{Minimax for a small search tree, resulting in an utility value of 1}
+    \label{minimax}
+\end{figure}
 
 \subsection{Heuristic functions}
 As the size of the game tree is very large, the search on the tree usually does not reach terminal leaves that indicate a clear loss or win. Rather one has to evaluate the intermediary result of a given transposition based on a heuristic function. As algorithms like minimax optimize the potential outcome of the next moves based on this function, the heuristics solely determine the performance of such an agent.
