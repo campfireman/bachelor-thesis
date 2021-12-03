@@ -4,19 +4,18 @@ from typing import List, Tuple, Union
 
 import numpy as np
 import numpy.typing as npt
+# from alpha_zero_general.MCTS import MCTS
 from abalone_engine.enums import Direction, Player, Space
 from abalone_engine.game import Game as Engine
-from game_static import s_get_legal_moves
 from abalone_engine.game import Move
 from abalone_engine.players import AbstractPlayer
 from alpha_zero_general.Game import Game
 
+from src.experiments.possible_moves import POSSIBLE_MOVES
+from src.mcts import MCTS
 from src.neural_net_torch import NNetWrapper
 from src.settings import CoachArguments
 
-# from alpha_zero_general.MCTS import MCTS
-import pyximport; pyximport.install()
-from mcts import MCTS
 from .utils import move_index_to_standard, move_standard_to_index
 
 MAX_TURNS = 200
@@ -102,13 +101,14 @@ class AbaloneGame(Game):
                         moves that are valid from the current board and player,
                         0 for invalid moves
         """
-        # moves = np.zeros(self.get_action_size(), dtype=np.float32)
-        # for move in self.engine.s_generate_legal_moves(board, player):
-        #     index = move_standard_to_index(
-        #         Move.from_original(move).to_standard())
-        #     moves[index] = 1
+        moves = np.zeros(self.get_action_size(), dtype=np.float32)
+        for move in self.engine.s_generate_legal_moves(board, player):
+            index = move_standard_to_index(
+                Move.from_original(move).to_standard())
+            moves[index] = 1
+        return moves
 
-        return s_get_legal_moves(board, player)
+        # return s_get_legal_moves(board, player)
 
     def get_game_ended(self, board: npt.NDArray, player: int) -> int:
         """
@@ -169,6 +169,24 @@ class AbaloneGame(Game):
                        form of the board and the corresponding pi vector. This
                        is used when training the neural network from examples.
         """
+        # assume player 1 as not relevant for symmetries
+        game = self.engine.from_array(board, 1)
+        moves = []
+        symmetries = []
+
+        for i in range(0, len(pi)):
+            if pi[i] != 0:
+                moves.append({
+                    'move': Move.from_standard(
+                        POSSIBLE_MOVES[i]),
+                    'value': pi[i],
+                })
+
+        # go through all rotations and
+        # - convert move to rotated move, rotated move to index
+        # for deg in range(60, 420, 60):
+        #     print(deg)
+        # - convert board to rotated board
         return [(board, pi)]
 
     def string_representation(self, board: npt.NDArray) -> str:
@@ -196,11 +214,11 @@ class AbaloneNNPlayer(AbstractPlayer):
     def __init__(self, player: Player, nnet_fullpath: str, args: CoachArguments):
         super().__init__(player)
         if args.arena_worker_cpu:
-            os.environ['CUDA_VISIBLE_DEVICES'] = -1
+            # os.environ['CUDA_VISIBLE_DEVICES'] = -1
             args.cuda = False
         self.game = AbaloneGame()
-        self.model = self.load_model(nnet_fullpath)
         self.args = args
+        self.model = self.load_model(nnet_fullpath)
         self.mcts = MCTS(self.game, self.model, self.args)
 
     def load_model(self, nnet_fullpath) -> NNetWrapper:

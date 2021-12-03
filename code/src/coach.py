@@ -17,13 +17,12 @@ from alpha_zero_general.Game import Game
 from tensorflow.python.lib.io import file_io
 
 from src.abalone_game import AbaloneNNPlayer
+from src.mcts import MCTS
 from src.neural_net import NNetWrapperBase
 from src.settings import CoachArguments
 from src.utils import CsvTable
 
 from .arena import ParallelArena as Arena
-import pyximport; pyximport.install()
-from mcts import MCTS
 
 log = logging.getLogger(__name__)
 
