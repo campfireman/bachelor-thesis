@@ -172,7 +172,8 @@ class AbaloneGame(Game):
         # assume player 1 as not relevant for symmetries
         game = self.engine.from_array(board, 1)
         moves = []
-        symmetries = []
+        # already include 360 degree rotation
+        symmetries = [(board, pi)]
 
         for i in range(0, len(pi)):
             if pi[i] != 0:
@@ -182,12 +183,37 @@ class AbaloneGame(Game):
                     'value': pi[i],
                 })
 
-        # go through all rotations and
-        # - convert move to rotated move, rotated move to index
-        # for deg in range(60, 420, 60):
-        #     print(deg)
-        # - convert board to rotated board
-        return [(board, pi)]
+        store = {}
+        for deg in range(60, 360, 60):
+            rotated_board = game.to_rotated_array(deg)
+            s = self.string_representation(rotated_board)
+            if s in store:
+                continue
+            store[s] = True
+
+            rotated_pi = np.zeros(self.get_action_size())
+            # convert move to rotated move, rotated move to index
+            for move in moves:
+                rotated_move_index = move_standard_to_index(
+                    move['move'].rotate(deg).to_standard())
+                rotated_pi[rotated_move_index] = move['value']
+            symmetries.append((rotated_board, rotated_pi))
+
+        for axis in ('q', 'qx', 'r', 'rx', 's', 'sx'):
+            reflected_board = game.to_reflected_array(axis)
+            s = self.string_representation(rotated_board)
+            if s in store:
+                continue
+            store[s] = True
+            reflected_pi = np.zeros(self.get_action_size())
+            # convert board to rotated board
+            for move in moves:
+                reflected_move_index = move_standard_to_index(
+                    move['move'].reflect(axis).to_standard())
+                reflected_pi[reflected_move_index] = move['value']
+            symmetries.append((reflected_board, reflected_pi))
+
+        return symmetries
 
     def string_representation(self, board: npt.NDArray) -> str:
         """
