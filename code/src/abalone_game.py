@@ -13,7 +13,8 @@ from alpha_zero_general.Game import Game
 
 from src.experiments.possible_moves import POSSIBLE_MOVES
 from src.mcts import MCTS
-from src.neural_net_torch import NNetWrapper
+from src.neural_net import NNetWrapper as NNetWrapperTensorflow
+from src.neural_net_torch import NNetWrapper as NNetWrapperTorch
 from src.settings import CoachArguments
 
 from .utils import move_index_to_standard, move_standard_to_index
@@ -240,15 +241,21 @@ class AbaloneNNPlayer(AbstractPlayer):
     def __init__(self, player: Player, nnet_fullpath: str, args: CoachArguments):
         super().__init__(player)
         if args.arena_worker_cpu:
-            # os.environ['CUDA_VISIBLE_DEVICES'] = -1
+            if args.framework == 'tensorflow':
+                os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
             args.cuda = False
         self.game = AbaloneGame()
         self.args = args
         self.model = self.load_model(nnet_fullpath)
         self.mcts = MCTS(self.game, self.model, self.args)
 
-    def load_model(self, nnet_fullpath) -> NNetWrapper:
-        nn = NNetWrapper(self.game, self.args)
+    def load_model(self, nnet_fullpath):
+        if self.args.framework == 'tensorflow':
+            nn = NNetWrapperTensorflow(self.game, self.args)
+        elif self.args.framework == 'pytorch':
+            nn = NNetWrapperTorch(self.game, self.args)
+        else:
+            raise ValueError('Unknown ML framework')
         nn.load_checkpoint(full_path=nnet_fullpath)
         return nn
 
