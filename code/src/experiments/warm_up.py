@@ -17,7 +17,10 @@ from src.utils import CsvTable
 
 @dataclass
 class WarmUpArgs:
+    old_name: str
     iterations: int = 5
+    train: bool = True
+    load_old: bool = False
 
 
 def load_buffer(path):
@@ -33,37 +36,50 @@ log = logging.getLogger(__name__)
 def main():
     import multiprocessing as mp
     mp.set_start_method('spawn')
-    train_examples = load_buffer('data/filtered_experience.buffer')
-    args = WarmUpArgs()
+    args = WarmUpArgs(
+        train=False,
+        load_old=True,
+        old_name='heuristic_warm_up_net.pth.tar'
+    )
     c_args = CoachArguments(
         num_random_agent_comparisons=10,
         num_arena_workers=2,
         arena_worker_cpu=False,
         nnet_size='small',
-        num_MCTS_sims=200,
+        num_MCTS_sims=120,
     )
     game = AbaloneGame()
+
     nnet = NNetWrapper(game, c_args)
-    NNET_NAME_CURRENT = 'warm_up_net.pth.tar'
+    NNET_NAME_CURRENT = 'heuristic_warm_up_net_double.pth.tar'
     random_player_game_stats_csv = CsvTable(
         'data',
         'warm_up_random_player_performance.csv',
         ['iteration', 'timestamp', 'nnet_wins', 'random_wins',
             'draws', 'nnet_cumul_rewards', 'rndm_cumul_rewards'],
     )
-    boards, pis, zs = zip(*train_examples)
-    # plt.hist(zs, bins=[-1/2, -1/3, -1/6, -1e-08,
-    #          1e-08, 1/6, 1/3, 1/2], density=False)
-    plt.hist(zs, density=False)
-    plt.title("histogram")
-    plt.show()
+    if args.train:
+        # train_examples = load_buffer('data/filtered_experience.buffer')
+        train_examples = load_buffer('data/heuristic_experience1.buffer')
+        boards, pis, zs = zip(*train_examples)
+        # plt.hist(zs, bins=[-1/2, -1/3, -1/6, -1e-08,
+        #          1e-08, 1/6, 1/3, 1/2], density=False)
+        plt.hist(zs, density=False)
+        plt.title("histogram")
+        plt.show()
+    if args.train and args.load_old:
+        nnet.load_checkpoint(
+            folder=c_args.checkpoint, filename=args.old_name)
 
     for i in range(0, args.iterations):
-        # shuffle(train_examples)
+        if args.train:
+            shuffle(train_examples)
 
-        # nnet.train(train_examples)
-        # nnet.save_checkpoint(
-        #     folder=c_args.checkpoint, filename=NNET_NAME_CURRENT)
+            nnet.train(train_examples)
+            nnet.save_checkpoint(
+                folder=c_args.checkpoint, filename=NNET_NAME_CURRENT)
+        else:
+            print('Skipping training')
         print('Starting comparision with random player')
         arena = Arena(
             AbaloneNNPlayer,
