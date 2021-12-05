@@ -179,9 +179,9 @@ class OutBlock(nn.Module):
         self.board_x = board_x
         self.board_y = board_y
         self.action_size = action_size
-        self.conv = nn.Conv2d(256, 3, kernel_size=1)  # value head
-        self.bn = nn.BatchNorm2d(3)
-        self.fc1 = nn.Linear(1*self.board_x*self.board_y, 32)
+        self.conv = nn.Conv2d(256, 1, kernel_size=1)  # value head
+        self.bn = nn.BatchNorm2d(1)
+        self.fc1 = nn.Linear(self.board_x*self.board_y, 32)
         self.fc2 = nn.Linear(32, 1)
 
         self.conv1 = nn.Conv2d(256, 2, kernel_size=1)  # policy head
