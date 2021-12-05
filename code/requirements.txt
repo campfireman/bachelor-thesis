@@ -1,4 +1,4 @@
-abalone-engine @ git+git://github.com/campfireman/abalone-engine.git@946a5791f9b2fc59e3fbde4c69eeb2093439c03e
+abalone-engine @ git+git://github.com/campfireman/abalone-engine.git@b3e2c998fff137e4b2a3f71e86b168896e409685
 absl-py==0.15.0
 alpha-zero-general @ git+git://github.com/campfireman/alpha-zero-general.git@fb41da6523064156f9f2948eb329e24dbe7477f9
 astroid==2.8.4
@@ -81,6 +81,9 @@ pydot==1.4.2
 Pygments==2.10.0
 pylint==2.11.1
 pyparsing==3.0.6
+PyQt5==5.15.6
+PyQt5-Qt5==5.15.2
+PyQt5-sip==12.9.0
 pytest==6.2.5
 python-dateutil==2.8.2
 python-editor==1.0.4
