@@ -170,7 +170,7 @@ class ParallelCoach:
             self.args.data_directory,
             f'{training_start}_performance_stats.csv',
             ['iteration', 'timestamp', 'iteration_duration',
-                'training_duration', 'examples_read_from_queue', 'length_train_examples'],
+                'training_duration', 'examples_read_from_queue', 'length_experience_buffer'],
         )
         random_player_game_stats_csv = CsvTable(
             self.args.data_directory,
@@ -191,7 +191,7 @@ class ParallelCoach:
                 self.args.num_self_play_workers, manager)
 
             # wait for first round of games to finish
-            while train_example_queue.qsize() < self.args.num_eps:
+            while train_example_queue.qsize() < self.args.min_num_games:
                 log.info(f'Not enough train examples waiting')
                 time.sleep(10.0)
 
@@ -199,31 +199,33 @@ class ParallelCoach:
                 iteration_start = time.time()
                 log.info(f'Starting Iter #{i} ...')
 
-                iteration_examples = deque([], self.args.maxlen_of_queue)
+                iteration_examples = deque([])
 
                 examples_read_from_queue = 0
                 while not train_example_queue.empty():
                     game = train_example_queue.get()
-                    iteration_examples += game
+                    iteration_examples.append(game)
                     examples_read_from_queue += 1
                 log.info(
                     f'Loaded {examples_read_from_queue} self play games from queue')
 
                 # save the iteration examples to the history
-                self.train_examples_history.append(iteration_examples)
+                self.train_examples_history.extend(iteration_examples)
 
-                if len(self.train_examples_history) > self.args.num_iters_for_train_examples_history:
+                if len(self.train_examples_history) > self.args.maxlen_train_examples_history:
+                    cutoff = len(self.train_examples_history) - \
+                        self.args.maxlen_train_examples_history
                     log.warning(
-                        f"Removing the oldest entry in train_examples. len(train_examples_history) = {len(self.train_examples_history)}")
-                    self.train_examples_history.pop(0)
+                        f"Removing the oldest entries in train_examples. Cutoff = {cutoff}")
+                    self.train_examples_history = self.train_examples_history[cutoff:]
                 # backup history to a file
                 # NB! the examples were collected using the model from the previous iteration, so (i-1)
                 self.save_train_examples(i - 1)
 
-                train_examples = []
+                experience_buffer = []
                 for e in self.train_examples_history:
-                    train_examples.extend(e)
-                shuffle(train_examples)
+                    experience_buffer.extend(e)
+                shuffle(experience_buffer)
 
                 # training new network, keeping a copy of the old one
                 self.nnet.save_checkpoint(
@@ -232,7 +234,7 @@ class ParallelCoach:
                     folder=self.args.checkpoint, filename=self.NNET_NAME_CURRENT)
 
                 training_duration_start = time.time()
-                self.nnet.train(train_examples)
+                self.nnet.train(experience_buffer)
                 training_duration = time.time() - training_duration_start
                 self.nnet.save_checkpoint(
                     folder=self.args.checkpoint, filename=self.NNET_NAME_NEW)
@@ -310,4 +312,4 @@ class ParallelCoach:
                              (nwins, hwins, draws))
                 iteration_duration = time.time() - iteration_start
                 performance_stats_csv.add_row(
-                    [i, time.time(), iteration_duration, training_duration, examples_read_from_queue, len(train_examples)])
+                    [i, time.time(), iteration_duration, training_duration, examples_read_from_queue, len(experience_buffer)])

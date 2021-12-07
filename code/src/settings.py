@@ -11,12 +11,10 @@ class CoachArguments:
     tpu_name: str = ''
     bucket_name: str = 'balthasar'
     num_iters: int = 1000
-    num_eps: int = 10
+    min_num_games: int = 10
     temp_treshhold: int = 15
     # During arena playoff, new neural net will be accepted if threshold or more of games are won.
     update_treshold: float = 0.6
-    # Max number of game examples in the queue between coach and self play workers
-    maxlen_of_queue: int = 2000
     # Number of games moves for MCTS to simulate.
     num_MCTS_sims: int = 30
     cpuct: float = 1
@@ -37,7 +35,7 @@ class CoachArguments:
     load_model: bool = False
     load_folder_file: Tuple[str, str] = (
         '/home/ture/projects/bachelor-thesis/code/data/temp', 'best.pth.tar')
-    num_iters_for_train_examples_history: int = 100
+    maxlen_train_examples_history: int = 100
 
     # neural net arguments
     framework: str = 'torch'
