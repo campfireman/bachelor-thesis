@@ -24,6 +24,8 @@ class CoachArguments:
     num_arena_workers: int = 2
     self_play_worker_cpu: bool = True
     arena_worker_cpu: bool = True
+    filter_by_reward_threshold: bool = False
+    reward_threshold: float = 0.001
     # Number of games to play during arena play to determine if new net will be accepted.
     num_self_comparisons: int = 4
     # At which interval playoffs against heuristic agent and random agent are being performed

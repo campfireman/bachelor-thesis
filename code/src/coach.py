@@ -111,10 +111,14 @@ class ParallelCoach:
                 board, cur_player, episode_step)
             if r != 0:
                 end = time.time()
-                log.info(
-                    f'Finished game with nnet id: {cur_nnet_id} in {(end-start):.2f}s')
-                train_example_queue.put(
-                    [(x[0], x[2], r * ((-1) ** (x[1] != cur_player))) for x in train_examples])
+                if not args.filter_by_reward_threshold or (args.filter_by_reward_threshold and abs(r) > 0.001):
+                    log.info(
+                        f'Finished game with nnet id: {cur_nnet_id} in {(end-start):.2f}s')
+                    train_example_queue.put(
+                        [(x[0], x[2], r * ((-1) ** (x[1] != cur_player))) for x in train_examples])
+                else:
+                    log.info(
+                        f'Discarding game with r = {r}: nnet: {cur_nnet_id} in {(end-start):.2f}s')
                 board = game.get_init_board()
                 cur_player = 1
                 episode_step = 0
