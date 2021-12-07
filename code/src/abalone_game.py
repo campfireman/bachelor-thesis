@@ -252,7 +252,7 @@ class AbaloneNNPlayer(AbstractPlayer):
     def load_model(self, nnet_fullpath):
         if self.args.framework == 'tensorflow':
             nn = NNetWrapperTensorflow(self.game, self.args)
-        elif self.args.framework == 'pytorch':
+        elif self.args.framework == 'torch':
             nn = NNetWrapperTorch(self.game, self.args)
         else:
             raise ValueError('Unknown ML framework')
