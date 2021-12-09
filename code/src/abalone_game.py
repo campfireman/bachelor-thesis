@@ -202,7 +202,7 @@ class AbaloneGame(Game):
 
         for axis in ('q', 'qx', 'r', 'rx', 's', 'sx'):
             reflected_board = game.to_reflected_array(axis)
-            s = self.string_representation(rotated_board)
+            s = self.string_representation(reflected_board)
             if s in store:
                 continue
             store[s] = True
