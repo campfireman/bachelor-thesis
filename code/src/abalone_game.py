@@ -1,6 +1,6 @@
 import logging
 import os
-from typing import List, Tuple, Union
+from typing import Generator, Iterable, List, Tuple, Union
 
 import numpy as np
 import numpy.typing as npt
@@ -159,7 +159,7 @@ class AbaloneGame(Game):
         """
         return player*board
 
-    def get_symmetries(self, board: npt.NDArray, pi: List[float]) -> List[Tuple[npt.NDArray, List[float]]]:
+    def get_symmetries(self, board: npt.NDArray, pi: List[float]) -> Iterable[Tuple[npt.NDArray, List[float]]]:
         """
         Input:
             board: current board
@@ -174,7 +174,7 @@ class AbaloneGame(Game):
         game = self.engine.from_array(board, 1)
         moves = []
         # already include 360 degree rotation
-        symmetries = [(board, pi)]
+        yield board, pi
 
         for i in range(0, len(pi)):
             if pi[i] != 0:
@@ -198,7 +198,7 @@ class AbaloneGame(Game):
                 rotated_move_index = move_standard_to_index(
                     move['move'].rotate(deg).to_standard())
                 rotated_pi[rotated_move_index] = move['value']
-            symmetries.append((rotated_board, rotated_pi))
+            yield rotated_board, rotated_pi
 
         for axis in ('q', 'qx', 'r', 'rx', 's', 'sx'):
             reflected_board = game.to_reflected_array(axis)
@@ -212,9 +212,7 @@ class AbaloneGame(Game):
                 reflected_move_index = move_standard_to_index(
                     move['move'].reflect(axis).to_standard())
                 reflected_pi[reflected_move_index] = move['value']
-            symmetries.append((reflected_board, reflected_pi))
-
-        return symmetries
+            yield reflected_board, reflected_pi
 
     def string_representation(self, board: npt.NDArray) -> str:
         """
