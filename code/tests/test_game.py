@@ -26,7 +26,7 @@ def test_get_symmetries():
     valids = game.get_valid_moves(TEST_BOARD, player)
     pi = valids * pi
     start = time.time()
-    symmetries = game.get_symmetries(TEST_BOARD, pi)
+    symmetries = list(game.get_symmetries(TEST_BOARD, pi))
     end = time.time()
     print(f'time: {end- start}')
     r = game.get_game_ended(TEST_BOARD, player)
@@ -40,7 +40,7 @@ def test_get_symmetries():
         move = np.random.choice(np.array(np.argwhere(valids)).flatten())
         board, player = game.get_next_state(board, player, move)
         symmetries = game.get_symmetries(board, pi)
-        lens.append(len(symmetries))
+        lens.append(len(list(symmetries)))
         r = game.get_game_ended(board, player)
         pi = np.random.uniform(0.0, 1.0, size=game.get_action_size())
         valids = game.get_valid_moves(board, player)
