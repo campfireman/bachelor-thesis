@@ -137,7 +137,7 @@ class ParallelCoach:
         log.info(
             f'Spawning {self.args.num_self_play_workers} self play workers')
 
-        train_examples_queue = mp.Queue(100)
+        train_examples_queue = mp.Queue()
         nnet_id = manager.Value(value=0, typecode='int')
         nnet_path = os.path.join(self.args.checkpoint, self.NNET_NAME_BEST)
 
