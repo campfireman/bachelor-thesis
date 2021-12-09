@@ -28,6 +28,7 @@ class CoachArguments:
     num_self_comparisons: int = 4
     # At which interval playoffs against heuristic agent and random agent are being performed
     agent_comparisons_step_size: int = 5
+    first_agent_comparison_skip: bool = False
     num_random_agent_comparisons: int = 4
     num_heuristic_agent_comparisons: int = 2
 
