@@ -114,7 +114,6 @@ class ParallelCoach:
                 if not args.filter_by_reward_threshold or (args.filter_by_reward_threshold and abs(r) > 0.001):
                     log.info(
                         f'Finished game with nnet id: {cur_nnet_id} in {(end-start):.2f}s')
-                    log.info(f'len train_examples: {len(train_examples)}')
                     train_example_queue.put(
                         [(x[0], x[2], r * ((-1) ** (x[1] != cur_player))) for x in train_examples])
                 else:
