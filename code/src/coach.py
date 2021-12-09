@@ -1,6 +1,7 @@
 import logging
 import multiprocessing as mp
 import os
+import queue
 import sys
 import time
 from collections import deque
@@ -99,8 +100,7 @@ class ParallelCoach:
             temp = int(episode_step < args.temp_treshhold)
 
             pi = mcts.get_action_prob(canonicalBoard, temp=temp)
-            sym = game.get_symmetries(canonicalBoard, pi)
-            for b, p in sym:
+            for b, p in game.get_symmetries(canonicalBoard, pi):
                 train_examples.append([b, cur_player, p, None])
 
             action = np.random.choice(len(pi), p=pi)
@@ -114,6 +114,7 @@ class ParallelCoach:
                 if not args.filter_by_reward_threshold or (args.filter_by_reward_threshold and abs(r) > 0.001):
                     log.info(
                         f'Finished game with nnet id: {cur_nnet_id} in {(end-start):.2f}s')
+                    log.info(f'len train_examples: {len(train_examples)}')
                     train_example_queue.put(
                         [(x[0], x[2], r * ((-1) ** (x[1] != cur_player))) for x in train_examples])
                 else:
@@ -122,6 +123,7 @@ class ParallelCoach:
                 board = game.get_init_board()
                 cur_player = 1
                 episode_step = 0
+                train_examples = []
                 if nnet_id.value > cur_nnet_id:
                     log.info(
                         f'[{proc_id}] Loading Neural Net with ID: {nnet_id.value}')
@@ -129,10 +131,13 @@ class ParallelCoach:
                 start = time.time()
 
     def spawnum_self_play_workers(self, no_workers: int, manager: mp.Manager) -> Tuple[mp.Queue, mp.Value]:
+        if self.args.framework == 'torch':
+            import torch.multiprocessing as mp
+
         log.info(
             f'Spawning {self.args.num_self_play_workers} self play workers')
 
-        train_examples_queue = mp.Queue()
+        train_examples_queue = mp.Queue(100)
         nnet_id = manager.Value(value=0, typecode='int')
         nnet_path = os.path.join(self.args.checkpoint, self.NNET_NAME_BEST)
 
@@ -202,8 +207,14 @@ class ParallelCoach:
                 iteration_examples = deque([])
 
                 examples_read_from_queue = 0
-                while not train_example_queue.empty():
-                    game = train_example_queue.get()
+                examples_to_load = train_example_queue.qsize()
+                while examples_read_from_queue < examples_to_load:
+                    try:
+                        game = train_example_queue.get(timeout=5)
+                    except queue.Empty:
+                        log.warn(
+                            f'Queue timed out')
+                        break
                     iteration_examples.append(game)
                     examples_read_from_queue += 1
                 log.info(
@@ -272,7 +283,7 @@ class ParallelCoach:
                 self.nnet.save_checkpoint(
                     folder=self.args.checkpoint, filename=self.NNET_NAME_CURRENT)
 
-                if i == 1 or i % self.args.agent_comparisons_step_size == 0:
+                if (not self.args.first_agent_comparison_skip and i == 1) or i % self.args.agent_comparisons_step_size == 0:
                     log.info('PITTING AGAINST RANDOM PLAYER')
                     arena = Arena(
                         AbaloneNNPlayer,
