@@ -108,7 +108,7 @@ class AbaloneNNetMini():
             x_image)))         # batch_size  x board_x x board_y x num_channels
         h_conv2 = keras.layers.Activation('relu')(keras.layers.BatchNormalization(axis=3)(keras.layers.Conv2D(args.num_channels, 3, padding='same', use_bias=False)(
             h_conv1)))         # batch_size  x board_x x board_y x num_channels
-        h_conv3 = keras.layers.Activation('relu')(keras.layers.BatchNormalization(axis=3)(keras.layers.Conv2D(args.num_channels, 3, padding='valid', use_bias=False)(
+        h_conv3 = keras.layers.Activation('relu')(keras.layers.BatchNormalization(axis=3)(keras.layers.Conv2D(args.num_channels, 3, padding='same', use_bias=False)(
             h_conv2)))        # batch_size  x (board_x-2) x (board_y-2) x num_channels
         h_conv4 = keras.layers.Activation('relu')(keras.layers.BatchNormalization(axis=3)(keras.layers.Conv2D(args.num_channels, 3, padding='valid', use_bias=False)(
             h_conv3)))        # batch_size  x (board_x-4) x (board_y-4) x num_channels

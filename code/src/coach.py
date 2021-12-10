@@ -13,6 +13,8 @@ from typing import Tuple
 import numpy as np
 # import torch.multiprocessing as mp
 from abalone_engine.players import AbaProPlayer, AlphaBetaPlayer, RandomPlayer
+# from .arena import ParallelArena as Arena
+from alpha_zero_general.Arena import Arena
 from alpha_zero_general.Coach import Coach
 from alpha_zero_general.Game import Game
 from tensorflow.python.lib.io import file_io
@@ -20,10 +22,10 @@ from tensorflow.python.lib.io import file_io
 from src.abalone_game import AbaloneNNPlayer
 from src.mcts import MCTS
 from src.neural_net import NNetWrapperBase
+from src.othello_game import GreedyOthelloPlayer
+from src.othello_game import RandomPlayer as OthelloRandomPlayer
 from src.settings import CoachArguments
 from src.utils import CsvTable
-
-from .arena import ParallelArena as Arena
 
 log = logging.getLogger(__name__)
 
@@ -130,9 +132,6 @@ class ParallelCoach:
                 start = time.time()
 
     def spawnum_self_play_workers(self, no_workers: int, manager: mp.Manager) -> Tuple[mp.Queue, mp.Value]:
-        if self.args.framework == 'torch':
-            import torch.multiprocessing as mp
-
         log.info(
             f'Spawning {self.args.num_self_play_workers} self play workers')
 
@@ -255,79 +254,125 @@ class ParallelCoach:
                 self.nnet.save_checkpoint(
                     folder=self.args.checkpoint, filename=self.NNET_NAME_NEW)
 
-                log.info('PITTING AGAINST PREVIOUS VERSION')
-                arena = Arena(
-                    AbaloneNNPlayer,
-                    (),
-                    {'nnet_fullpath': os.path.join(self.args.checkpoint, self.NNET_NAME_CURRENT),
-                     'args': self.args},
-                    AbaloneNNPlayer,
-                    (),
-                    {'nnet_fullpath': os.path.join(self.args.checkpoint, self.NNET_NAME_NEW),
-                     'args': self.args},
-                    self.args.num_self_comparisons,
-                    self.args.num_arena_workers,
-                    verbose=False
-                )
-                pwins, nwins, draws, prewards, nrewards = arena.play_games()
+                # log.info('PITTING AGAINST PREVIOUS VERSION')
+                # arena = Arena(
+                #     AbaloneNNPlayer,
+                #     (),
+                #     {'nnet_fullpath': os.path.join(self.args.checkpoint, self.NNET_NAME_CURRENT),
+                #      'args': self.args},
+                #     AbaloneNNPlayer,
+                #     (),
+                #     {'nnet_fullpath': os.path.join(self.args.checkpoint, self.NNET_NAME_NEW),
+                #      'args': self.args},
+                #     self.args.num_self_comparisons,
+                #     self.args.num_arena_workers,
+                #     verbose=False
+                # )
+                # pwins, nwins, draws, prewards, nrewards = arena.play_games()
+
+                # log.info('NEW/PREV WINS : %d / %d ; DRAWS : %d' %
+                #          (nwins, pwins, draws))
+                # self_comparison_stats_csv.add_row(
+                #     [i, time.time(), pwins, nwins, draws, prewards, nrewards])
+                # if pwins + nwins == 0 or float(nwins) / (pwins + nwins) < self.args.update_treshold:
+                #     log.info('REJECTING NEW MODEL')
+                #     self.nnet.load_checkpoint(
+                #         folder=self.args.checkpoint, filename=self.NNET_NAME_CURRENT)
+                # else:
+                #     log.info('ACCEPTING NEW MODEL')
+                #     nnet_id.value += 1
+                #     self.nnet.save_checkpoint(
+                #         folder=self.args.checkpoint, filename=self.get_checkpoint_file(i))
+                #     self.nnet.save_checkpoint(
+                #         folder=self.args.checkpoint, filename=self.NNET_NAME_BEST)
+                #             log.info('PITTING AGAINST PREVIOUS VERSION')
+                pmcts = MCTS(self.game, self.pnet, self.args)
+                nmcts = MCTS(self.game, self.nnet, self.args)
+                arena = Arena(lambda x: np.argmax(pmcts.get_action_prob(x, temp=0)),
+                              lambda x: np.argmax(nmcts.get_action_prob(x, temp=0)), self.game)
+                pwins, nwins, draws = arena.playGames(
+                    self.args.num_self_comparisons)
 
                 log.info('NEW/PREV WINS : %d / %d ; DRAWS : %d' %
                          (nwins, pwins, draws))
-                self_comparison_stats_csv.add_row(
-                    [i, time.time(), pwins, nwins, draws, prewards, nrewards])
                 if pwins + nwins == 0 or float(nwins) / (pwins + nwins) < self.args.update_treshold:
                     log.info('REJECTING NEW MODEL')
                     self.nnet.load_checkpoint(
                         folder=self.args.checkpoint, filename=self.NNET_NAME_CURRENT)
                 else:
                     log.info('ACCEPTING NEW MODEL')
-                    nnet_id.value += 1
                     self.nnet.save_checkpoint(
                         folder=self.args.checkpoint, filename=self.get_checkpoint_file(i))
                     self.nnet.save_checkpoint(
                         folder=self.args.checkpoint, filename=self.NNET_NAME_BEST)
+                    nnet_id.value += 1
 
                 self.nnet.save_checkpoint(
                     folder=self.args.checkpoint, filename=self.NNET_NAME_CURRENT)
 
                 if (not self.args.first_agent_comparison_skip and i == 1) or i % self.args.agent_comparisons_step_size == 0:
+                    nmcts = MCTS(self.game, self.nnet, self.args)
+
                     log.info('PITTING AGAINST RANDOM PLAYER')
                     arena = Arena(
-                        AbaloneNNPlayer,
-                        (),
-                        {'nnet_fullpath': os.path.join(self.args.checkpoint, self.NNET_NAME_CURRENT),
-                         'args': self.args},
-                        RandomPlayer,
-                        (),
-                        {},
-                        self.args.num_random_agent_comparisons,
-                        self.args.num_arena_workers,
-                        verbose=False
-                    )
-                    nwins, rwins, draws, nrewards, rrewards = arena.play_games()
+                        lambda x: np.argmax(nmcts.get_action_prob(x, temp=0)),
+                        OthelloRandomPlayer(self.game).play, self.game)
+                    nwins, rwins, draws = arena.playGames(
+                        self.args.num_random_agent_comparisons)
                     random_player_game_stats_csv.add_row(
-                        [i, time.time(), nwins, rwins, draws, nrewards, rrewards])
+                        [i, time.time(), nwins, rwins, draws, '', ''])
                     log.info('NN/RNDM WINS : %d / %d ; DRAWS : %d' %
                              (nwins, rwins, draws))
 
-                    log.info('PITTING AGAINST HEURISTIC PLAYER')
+                    log.info('PITTING AGAINST GREEDY PLAYER')
                     arena = Arena(
-                        AbaloneNNPlayer,
-                        (),
-                        {'nnet_fullpath': os.path.join(self.args.checkpoint, self.NNET_NAME_CURRENT),
-                         'args': self.args},
-                        AlphaBetaPlayer,
-                        (),
-                        {},
-                        self.args.num_heuristic_agent_comparisons,
-                        self.args.num_arena_workers,
-                        verbose=False
-                    )
-                    nwins, hwins, draws, nrewards, hrewards = arena.play_games()
+                        lambda x: np.argmax(nmcts.get_action_prob(x, temp=0)),
+                        GreedyOthelloPlayer(self.game).play, self.game)
+                    nwins, rwins, draws = arena.playGames(
+                        10)
                     heuristic_player_game_stats_csv.add_row(
-                        [i, time.time(), nwins, hwins, draws, nrewards, hrewards])
-                    log.info('NN/HRSTC WINS : %d / %d ; DRAWS : %d' %
-                             (nwins, hwins, draws))
+                        [i, time.time(), nwins, rwins, draws, '', ''])
+                    log.info('NN/GRDY WINS : %d / %d ; DRAWS : %d' %
+                             (nwins, rwins, draws))
+
+                # if (not self.args.first_agent_comparison_skip and i == 1) or i % self.args.agent_comparisons_step_size == 0:
+                #     log.info('PITTING AGAINST RANDOM PLAYER')
+                #     arena = Arena(
+                #         AbaloneNNPlayer,
+                #         (),
+                #         {'nnet_fullpath': os.path.join(self.args.checkpoint, self.NNET_NAME_CURRENT),
+                #          'args': self.args},
+                #         RandomPlayer,
+                #         (),
+                #         {},
+                #         self.args.num_random_agent_comparisons,
+                #         self.args.num_arena_workers,
+                #         verbose=False
+                #     )
+                #     nwins, rwins, draws, nrewards, rrewards = arena.play_games()
+                #     random_player_game_stats_csv.add_row(
+                #         [i, time.time(), nwins, rwins, draws, nrewards, rrewards])
+                #     log.info('NN/RNDM WINS : %d / %d ; DRAWS : %d' %
+                #              (nwins, rwins, draws))
+
+                #     log.info('PITTING AGAINST HEURISTIC PLAYER')
+                #     arena = Arena(
+                #         AbaloneNNPlayer,
+                #         (),
+                #         {'nnet_fullpath': os.path.join(self.args.checkpoint, self.NNET_NAME_CURRENT),
+                #          'args': self.args},
+                #         AlphaBetaPlayer,
+                #         (),
+                #         {},
+                #         self.args.num_heuristic_agent_comparisons,
+                #         self.args.num_arena_workers,
+                #         verbose=False
+                #     )
+                #     nwins, hwins, draws, nrewards, hrewards = arena.play_games()
+                #     heuristic_player_game_stats_csv.add_row(
+                #         [i, time.time(), nwins, hwins, draws, nrewards, hrewards])
+                #     log.info('NN/HRSTC WINS : %d / %d ; DRAWS : %d' %
+                #              (nwins, hwins, draws))
                 iteration_duration = time.time() - iteration_start
                 performance_stats_csv.add_row(
                     [i, time.time(), iteration_duration, training_duration, examples_read_from_queue, len(experience_buffer)])
