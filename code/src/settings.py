@@ -12,7 +12,7 @@ class CoachArguments:
     bucket_name: str = 'balthasar'
     num_iters: int = 1000
     min_num_games: int = 10
-    temp_treshhold: int = 15
+    temp_treshhold: int = 60
     # During arena playoff, new neural net will be accepted if threshold or more of games are won.
     update_treshold: float = 0.6
     # Number of games moves for MCTS to simulate.

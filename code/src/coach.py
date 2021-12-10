@@ -182,6 +182,12 @@ class ParallelCoach:
             ['iteration', 'timestamp', 'wins', 'losses', 'draws',
                 'nnet_cumul_rewards', 'random_cumul_rewards'],
         )
+        self_comparison_stats_csv = CsvTable(
+            self.args.data_directory,
+            f'{training_start}_self_comparison_stats.csv',
+            ['iteration', 'timestamp', 'wins', 'losses', 'draws',
+                'pnet_cumul_rewards', 'nnet_cumul_rewards'],
+        )
         heuristic_player_game_stats_csv = CsvTable(
             self.args.data_directory,
             f'{training_start}_heuristic_player_game_stats.csv',
@@ -263,10 +269,12 @@ class ParallelCoach:
                     self.args.num_arena_workers,
                     verbose=False
                 )
-                pwins, nwins, draws, _, _ = arena.play_games()
+                pwins, nwins, draws, prewards, nrewards = arena.play_games()
 
                 log.info('NEW/PREV WINS : %d / %d ; DRAWS : %d' %
                          (nwins, pwins, draws))
+                self_comparison_stats_csv.add_row(
+                    [i, time.time(), pwins, nwins, draws, prewards, nrewards])
                 if pwins + nwins == 0 or float(nwins) / (pwins + nwins) < self.args.update_treshold:
                     log.info('REJECTING NEW MODEL')
                     self.nnet.load_checkpoint(
@@ -311,7 +319,7 @@ class ParallelCoach:
                         AlphaBetaPlayer,
                         (),
                         {},
-                        self.args.num_random_agent_comparisons,
+                        self.args.num_heuristic_agent_comparisons,
                         self.args.num_arena_workers,
                         verbose=False
                     )
