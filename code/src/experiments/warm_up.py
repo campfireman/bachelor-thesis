@@ -1,3 +1,4 @@
+import coloredlogs
 import logging
 import os
 import time
@@ -11,8 +12,8 @@ import tensorflow as tf
 from abalone_engine.players import RandomPlayer
 from src.abalone_game import AbaloneGame, AbaloneNNPlayer
 from src.arena import ParallelArena as Arena
-# from src.neural_net_torch import NNetWrapper
-from src.neural_net import NNetWrapper
+from src.neural_net_torch import NNetWrapper
+# from src.neural_net import NNetWrapper
 from src.settings import CoachArguments
 from src.utils import CsvTable
 
@@ -35,25 +36,27 @@ def load_buffer(path):
 
 log = logging.getLogger(__name__)
 
+coloredlogs.install(level='INFO')  # Change this to DEBUG to see more info.
+
 
 def main():
     import multiprocessing as mp
     mp.set_start_method('spawn')
     args = WarmUpArgs(
-        train=True,
+        train=False,
         load_old=False,
         old_name='heuristic_warm_up_net.pth.tar',
-        buffer_path='data/heuristic_experience.buffer',
+        buffer_path='data/heuristic_experienceX.buffer',
         # buffer_path = 'data/filtered_experience1.buffer',
     )
     c_args = CoachArguments(
         num_random_agent_comparisons=10,
-        num_arena_workers=5,
-        arena_worker_cpu=True,
-        nnet_size='large',
+        num_arena_workers=2,
+        arena_worker_cpu=False,
+        nnet_size='mini',
         residual_tower_size=12,
-        framework='tensorflow',
-        num_MCTS_sims=120,
+        framework='torch',
+        num_MCTS_sims=30,
     )
     if c_args.framework == 'tensorflow':
         gpus = tf.config.experimental.list_physical_devices('GPU')
@@ -62,7 +65,7 @@ def main():
 
     game = AbaloneGame()
 
-    NNET_NAME_CURRENT = 'heuristic_warm_up_net_tens_large12.pth.tar'
+    NNET_NAME_CURRENT = 'heuristic_warm_up_net.pth.tar'
     random_player_game_stats_csv = CsvTable(
         'data',
         'warm_up_random_player_performance.csv',
@@ -72,6 +75,7 @@ def main():
     if args.train:
         nnet = NNetWrapper(game, c_args)
         train_examples = load_buffer(args.buffer_path)
+        print(len(train_examples))
         boards, pis, zs = zip(*train_examples)
         plt.hist(zs, density=False)
         plt.title("histogram")
@@ -107,3 +111,7 @@ def main():
             [i, time.time(), nwins, rwins, draws, nrewards, rrewards])
         print('NN/RNDM WINS : %d / %d ; DRAWS : %d' %
               (nwins, rwins, draws))
+
+
+if __name__ == '__main__':
+    main()

@@ -24,7 +24,8 @@ def run_self_play_worker(proc_id: int, train_example_queue: mp.Queue, black_clas
 
     # to be resetted
     game = Game()
-    train_examples = []
+    train_examples_black = []
+    train_examples_white = []
     moves_history = []
     canonicalBoard = game.canonical_board()
     cur_player = game.turn.value
@@ -43,9 +44,11 @@ def run_self_play_worker(proc_id: int, train_example_queue: mp.Queue, black_clas
         pi = np.zeros(action_size)
         pi[move_index] = 1
 
-        sym = abalone_game.get_symmetries(canonicalBoard, pi)
-        for b, p in sym:
-            train_examples.append([b, cur_player, p, None])
+        for b, p in abalone_game.get_symmetries(canonicalBoard, pi):
+            if game.turn is Player.BLACK:
+                train_examples_black.append([b, cur_player, p, None])
+            else:
+                train_examples_white.append([b, cur_player, p, None])
 
         game.move(*move)
         game.switch_player()
@@ -58,14 +61,24 @@ def run_self_play_worker(proc_id: int, train_example_queue: mp.Queue, black_clas
             end = time.time()
             print(
                 f'Finished game with in {(end-start):.2f}s')
-            train_example_queue.put(
-                [(x[0], x[2], r * ((-1) ** (x[1] != cur_player))) for x in train_examples])
+            if r > 0.001:
+                print(f'Saving black experience')
+                train_example_queue.put(
+                    [(x[0], x[2], r * ((-1) ** (x[1] != cur_player))) for x in train_examples_black])
+            elif r < -0.001:
+                print(f'Saving white experience')
+                train_example_queue.put(
+                    [(x[0], x[2], r * ((-1) ** (x[1] != cur_player))) for x in train_examples_white])
+            else:
+                print(f'Draw: Discarding experience')
 
             game = Game()
             canonicalBoard = game.canonical_board()
             cur_player = 1
             episode_step = 0
             moves_history = []
+            train_examples_black = []
+            train_examples_white = []
             # switch players
             black_class, black_args, black_kwargs, white_class, white_args, white_kwargs = white_class, white_args, white_kwargs, black_class, black_args, black_kwargs
             black = black_class(Player.BLACK, *black_args, **black_kwargs)
@@ -86,7 +99,7 @@ def spawnum_self_play_workers(no_workers: int, manager: mp.Manager):
             target=run_self_play_worker,
             args=(
                 i, train_examples_queue,
-                AbaProPlayer, (), {'depth': 3, 'is_verbose': False},
+                AbaProPlayer, (), {'depth': 2, 'is_verbose': False},
                 RandomPlayer, (), {},
             )
         )
@@ -103,9 +116,9 @@ def save_buffer(buffer, buffer_filename):
 
 
 def main():
-    buffer_filename = 'data/heuristic_experience1.buffer'
+    buffer_filename = 'data/heuristic_experience2.buffer'
     buffer = deque()
-    num_games = 50
+    num_games = 300
     save_interval = 10
     no_workers = 5
 
@@ -114,10 +127,16 @@ def main():
             no_workers, manager)
 
         for i in range(1, num_games + 1):
-            buffer.extend(train_example_queue.get())
+            game = train_example_queue.get()
+            buffer.extend(game)
+            print(f'buffer len: {len(buffer)} game len: {len(game)}')
             print(f'Starting Reading game #{i} ...')
             if i % save_interval == 0:
                 save_buffer(buffer, buffer_filename)
         for proc in procs:
             proc.kill()
     save_buffer(buffer, buffer_filename)
+
+
+if __name__ == '__main__':
+    main()
