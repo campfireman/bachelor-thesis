@@ -8,11 +8,9 @@ import coloredlogs
 import tensorflow as tf
 from tensorflow.python.lib.io import file_io
 
+from src.abalone_game import AbaloneGame as Game
 from src.coach import CoachArguments
 from src.coach import ParallelCoach as Coach
-# from src.abalone_game import AbaloneGame as Game
-# from src.tictactoe_game import TicTacToeGame as Game
-from src.othello_game import OthelloGame as Game
 
 # from src.coach import Coach
 
@@ -51,7 +49,7 @@ def main(coach_arguments: dict = None):
         return
 
     log.info('Loading %s...', Game.__name__)
-    g = Game(6)
+    g = Game()
 
     log.info('Loading %s...', nn.__name__)
     nnet = nn(g, args)

@@ -254,86 +254,37 @@ class ParallelCoach:
                 self.nnet.save_checkpoint(
                     folder=self.args.checkpoint, filename=self.NNET_NAME_NEW)
 
-                # log.info('PITTING AGAINST PREVIOUS VERSION')
-                # arena = Arena(
-                #     AbaloneNNPlayer,
-                #     (),
-                #     {'nnet_fullpath': os.path.join(self.args.checkpoint, self.NNET_NAME_CURRENT),
-                #      'args': self.args},
-                #     AbaloneNNPlayer,
-                #     (),
-                #     {'nnet_fullpath': os.path.join(self.args.checkpoint, self.NNET_NAME_NEW),
-                #      'args': self.args},
-                #     self.args.num_self_comparisons,
-                #     self.args.num_arena_workers,
-                #     verbose=False
-                # )
-                # pwins, nwins, draws, prewards, nrewards = arena.play_games()
-
-                # log.info('NEW/PREV WINS : %d / %d ; DRAWS : %d' %
-                #          (nwins, pwins, draws))
-                # self_comparison_stats_csv.add_row(
-                #     [i, time.time(), pwins, nwins, draws, prewards, nrewards])
-                # if pwins + nwins == 0 or float(nwins) / (pwins + nwins) < self.args.update_treshold:
-                #     log.info('REJECTING NEW MODEL')
-                #     self.nnet.load_checkpoint(
-                #         folder=self.args.checkpoint, filename=self.NNET_NAME_CURRENT)
-                # else:
-                #     log.info('ACCEPTING NEW MODEL')
-                #     nnet_id.value += 1
-                #     self.nnet.save_checkpoint(
-                #         folder=self.args.checkpoint, filename=self.get_checkpoint_file(i))
-                #     self.nnet.save_checkpoint(
-                #         folder=self.args.checkpoint, filename=self.NNET_NAME_BEST)
-                #             log.info('PITTING AGAINST PREVIOUS VERSION')
-                pmcts = MCTS(self.game, self.pnet, self.args)
-                nmcts = MCTS(self.game, self.nnet, self.args)
-                arena = Arena(lambda x: np.argmax(pmcts.get_action_prob(x, temp=0)),
-                              lambda x: np.argmax(nmcts.get_action_prob(x, temp=0)), self.game)
-                pwins, nwins, draws = arena.playGames(
-                    self.args.num_self_comparisons)
+                log.info('PITTING AGAINST PREVIOUS VERSION')
+                arena = Arena(
+                    AbaloneNNPlayer,
+                    (),
+                    {'nnet_fullpath': os.path.join(self.args.checkpoint, self.NNET_NAME_CURRENT),
+                     'args': self.args},
+                    AbaloneNNPlayer,
+                    (),
+                    {'nnet_fullpath': os.path.join(self.args.checkpoint, self.NNET_NAME_NEW),
+                     'args': self.args},
+                    self.args.num_self_comparisons,
+                    self.args.num_arena_workers,
+                    verbose=False
+                )
+                pwins, nwins, draws, prewards, nrewards = arena.play_games()
 
                 log.info('NEW/PREV WINS : %d / %d ; DRAWS : %d' %
                          (nwins, pwins, draws))
+                self_comparison_stats_csv.add_row(
+                    [i, time.time(), pwins, nwins, draws, prewards, nrewards])
                 if pwins + nwins == 0 or float(nwins) / (pwins + nwins) < self.args.update_treshold:
                     log.info('REJECTING NEW MODEL')
                     self.nnet.load_checkpoint(
                         folder=self.args.checkpoint, filename=self.NNET_NAME_CURRENT)
                 else:
                     log.info('ACCEPTING NEW MODEL')
+                    nnet_id.value += 1
                     self.nnet.save_checkpoint(
                         folder=self.args.checkpoint, filename=self.get_checkpoint_file(i))
                     self.nnet.save_checkpoint(
                         folder=self.args.checkpoint, filename=self.NNET_NAME_BEST)
-                    nnet_id.value += 1
-
-                self.nnet.save_checkpoint(
-                    folder=self.args.checkpoint, filename=self.NNET_NAME_CURRENT)
-
-                if (not self.args.first_agent_comparison_skip and i == 1) or i % self.args.agent_comparisons_step_size == 0:
-                    nmcts = MCTS(self.game, self.nnet, self.args)
-
-                    log.info('PITTING AGAINST RANDOM PLAYER')
-                    arena = Arena(
-                        lambda x: np.argmax(nmcts.get_action_prob(x, temp=0)),
-                        OthelloRandomPlayer(self.game).play, self.game)
-                    nwins, rwins, draws = arena.playGames(
-                        self.args.num_random_agent_comparisons)
-                    random_player_game_stats_csv.add_row(
-                        [i, time.time(), nwins, rwins, draws, '', ''])
-                    log.info('NN/RNDM WINS : %d / %d ; DRAWS : %d' %
-                             (nwins, rwins, draws))
-
-                    log.info('PITTING AGAINST GREEDY PLAYER')
-                    arena = Arena(
-                        lambda x: np.argmax(nmcts.get_action_prob(x, temp=0)),
-                        GreedyOthelloPlayer(self.game).play, self.game)
-                    nwins, rwins, draws = arena.playGames(
-                        10)
-                    heuristic_player_game_stats_csv.add_row(
-                        [i, time.time(), nwins, rwins, draws, '', ''])
-                    log.info('NN/GRDY WINS : %d / %d ; DRAWS : %d' %
-                             (nwins, rwins, draws))
 
                 # if (not self.args.first_agent_comparison_skip and i == 1) or i % self.args.agent_comparisons_step_size == 0:
                 #     log.info('PITTING AGAINST RANDOM PLAYER')
