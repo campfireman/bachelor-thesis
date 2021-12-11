@@ -1,8 +1,6 @@
 import argparse
 import json
 import logging
-import os
-from typing import Tuple
 
 import coloredlogs
 import tensorflow as tf
@@ -12,11 +10,11 @@ from src.abalone_game import AbaloneGame as Game
 from src.coach import CoachArguments
 from src.coach import ParallelCoach as Coach
 
-# from src.coach import Coach
-
-
-#os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
-
+logging.basicConfig(
+    filename='./data/training_logs.txt',
+    filemode='a',
+    level=logging.INFO
+)
 log = logging.getLogger(__name__)
 
 coloredlogs.install(level='INFO')  # Change this to DEBUG to see more info.

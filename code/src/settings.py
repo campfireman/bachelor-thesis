@@ -26,6 +26,7 @@ class CoachArguments:
     reward_threshold: float = 0.001
     # Number of games to play during arena play to determine if new net will be accepted.
     num_self_comparisons: int = 4
+    agent_comparisons: bool = True
     # At which interval playoffs against heuristic agent and random agent are being performed
     agent_comparisons_step_size: int = 5
     first_agent_comparison_skip: bool = False
@@ -36,7 +37,7 @@ class CoachArguments:
     load_model: bool = False
     load_folder_file: Tuple[str, str] = (
         '/home/ture/projects/bachelor-thesis/code/data/temp', 'best.pth.tar')
-    maxlen_train_examples_history: int = 100
+    maxlen_experience_buffer: int = 100
 
     # neural net arguments
     framework: str = 'torch'

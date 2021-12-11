@@ -13,8 +13,7 @@ from typing import Tuple
 import numpy as np
 # import torch.multiprocessing as mp
 from abalone_engine.players import AbaProPlayer, AlphaBetaPlayer, RandomPlayer
-# from .arena import ParallelArena as Arena
-from alpha_zero_general.Arena import Arena
+# from alpha_zero_general.Arena import Arena
 from alpha_zero_general.Coach import Coach
 from alpha_zero_general.Game import Game
 from tensorflow.python.lib.io import file_io
@@ -26,6 +25,8 @@ from src.othello_game import GreedyOthelloPlayer
 from src.othello_game import RandomPlayer as OthelloRandomPlayer
 from src.settings import CoachArguments
 from src.utils import CsvTable
+
+from .arena import ParallelArena as Arena
 
 log = logging.getLogger(__name__)
 
@@ -43,20 +44,20 @@ class ParallelCoach:
             self.game, self.args)  # the competitor network
         self.mcts = MCTS(self.game, self.nnet, self.args)
         # history of examples from args.num_iters_for_train_examples latest iterations
-        self.train_examples_history = []
+        self.experience_buffer = deque([])
         self.skip_first_self_play = False  # can be overriden in load_train_examples()
 
     def get_checkpoint_file(self, iteration):
         return 'checkpoint_' + str(iteration) + '.pth.tar'
 
-    def save_train_examples(self, iteration):
+    def save_experience_buffer(self, iteration):
         folder = self.args.checkpoint
         if not os.path.exists(folder):
             os.makedirs(folder)
         filename = os.path.join(
             folder, self.get_checkpoint_file(iteration) + ".examples")
         with file_io.FileIO(filename, "wb+") as f:
-            Pickler(f).dump(self.train_examples_history)
+            Pickler(f).dump(self.experience_buffer)
 
     def load_train_examples(self):
         modelFile = os.path.join(
@@ -165,10 +166,10 @@ class ParallelCoach:
         It then pits the new neural network against the old one and accepts it
         only if it wins >= update_treshold fraction of games.
         """
+        training_start = time.time()
         self.initialize_nnet()
 
         # collect stats in csv files
-        training_start = time.time()
         performance_stats_csv = CsvTable(
             self.args.data_directory,
             f'{training_start}_performance_stats.csv',
@@ -208,8 +209,6 @@ class ParallelCoach:
                 iteration_start = time.time()
                 log.info(f'Starting Iter #{i} ...')
 
-                iteration_examples = deque([])
-
                 examples_read_from_queue = 0
                 examples_to_load = train_example_queue.qsize()
                 while examples_read_from_queue < examples_to_load:
@@ -219,28 +218,20 @@ class ParallelCoach:
                         log.warn(
                             f'Queue timed out')
                         break
-                    iteration_examples.append(game)
+                    self.experience_buffer.extend(game)
                     examples_read_from_queue += 1
                 log.info(
                     f'Loaded {examples_read_from_queue} self play games from queue')
 
-                # save the iteration examples to the history
-                self.train_examples_history.extend(iteration_examples)
-
-                if len(self.train_examples_history) > self.args.maxlen_train_examples_history:
-                    cutoff = len(self.train_examples_history) - \
-                        self.args.maxlen_train_examples_history
+                if len(self.experience_buffer) > self.args.maxlen_experience_buffer:
+                    cutoff = len(self.experience_buffer) - \
+                        self.args.maxlen_experience_buffer
                     log.warning(
                         f"Removing the oldest entries in train_examples. Cutoff = {cutoff}")
-                    self.train_examples_history = self.train_examples_history[cutoff:]
+                    self.experience_buffer = self.experience_buffer[cutoff:]
                 # backup history to a file
                 # NB! the examples were collected using the model from the previous iteration, so (i-1)
-                self.save_train_examples(i - 1)
-
-                experience_buffer = []
-                for e in self.train_examples_history:
-                    experience_buffer.extend(e)
-                shuffle(experience_buffer)
+                self.save_experience_buffer(i - 1)
 
                 # training new network, keeping a copy of the old one
                 self.nnet.save_checkpoint(
@@ -249,7 +240,7 @@ class ParallelCoach:
                     folder=self.args.checkpoint, filename=self.NNET_NAME_CURRENT)
 
                 training_duration_start = time.time()
-                self.nnet.train(experience_buffer)
+                self.nnet.train(self.experience_buffer)
                 training_duration = time.time() - training_duration_start
                 self.nnet.save_checkpoint(
                     folder=self.args.checkpoint, filename=self.NNET_NAME_NEW)
@@ -286,44 +277,44 @@ class ParallelCoach:
                     self.nnet.save_checkpoint(
                         folder=self.args.checkpoint, filename=self.NNET_NAME_BEST)
 
-                # if (not self.args.first_agent_comparison_skip and i == 1) or i % self.args.agent_comparisons_step_size == 0:
-                #     log.info('PITTING AGAINST RANDOM PLAYER')
-                #     arena = Arena(
-                #         AbaloneNNPlayer,
-                #         (),
-                #         {'nnet_fullpath': os.path.join(self.args.checkpoint, self.NNET_NAME_CURRENT),
-                #          'args': self.args},
-                #         RandomPlayer,
-                #         (),
-                #         {},
-                #         self.args.num_random_agent_comparisons,
-                #         self.args.num_arena_workers,
-                #         verbose=False
-                #     )
-                #     nwins, rwins, draws, nrewards, rrewards = arena.play_games()
-                #     random_player_game_stats_csv.add_row(
-                #         [i, time.time(), nwins, rwins, draws, nrewards, rrewards])
-                #     log.info('NN/RNDM WINS : %d / %d ; DRAWS : %d' %
-                #              (nwins, rwins, draws))
+                if self.args.agent_comparisons and ((not self.args.first_agent_comparison_skip and i == 1) or i % self.args.agent_comparisons_step_size == 0):
+                    log.info('PITTING AGAINST RANDOM PLAYER')
+                    arena = Arena(
+                        AbaloneNNPlayer,
+                        (),
+                        {'nnet_fullpath': os.path.join(self.args.checkpoint, self.NNET_NAME_CURRENT),
+                         'args': self.args},
+                        RandomPlayer,
+                        (),
+                        {},
+                        self.args.num_random_agent_comparisons,
+                        self.args.num_arena_workers,
+                        verbose=False
+                    )
+                    nwins, rwins, draws, nrewards, rrewards = arena.play_games()
+                    random_player_game_stats_csv.add_row(
+                        [i, time.time(), nwins, rwins, draws, nrewards, rrewards])
+                    log.info('NN/RNDM WINS : %d / %d ; DRAWS : %d' %
+                             (nwins, rwins, draws))
 
-                #     log.info('PITTING AGAINST HEURISTIC PLAYER')
-                #     arena = Arena(
-                #         AbaloneNNPlayer,
-                #         (),
-                #         {'nnet_fullpath': os.path.join(self.args.checkpoint, self.NNET_NAME_CURRENT),
-                #          'args': self.args},
-                #         AlphaBetaPlayer,
-                #         (),
-                #         {},
-                #         self.args.num_heuristic_agent_comparisons,
-                #         self.args.num_arena_workers,
-                #         verbose=False
-                #     )
-                #     nwins, hwins, draws, nrewards, hrewards = arena.play_games()
-                #     heuristic_player_game_stats_csv.add_row(
-                #         [i, time.time(), nwins, hwins, draws, nrewards, hrewards])
-                #     log.info('NN/HRSTC WINS : %d / %d ; DRAWS : %d' %
-                #              (nwins, hwins, draws))
+                    log.info('PITTING AGAINST HEURISTIC PLAYER')
+                    arena = Arena(
+                        AbaloneNNPlayer,
+                        (),
+                        {'nnet_fullpath': os.path.join(self.args.checkpoint, self.NNET_NAME_CURRENT),
+                         'args': self.args},
+                        AlphaBetaPlayer,
+                        (),
+                        {},
+                        self.args.num_heuristic_agent_comparisons,
+                        self.args.num_arena_workers,
+                        verbose=False
+                    )
+                    nwins, hwins, draws, nrewards, hrewards = arena.play_games()
+                    heuristic_player_game_stats_csv.add_row(
+                        [i, time.time(), nwins, hwins, draws, nrewards, hrewards])
+                    log.info('NN/HRSTC WINS : %d / %d ; DRAWS : %d' %
+                             (nwins, hwins, draws))
                 iteration_duration = time.time() - iteration_start
                 performance_stats_csv.add_row(
-                    [i, time.time(), iteration_duration, training_duration, examples_read_from_queue, len(experience_buffer)])
+                    [i, time.time(), iteration_duration, training_duration, examples_read_from_queue, len(self.experience_buffer)])
