@@ -78,13 +78,15 @@ class ParallelCoach:
             self.skip_first_self_play = True
 
     @staticmethod
-    def run_self_play_worker(proc_id: int, args: CoachArguments, game: Game, nnet_class: NNetWrapperBase, train_example_queue: mp.Queue, nnet_path: str, nnet_id: mp.Value):
+    def run_self_play_worker(proc_id: int, args: CoachArguments, game: Game, nnet_class: NNetWrapperBase, train_example_queue: mp.Queue, nnet_path: str, nnet_id: mp.Value, cuda_device: str):
         def update_nnet(nnet: NNetWrapperBase) -> int:
             nnet.load_checkpoint(full_path=nnet_path)
             return nnet_id.value
 
         log.info(f'Worker {proc_id} checking in')
-        if args.self_play_worker_cpu:
+        if args.gpus_self_play:
+            os.environ['CUDA_VISIBLE_DEVICES'] = cuda_device
+        else:
             os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
             args.cuda = False
         nnet = nnet_class(game, args)
@@ -132,21 +134,35 @@ class ParallelCoach:
                     cur_nnet_id = update_nnet(nnet)
                 start = time.time()
 
-    def spawnum_self_play_workers(self, no_workers: int, manager: mp.Manager) -> Tuple[mp.Queue, mp.Value]:
+    def spawnum_self_play_workers(self, manager: mp.Manager) -> Tuple[mp.Queue, mp.Value]:
         log.info(
             f'Spawning {self.args.num_self_play_workers} self play workers')
 
         train_examples_queue = mp.Queue()
         nnet_id = manager.Value(value=0, typecode='int')
         nnet_path = os.path.join(self.args.checkpoint, self.NNET_NAME_BEST)
+        if self.args.gpus_self_play:
+            num_gpus = len(self.args.gpus_self_play)
+            workers_per_cuda_device = self.args.num_self_play_workers // num_gpus
+        cur_cuda_device = 0
+        cur_workers_per_device = 0
 
-        for i in range(0, no_workers):
+        for i in range(0, self.args.num_self_play_workers):
+            if self.args.gpus_self_play:
+                cuda_device = self.args.gpus_self_play[cur_cuda_device]
+                cur_workers_per_device += 1
+                if cur_workers_per_device > workers_per_cuda_device:
+                    cur_cuda_device += 1
+                    cur_workers_per_device = 0
+            else:
+                cuda_device = ''
+
             log.info(f'Spawning worker {i}')
             process = mp.Process(
                 target=ParallelCoach.run_self_play_worker,
                 args=(
                     i, self.args, self.game, self.nnet.__class__,
-                    train_examples_queue, nnet_path, nnet_id
+                    train_examples_queue, nnet_path, nnet_id, cuda_device
                 )
             )
             process.start()
@@ -198,7 +214,8 @@ class ParallelCoach:
 
         with mp.Manager() as manager:
             train_example_queue, nnet_id = self.spawnum_self_play_workers(
-                self.args.num_self_play_workers, manager)
+                manager
+            )
 
             # wait for first round of games to finish
             while train_example_queue.qsize() < self.args.min_num_games:
@@ -255,11 +272,12 @@ class ParallelCoach:
                     (),
                     {'nnet_fullpath': os.path.join(self.args.checkpoint, self.NNET_NAME_NEW),
                      'args': self.args},
-                    self.args.num_self_comparisons,
-                    self.args.num_arena_workers,
+                    self.args,
                     verbose=False
                 )
-                pwins, nwins, draws, prewards, nrewards = arena.play_games()
+                pwins, nwins, draws, prewards, nrewards = arena.play_games(
+                    self.args.num_self_comparisons
+                )
 
                 log.info('NEW/PREV WINS : %d / %d ; DRAWS : %d' %
                          (nwins, pwins, draws))
@@ -287,11 +305,11 @@ class ParallelCoach:
                         RandomPlayer,
                         (),
                         {},
-                        self.args.num_random_agent_comparisons,
-                        self.args.num_arena_workers,
+                        self.args,
                         verbose=False
                     )
-                    nwins, rwins, draws, nrewards, rrewards = arena.play_games()
+                    nwins, rwins, draws, nrewards, rrewards = arena.play_games(
+                        self.args.num_random_agent_comparisons)
                     random_player_game_stats_csv.add_row(
                         [i, time.time(), nwins, rwins, draws, nrewards, rrewards])
                     log.info('NN/RNDM WINS : %d / %d ; DRAWS : %d' %
@@ -306,11 +324,11 @@ class ParallelCoach:
                         AlphaBetaPlayer,
                         (),
                         {},
-                        self.args.num_heuristic_agent_comparisons,
-                        self.args.num_arena_workers,
+                        self.args,
                         verbose=False
                     )
-                    nwins, hwins, draws, nrewards, hrewards = arena.play_games()
+                    nwins, hwins, draws, nrewards, hrewards = arena.play_games(
+                        self.args.num_heuristic_agent_comparisons)
                     heuristic_player_game_stats_csv.add_row(
                         [i, time.time(), nwins, hwins, draws, nrewards, hrewards])
                     log.info('NN/HRSTC WINS : %d / %d ; DRAWS : %d' %

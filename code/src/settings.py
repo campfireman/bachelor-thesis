@@ -1,9 +1,13 @@
 import json
 import os
 from dataclasses import asdict, dataclass
-from typing import Tuple
+from typing import List, Tuple
 
 from tensorflow.python.lib.io import file_io
+
+
+def get_default_gpus():
+    return ['0']
 
 
 @dataclass
@@ -20,8 +24,6 @@ class CoachArguments:
     cpuct: float = 1
     num_self_play_workers: int = 4
     num_arena_workers: int = 2
-    self_play_worker_cpu: bool = True
-    arena_worker_cpu: bool = True
     filter_by_reward_threshold: bool = False
     reward_threshold: float = 0.001
     # Number of games to play during arena play to determine if new net will be accepted.
@@ -32,6 +34,10 @@ class CoachArguments:
     first_agent_comparison_skip: bool = False
     num_random_agent_comparisons: int = 4
     num_heuristic_agent_comparisons: int = 2
+
+    gpus_main_process: List[str] = get_default_gpus
+    gpus_self_play: List[str] = None
+    gpus_arena: List[str] = None
 
     data_directory_name: str = './data'
     load_model: bool = False

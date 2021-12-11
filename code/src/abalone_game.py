@@ -238,10 +238,6 @@ class AbaloneGame(Game):
 class AbaloneNNPlayer(AbstractPlayer):
     def __init__(self, player: Player, nnet_fullpath: str, args: CoachArguments):
         super().__init__(player)
-        if args.arena_worker_cpu:
-            if args.framework == 'tensorflow':
-                os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
-            args.cuda = False
         self.game = AbaloneGame()
         self.args = args
         self.model = self.load_model(nnet_fullpath)

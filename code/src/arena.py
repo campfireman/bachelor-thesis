@@ -7,6 +7,8 @@ import numpy as np
 from abalone_engine.enums import Player
 from abalone_engine.game import Game
 
+from src.settings import CoachArguments
+
 log = logging.getLogger(__name__)
 
 
@@ -19,8 +21,7 @@ class ParallelArena():
         player2_class: object,
         player2_args: Tuple,
         player2_kwargs: dict,
-        matches: int,
-        workers: int,
+        args: CoachArguments,
         verbose=False
     ):
         self.player1_class = player1_class
@@ -29,8 +30,7 @@ class ParallelArena():
         self.player2_class = player2_class
         self.player2_args = player2_args
         self.player2_kwargs = player2_kwargs
-        self.matches = matches
-        self.workers = workers
+        self.args = args
         self.verbose = verbose
 
     def print_game_result(self, game: Game):
@@ -41,6 +41,10 @@ class ParallelArena():
 
     def play_match(self, n: int):
         log.info(f'Playing match: {n}')
+        if self.args.gpus_arena:
+            os.environ['CUDA_VISIBLE_DEVICES'] = ','.join(self.args.gpus_arena)
+        else:
+            os.environ['CUDA_VISIBLE_DEVICES'] = -1
         one_won = 0
         two_won = 0
         one_cumul_reward = 0.0
@@ -84,7 +88,7 @@ class ParallelArena():
         self.print_game_result(game)
         return (one_won, two_won, draws, one_cumul_reward, two_cumul_reward)
 
-    def play_games(self) -> Tuple[int, int, int, float, float]:
+    def play_games(self, matches: int) -> Tuple[int, int, int, float, float]:
         """
         Plays num games in which player1 starts num/2 games and player2 starts
         num/2 games.
@@ -95,11 +99,11 @@ class ParallelArena():
             draws:  games won by nobody
         """
 
-        with mp.Pool(processes=self.workers) as pool:
+        with mp.Pool(processes=self.args.num_arena_workers) as pool:
             log.info('starting matches')
             scores = pool.map(
                 self.play_match,
-                range(0, self.matches)
+                range(0, matches)
             )
 
             result = (0, 0, 0, 0.0, 0.0)

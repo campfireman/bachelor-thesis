@@ -1,6 +1,7 @@
 import argparse
 import json
 import logging
+import os
 
 import coloredlogs
 import tensorflow as tf
@@ -50,6 +51,7 @@ def main(coach_arguments: dict = None):
     g = Game()
 
     log.info('Loading %s...', nn.__name__)
+    os.environ['CUDA_VISIBLE_DEVICES'] = ','.join(args.gpus_main_process)
     nnet = nn(g, args)
     nnet.show_info()
 
