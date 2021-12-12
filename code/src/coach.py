@@ -71,7 +71,7 @@ class ParallelCoach:
         else:
             log.info("File with trainExamples found. Loading it...")
             with file_io.FileIO(examplesFile, "rb") as f:
-                self.train_examples_history = Unpickler(f).load()
+                self.experience_buffer = Unpickler(f).load()
             log.info('Loading done!')
 
             # examples based on the model were already collected (loaded)
@@ -245,7 +245,8 @@ class ParallelCoach:
                         self.args.maxlen_experience_buffer
                     log.warning(
                         f"Removing the oldest entries in train_examples. Cutoff = {cutoff}")
-                    self.experience_buffer = self.experience_buffer[cutoff:]
+                    for i in range(0, cutoff):
+                        self.experience_buffer.popleft()
                 # backup history to a file
                 # NB! the examples were collected using the model from the previous iteration, so (i-1)
                 self.save_experience_buffer(i - 1)
