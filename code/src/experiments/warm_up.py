@@ -1,4 +1,3 @@
-import coloredlogs
 import logging
 import os
 import time
@@ -6,6 +5,7 @@ from dataclasses import dataclass
 from pickle import Unpickler
 from random import shuffle
 
+import coloredlogs
 import matplotlib.pyplot as plt
 import numpy as np
 import tensorflow as tf
@@ -43,7 +43,7 @@ def main():
     import multiprocessing as mp
     mp.set_start_method('spawn')
     args = WarmUpArgs(
-        train=False,
+        train=True,
         load_old=False,
         old_name='heuristic_warm_up_net.pth.tar',
         buffer_path='data/heuristic_experienceX.buffer',
@@ -52,10 +52,10 @@ def main():
     c_args = CoachArguments(
         num_random_agent_comparisons=10,
         num_arena_workers=2,
-        arena_worker_cpu=False,
-        nnet_size='mini',
-        residual_tower_size=12,
+        nnet_size='large',
+        residual_tower_size=10,
         framework='torch',
+        gpus_arena=['0'],
         num_MCTS_sims=30,
     )
     if c_args.framework == 'tensorflow':
@@ -65,7 +65,7 @@ def main():
 
     game = AbaloneGame()
 
-    NNET_NAME_CURRENT = 'heuristic_warm_up_net.pth.tar'
+    NNET_NAME_CURRENT = 'heuristic_warm_up_net_large.pth.tar'
     random_player_game_stats_csv = CsvTable(
         'data',
         'warm_up_random_player_performance.csv',
@@ -74,8 +74,8 @@ def main():
     )
     if args.train:
         nnet = NNetWrapper(game, c_args)
+        nnet.show_info()
         train_examples = load_buffer(args.buffer_path)
-        print(len(train_examples))
         boards, pis, zs = zip(*train_examples)
         plt.hist(zs, density=False)
         plt.title("histogram")
@@ -102,11 +102,11 @@ def main():
             RandomPlayer,
             (),
             {},
-            c_args.num_random_agent_comparisons,
-            c_args.num_arena_workers,
+            c_args,
             verbose=False
         )
-        nwins, rwins, draws, nrewards, rrewards = arena.play_games()
+        nwins, rwins, draws, nrewards, rrewards = arena.play_games(
+            c_args.num_random_agent_comparisons)
         random_player_game_stats_csv.add_row(
             [i, time.time(), nwins, rwins, draws, nrewards, rrewards])
         print('NN/RNDM WINS : %d / %d ; DRAWS : %d' %
