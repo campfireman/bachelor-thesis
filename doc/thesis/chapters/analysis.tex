@@ -174,7 +174,7 @@ Putting this together we can see in figure \ref{minimax} a graphical representat
 \end{figure}
 
 \subsection{Heuristic functions}
-As the number of nodes of the game tree gets very large, the search on the tree usually does not reach terminal leaves that indicate a clear loss or win. For example minimax has already visited $ 60 ^ 4 = 1.2960.000 $ nodes at a depth of $ d = 4 $.
+As the number of nodes of the game tree gets very large, the search on the tree usually does not reach terminal leaves that indicate a clear loss or win. Our computational resources will get exhausted first. For example minimax has already visited $ 60 ^ 4 = 1.2960.000 $ nodes at a depth of $ d = 4 $ in the case of an average Abalone game.
 
 Therefore, one has to limit the search to a computationally feasable depth and evaluate the intermediary result of a given transposition based on a so called \textit{heuristic function}. This function replaces our previous $ utility(s) $ for terminal states and is based on human knowledge. The function should give a precise feedback, on the quality of a state from the perspective of the given player. A sensible function for Abalone might be a linear combination in the form of:
 
@@ -194,7 +194,7 @@ By applying different weights $ \omega_i $ to the functions $ f_i $ we essential
 However, the problem with heuristic is we need expert knowledge and a lot of empirical testing to find a suitable heuristic. In some cases like with Go, such a heuristic function might not be competitive with even moderate human players. In other cases such as chess this strategy is very powerful. As mentioned in the introduction IBM's Deep Blue could beat the world's best player Gary Kasparov based this heuristic based adverserial search.
 
 \subsection{Alpha-beta pruning}
-We can further improve minimax search markedly by using Alpha-beta-pruning. This method tries to eliminate unnecessary traversals down the search tree, which, in the best case, leads to a reduction of nodes from $ O(b^d) $ to $ O(\sqrt{b^d}) $.
+We can further improve minimax search markedly by using Alpha-beta-pruning. This method tries to eliminate unnecessary traversals down the search tree. In the best case, this leads to a reduction of nodes from $ O(b^d) $ to $ O(\sqrt{b^d}) $.
 
 \begin{figure}
     \centering
@@ -203,6 +203,20 @@ We can further improve minimax search markedly by using Alpha-beta-pruning. This
     \caption{Our previous example but with alpha beta pruning applied. The greyed out nodes indicate, that these in fact could be pruned from the tree}
     \label{alpha_beta_pruning}
 \end{figure}
+
+The order in which we visit nodes in minimax is similar to a graph traversal with depth first search, meaning we descend down until we find a leaf node. This gives us information about the utility of that node and, consequently, part of the tree. Going up the tree we keep an alpha value for the minimum value the maximizer will recieve and a beta value for the maximum value the minimizer will achieve. For instance this lets us know if the minimizer already can choose a move worse than what we can achieve with another move, we not descend further $ (\alpha > \beta) $.
+
+Looking at the example in figure \ref{alpha_beta_pruning} will help us illustrate this principle. Our search revealed that choosing move $ a_1 $ will yield us an utility of at least 0. Traversing down move $ a_2 $ the first leaf has a utility of -1. Hence, the minimizer will choose a move that is at most -1 which is already worse than the utility of 0. We need not look further at this part of the tree.
+
+The example also shows us a important prerequisite for this method to work. The order in which we expand which node matters decides how much nodes we can prune. Had we visited move $ c_3 $ and $ c_2 $ first, pruning wouldn't have been possible. The best case of $ O(\sqrt{b^d}) $ is entirely dependent on this ordering. We could find different ways of ranking the moves:
+
+\begin{itemize}
+    \item \textit{Killer move heuristic} prioritizes that are usually undoubtedly good like taking a marble in Abalone.
+    \item \textit{Iterative deepening} Performs a minimax search only to a depth of one and uses the resulting values to rank the moves. Then searching one level deeper we use this ranking for ordering the moves. Even though there is a lot of redunancy, we make up for this more than enough by pruning much more effectively.
+\end{itemize}
+
+Other improvements to the procedure are thinkable as well. Once we performed a search for a certain state, we can store the resulting utility. If we encounter this position again, because of a different permutation of the move sequence (transposition), we can just look up the state utility in the \textit{transposition table}.
+
 
 \subsection{Monte Carlo Tree Search}
 
