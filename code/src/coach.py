@@ -145,7 +145,7 @@ class ParallelCoach:
             num_gpus = len(self.args.gpus_self_play)
             workers_per_cuda_device = self.args.num_self_play_workers // num_gpus
         cur_cuda_device = 0
-        cur_workers_per_device = 0
+        cur_workers_per_device = 1
 
         for i in range(0, self.args.num_self_play_workers):
             if self.args.gpus_self_play:
