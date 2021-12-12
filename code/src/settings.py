@@ -52,7 +52,7 @@ class CoachArguments:
     dropout: float = 0.3
     epochs: int = 10
     batch_size: int = 64
-    num_channels: int = 512
+    num_channels: int = 128
     residual_tower_size: int = 6
     cuda: bool = True
 

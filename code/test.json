@@ -37,7 +37,7 @@
     "dropout": 0.3,
     "epochs": 10,
     "batch_size": 64,
-    "num_channels": 512,
-    "residual_tower_size": 6,
+    "num_channels": 128,
+    "residual_tower_size": 5,
     "cuda": true
 }
