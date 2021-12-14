@@ -220,10 +220,53 @@ Other improvements to the procedure are thinkable as well. Once we performed a s
 Combined with alpha beta pruning, the minimax algorithm is a very efficient way of finding the optimal utility in an adverserial search situation. However, as mentioned before in most games we cannot use the utility of terminal states, because the search tree grows too quickly. By optimizing for a heuristic function the quality of play solely depends on this function. For games such as Chess or Abalone minimax has been very successful, because humans could devise meaningful heuristic functions. For chess the engine stockfish has been the most successful computer player for a long time and is based on this algorithm (and many optimizations). \cite{noauthor_stockfish_2021, noauthor_stockfish_nodate} In Abalone there are multiple implementations, the most successful has been ABA-PRO by Tino Werner \cite{aichholzer_algorithmic_2002} which has been the reference for other algorithms such as Abalearn \cite{campos_abalearn_2003}. A more recent publication claimed more successful play \cite{papadopoulos_exploring_2012} which was comfirmed in a very recent reimplementation thesis \cite{verloop_critical_nodate}. This reimplementation in Java \cite{verloop_abaloneai_nodate} is also the reference for later benchmarks.
 
 \subsection{Monte Carlo Tree Search}
-For games like Go we cannot find powerful heuristic functions, which makes the previous approach of minimax not a viable option.
+For games like Go we cannot find powerful heuristic functions, which makes the previous approach of minimax not a viable option. In addition, the initial position of a 19x19 Go boarad is 361 decreasing only by one for each stone placed. A method proposed in 2006 by Coulom \cite{coulom_efficient_2007} called Monte Carlo Tree search. The main idea is to use simulations or \textit{rollouts} to gain information on the quality of a state. To manage the complexity of the search tree more effectively the algorithm is \textit{selective} in which parts of the tree are \textit{expanded}. This ensures that resources are not wasted on unpromising moves.
+
+In its purest form the simulations are performed randomly, meaning we take state or node to be investigated and let two random players take turns until a terminal state is reached. Kocsis and Szepesvári \cite{kocsis_bandit_2006} showed that is in fact does converge to optimal play. For games like Abalone with high branching factor we need a large number of simulations to get any meaningful information from the simulations, so we might use a \textit{rollout policy} instead. This policy guides the moves taken in the simulation towards better moves. This might be as simple as favoring capturing moves or as we will see later neural networks.
+
+The algorithm can be structured into four stages:
+
+\paragraph{Selection} is the process of deciding which node to consider next. We start at the root node and select a node until we reach a leaf node. This is the secleted Node. We could select the nodes according to some stationary distribution or we could use the information that we gain over time.
+
+\paragraph{Expansion} is the step in which we expand the selected node by appending a fresh child node.
+
+\paragraph{Simulation} is as described as before the step in which we perform a simulation with our rollout policy starting from the state of the newly generated child node.
+
+\paragraph{Back-propagation} is the last step. We take the result of the simulation (utility) and write it to the node and parent nodes above until we reach the root node. Each node updates its cumulative utility $U(n)$ and the number of times it was visited $N(n)$.
+
+The more we repeated this cycle, the more certainty we gain about the optimal move to take.
+
+\begin{figure}
+    \centering
+    % \includesvg[height=7cm]{minimax.svg}
+    \includegraphics[height=9cm, keepaspectratio]{monte_carlo_tree_search.png}
+    \caption{Monte Carlo tree search stages \cite{noauthor_fig_nodate}}
+    \label{monte_carlo_tree_search}
+\end{figure}
+
+The inception on MCTS led to significant improvements in performance of game-playing agents in the Game of Go. The algorithm "Crazy Stone" from Coulom won the 10th KGS computer-Go tournament against competitors such as Indigo \cite{bouzy_associating_2006}. To select the next node he estimated the probability that move being better than the current best move. We order the moves by their current estimated value $ \mu_i $ and calculate the corresponding variance $ \sigma_{i}^{2} $ getting the ordering of $ \mu_0 > \mu_1 > ... > \mu_N $. Selection of a move is proportional to:
+
+$$
+    u_i = exp(-2.4\frac{\mu_0 - \mu_i}{\sqrt{2(\sigma_{0}^{2} + \sigma_{i}^{2})}}) + \epsilon_i
+$$
+
+The Term $ \epsilon_i $ ensures that the probability of selection never goes to zero as defined by $ \epsilon_i = \frac{0.1 + 2^{-i} + a_i}{N} $. The resulting distribution is similar to the Gaussian distribution and the Boltzman equations \cite{coulom_efficient_2007}
+
+Another idea for selection is the UCB1 formula, that weights how often we have visited a node and how promising it is.
+
+$$
+    \text{UCB1}(n) = \frac{U(n)}{N(n)} + C \times \sqrt{\frac{\log{N(Parent(n))}}{N(n)}}
+$$
+
+The cumulative utility $U(n)$ is normalized by the number of times we have visited the node $N(u)$. This helps favoring moves that are either relatively unexplored and promising or have proven to be good over a larger set of nodes. It is also called the exploitation term. The additional term is called the exploitation term. The more often we visit a node, the smaller this term gets, converging to 0 for large $N(n)$. The constant factor $C$ is subject to some debate which value might be optimal, some choose $\sqrt{2}$. In general, this hints at another point of investigation: The problem of \textit{explotation vs. exploitation} \ref{exploration_vs_exploitation} that we will inspect more closely later.
+
+
 
 \section{Learning agent}
 
 \subsection{Markov decision process}
 
 \subsection{Reinforcement learning}
+
+\subsection{Exploration vs. Exploitation}
+\label{exploration_vs_exploitation}
