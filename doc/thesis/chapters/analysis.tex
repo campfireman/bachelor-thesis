@@ -220,6 +220,7 @@ Other improvements to the procedure are thinkable as well. Once we performed a s
 Combined with alpha beta pruning, the minimax algorithm is a very efficient way of finding the optimal utility in an adverserial search situation. However, as mentioned before in most games we cannot use the utility of terminal states, because the search tree grows too quickly. By optimizing for a heuristic function the quality of play solely depends on this function. For games such as Chess or Abalone minimax has been very successful, because humans could devise meaningful heuristic functions. For chess the engine stockfish has been the most successful computer player for a long time and is based on this algorithm (and many optimizations). \cite{noauthor_stockfish_2021, noauthor_stockfish_nodate} In Abalone there are multiple implementations, the most successful has been ABA-PRO by Tino Werner \cite{aichholzer_algorithmic_2002} which has been the reference for other algorithms such as Abalearn \cite{campos_abalearn_2003}. A more recent publication claimed more successful play \cite{papadopoulos_exploring_2012} which was comfirmed in a very recent reimplementation thesis \cite{verloop_critical_nodate}. This reimplementation in Java \cite{verloop_abaloneai_nodate} is also the reference for later benchmarks.
 
 \subsection{Monte Carlo Tree Search}
+For games like Go we cannot find powerful heuristic functions, which makes the previous approach of minimax not a viable option.
 
 \section{Learning agent}
 
