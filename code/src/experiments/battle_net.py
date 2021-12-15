@@ -19,11 +19,13 @@ def main():
     # black = RandomPlayer(Player.BLACK)
     # black = AbaloneNNPlayer(Player.WHITE, '/home/ture/projects/bachelor-thesis/code/data/temp/best.pth.tar',
     #                         CoachArguments(framework='torch', nnet_size='mini', cuda=True, num_MCTS_sims=60))
-    black = AbaloneNNPlayer(Player.WHITE, '/home/ture/projects/bachelor-thesis/code/data/temp/checkpoint_5.pth.tar',
-                            CoachArguments(framework='torch', nnet_size='mini', cuda=True, num_MCTS_sims=60))
+    # black = AbaloneNNPlayer(Player.BLACK, '/home/ture/projects/bachelor-thesis/code/data/temp/heuristic_warm_up_net_large.pth.tar',
+    #                         CoachArguments(framework='torch', nnet_size='mini', cuda=True, num_channels=768, num_MCTS_sims=1000))
+    black = AbaloneNNPlayer(Player.BLACK, '/home/ture/best.pth.tar',
+                            CoachArguments(framework='torch', nnet_size='mini', num_channels=512, cuda=True, num_MCTS_sims=1000))
     # white = AbaloneNNPlayer(Player.WHITE, '/home/ture/projects/bachelor-thesis/code/data/temp/heuristic_warm_up_net.pth.tar',
     #                         CoachArguments(framework='torch', nnet_size='mini', cuda=True, num_MCTS_sims=60))
-    # white = RandomPlayer(Player.BLACK)
+    # white = RandomPlayer(Player.WHITE)
     # white = AlphaBetaPlayer(Player.BLACK)
     white = AbaProPlayer(Player.WHITE, is_verbose=False, depth=2)
     game, moves_history, move_stats = Game.run_game(

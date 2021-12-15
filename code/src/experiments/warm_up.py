@@ -12,6 +12,7 @@ import tensorflow as tf
 from abalone_engine.players import RandomPlayer
 from src.abalone_game import AbaloneGame, AbaloneNNPlayer
 from src.arena import ParallelArena as Arena
+from src.experiments.generate_experience import generate_experience
 from src.neural_net_torch import NNetWrapper
 # from src.neural_net import NNetWrapper
 from src.settings import CoachArguments
@@ -22,6 +23,7 @@ from src.utils import CsvTable
 class WarmUpArgs:
     old_name: str
     buffer_path: str
+    load_buffer_from_file: bool
     iterations: int = 5
     train: bool = True
     load_old: bool = False
@@ -40,23 +42,24 @@ coloredlogs.install(level='INFO')  # Change this to DEBUG to see more info.
 
 
 def main():
-    import multiprocessing as mp
-    mp.set_start_method('spawn')
     args = WarmUpArgs(
-        train=True,
-        load_old=False,
-        old_name='heuristic_warm_up_net.pth.tar',
+        train=False,
+        load_old=True,
+        load_buffer_from_file=False,
+        iterations=25,
+        old_name='heuristic_warm_up_net_large.pth.tar',
         buffer_path='data/heuristic_experienceX.buffer',
         # buffer_path = 'data/filtered_experience1.buffer',
     )
     c_args = CoachArguments(
         num_random_agent_comparisons=10,
         num_arena_workers=2,
-        nnet_size='large',
+        nnet_size='mini',
         residual_tower_size=10,
         framework='torch',
         gpus_arena=['0'],
         num_MCTS_sims=30,
+        num_channels=768,
     )
     if c_args.framework == 'tensorflow':
         gpus = tf.config.experimental.list_physical_devices('GPU')
@@ -73,9 +76,12 @@ def main():
             'draws', 'nnet_cumul_rewards', 'rndm_cumul_rewards'],
     )
     if args.train:
+        if args.load_buffer_from_file:
+            train_examples = load_buffer(args.buffer_path)
+        else:
+            train_examples = generate_experience()
         nnet = NNetWrapper(game, c_args)
         nnet.show_info()
-        train_examples = load_buffer(args.buffer_path)
         boards, pis, zs = zip(*train_examples)
         plt.hist(zs, density=False)
         plt.title("histogram")
@@ -111,7 +117,11 @@ def main():
             [i, time.time(), nwins, rwins, draws, nrewards, rrewards])
         print('NN/RNDM WINS : %d / %d ; DRAWS : %d' %
               (nwins, rwins, draws))
+        if args.train and not args.load_buffer_from_file:
+            train_examples.extend(generate_experience())
 
 
 if __name__ == '__main__':
+    import multiprocessing as mp
+    mp.set_start_method('spawn')
     main()

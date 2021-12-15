@@ -104,7 +104,7 @@ def spawnum_self_play_workers(no_workers: int, manager: mp.Manager):
             )
         )
         process.start()
-        processes.append(processes)
+        processes.append(process)
 
     return train_examples_queue, processes
 
@@ -115,11 +115,11 @@ def save_buffer(buffer, buffer_filename):
         Pickler(file).dump(buffer)
 
 
-def main():
+def generate_experience():
     buffer_filename = 'data/heuristic_experience2.buffer'
     buffer = deque()
-    num_games = 300
-    save_interval = 10
+    num_games = 100
+    save_interval = 100
     no_workers = 5
 
     with mp.Manager() as manager:
@@ -129,14 +129,14 @@ def main():
         for i in range(1, num_games + 1):
             game = train_example_queue.get()
             buffer.extend(game)
-            print(f'buffer len: {len(buffer)} game len: {len(game)}')
             print(f'Starting Reading game #{i} ...')
-            if i % save_interval == 0:
-                save_buffer(buffer, buffer_filename)
+            # if i % save_interval == 0:
+            #     save_buffer(buffer, buffer_filename)
         for proc in procs:
-            proc.kill()
-    save_buffer(buffer, buffer_filename)
+            proc.terminate()
+    # save_buffer(buffer, buffer_filename)
+    return buffer
 
 
 if __name__ == '__main__':
-    main()
+    generate_experience()
