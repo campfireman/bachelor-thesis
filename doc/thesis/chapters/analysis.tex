@@ -247,18 +247,34 @@ The more we repeated this cycle, the more certainty we gain about the optimal mo
 The inception on MCTS led to significant improvements in performance of game-playing agents in the Game of Go. The algorithm "Crazy Stone" from Coulom won the 10th KGS computer-Go tournament against competitors such as Indigo \cite{bouzy_associating_2006}. To select the next node he estimated the probability that move being better than the current best move. We order the moves by their current estimated value $ \mu_i $ and calculate the corresponding variance $ \sigma_{i}^{2} $ getting the ordering of $ \mu_0 > \mu_1 > ... > \mu_N $. Selection of a move is proportional to:
 
 $$
-    u_i = exp(-2.4\frac{\mu_0 - \mu_i}{\sqrt{2(\sigma_{0}^{2} + \sigma_{i}^{2})}}) + \epsilon_i
+    u_i = exp\left(-2.4\frac{\mu_0 - \mu_i}{\sqrt{2(\sigma_{0}^{2} + \sigma_{i}^{2})}}\right) + \epsilon_i
 $$
 
 The Term $ \epsilon_i $ ensures that the probability of selection never goes to zero as defined by $ \epsilon_i = \frac{0.1 + 2^{-i} + a_i}{N} $. The resulting distribution is similar to the Gaussian distribution and the Boltzman equations \cite{coulom_efficient_2007}
 
-Another idea for selection is the UCB1 formula, that weights how often we have visited a node and how promising it is.
+Another idea for selection is the UCB1 formula \cite{auer_finite-time_nodate}, that weights how often we have visited a node and how promising it is.
 
 $$
     \text{UCB1}(n) = \frac{U(n)}{N(n)} + C \times \sqrt{\frac{\log{N(Parent(n))}}{N(n)}}
 $$
 
 The cumulative utility $U(n)$ is normalized by the number of times we have visited the node $N(u)$. This helps favoring moves that are either relatively unexplored and promising or have proven to be good over a larger set of nodes. It is also called the exploitation term. The additional term is called the exploitation term. The more often we visit a node, the smaller this term gets, converging to 0 for large $N(n)$. The constant factor $C$ is subject to some debate which value might be optimal, some choose $\sqrt{2}$. In general, this hints at another point of investigation: The problem of \textit{explotation vs. exploitation} \ref{exploration_vs_exploitation} that we will inspect more closely later.
+
+Here we can already see David Silver's handwriting on the wall. As early as 2006 he, and Sylvian Gelly, investigated optimization to MCTS \cite{gelly_achieving_nodate} for the game of Go. In 2011 they published a comprehensive paper \cite{gelly_monte-carlo_2011} proposing the algorithm MoGo and evaluating different strategies to improve the effectiveness of MCTS in Go. Seeing that
+
+\begin{quotation}
+    [...] professional Go players often play moves according to intuitive feelings that are hard to express or quantify. Precisely encoding their knowledge into machine-understandable rules has proven to be a dead-end: a classic example of the knowledge acquisition bottleneck.
+\end{quotation}
+
+One of the ideas introduced is Rapid Action Value Estimation (RAVE). We already saw how we could reuse information gathered for minimax through a transposition table. In our search tree we will encounter transpostions for that we already performed searches. RAVE allows us to reuse experience gathered from simulations for related positions. A key property observed by Silver was that MoGo scales proportional to the amount of compute or rather number of simulations it can perform per turn as depicted in figure \ref{mogo_scaling}.
+
+
+\begin{figure}
+    \centering
+    \includegraphics[height=7cm, keepaspectratio]{mogo_scaling.png}
+    \caption{Elo rating of MoGo in relation to the computational resources granted to the algorithm \cite{gelly_monte-carlo_2011}}
+    \label{mogo_scaling}
+\end{figure}
 
 
 
