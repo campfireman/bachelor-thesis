@@ -2,6 +2,8 @@
 Before we move to the nuts and bolts of AlphaZero and our concrete implementation, we should establish a general understanding of the problem. That includes building the necessary theoretical background in artificial intelligence in general, as well as insight into the specialized knowledge such as deep reinforcement learning in particular.
 
 \section{Artificial intelligence}
+Since the late 1960s, many artificial intelligence researchers presumed that there are no general principles to be discovered, that intelligence is instead due to the possession of a vast number of special purpose tricks, procedures, and heuristics. It was sometimes said that if we could just get enough relevant facts into a machine, say one million, or one billion, then it would become intelligent. Methods based on general principles, such as search or learning, were characterized as “weak methods,” whereas those based on specific knowledge were called “strong methods.” This view is uncommon today. From our point of view, it was premature: too little effort had been put into the search for general principles to conclude that there were none. Modern artificial intelligence now includes much research looking for general principles of learning, search, and decision making. It is not clear how far back the pendulum will swing, but reinforcement learning research is certainly part of the swing back toward simpler and fewer general principles of artificial intelligence.
+
 % explain some of the history of AI:
 % - what does it mean
 % - little bit of history: focus on symbolic vs subsymbolic
@@ -68,7 +70,7 @@ A move pushing the opponent's marbles is called "sumito" and comes in three vari
 \end{figure}
 
 \subsection{PEAS and task properties}
-Based on the PEAS framework we can specify Abalone as a task environment and show the key componentents for the implementation of our agent. \cite[p.107]{russell_artificial_2021}
+Based on the PEAS framework we can specify Abalone as a task environment and show the key components for the implementation of our agent. \cite[p.107]{russell_artificial_2021}
 
 \begin{description}
     \item[Performance measure] Win/loss, number of moves, time to deliberate
@@ -268,6 +270,8 @@ Here we can already see David Silver's handwriting on the wall. As early as 2006
 
 One of the ideas introduced is Rapid Action Value Estimation (RAVE). We already saw how we could reuse information gathered for minimax through a transposition table. In our search tree we will encounter transpostions for that we already performed searches. RAVE allows us to reuse experience gathered from simulations for related positions. A key property observed by Silver was that MoGo scales proportional to the amount of compute or rather number of simulations it can perform per turn as depicted in figure \ref{mogo_scaling}.
 
+The investigations intro MCTS in the context of Abalone are quite limited so far. Pascal Chorus has undertaken a comparison of the vanilla implementation against a heuristic agent, showing the dominance of the heuristic agent. \cite{chorus_implementing_2009}
+
 
 \begin{figure}
     \centering
@@ -276,13 +280,63 @@ One of the ideas introduced is Rapid Action Value Estimation (RAVE). We already 
     \label{mogo_scaling}
 \end{figure}
 
-
-
 \section{Learning agent}
-
-\subsection{Markov decision process}
+The methods described until this point can be described as "Good old fashioned AI". They rely on search and human knowledge to perform adequately. We shift our focus now to methods that use learning mechanisms to improve their play. With MCTS we've actually seen a kind of intermediary form of algorithm as it is "simulating moves into the future, observing the outcome, and using the outcome to determine which moves are good ones is one kind of reinforcement learning." \cite{russell_artificial_2021}
 
 \subsection{Reinforcement learning}
+By devising a heuristic function, we basically told our agent what to do by indicating how a good position looks. The agent optimized its actions to be in a good position as described by the function. In reinforcement learning the agent learns what action to take through interaction. We don't predefine which actions are to to be taken. The agent tries to discover which actions yield the best \textit{reward}. The numerical reward signal might come immediately, but e.g. in the case of Abalone the reward for actions taken comes much later by winning the game (or losing it). According to Sutton and Barto those are the key components of reinforcement learning: "trial-and-error search and delayed reward". \cite{sutton_reinforcement_2018}
+
+Reinforcement learning is not a specific solution or method for this problem domain, all methods for "goal-directed agents interacting in an uncertain environment" are types of reinforcement learning. It is a general formalism that will help us reframe the problem of playing Abalone (well) in a new light. Reinforcement learning has four central components:
+
+\paragraph{The reward signal} is the description of the agent's goal. A controller of a cooling system for a server farm might have the goal to minimize the energy spent for cooling while keeping the servers below a certain threshold. The reward then signal encompasses both of these subgoals. The controller has to maximize this reward. The \textit{reward hypothesis} states that:
+\begin{quotation}
+    That all of what we mean by goals and purposes can be well thought of as the maximization of the expected value of the cumulative sum of a received scalar signal (called reward).
+\end{quotation}
+Therefore, we introduce the reward $R_t \in \mathbb{R} $ and the the goal $ G_t $ which is in the simplest case the sum of future rewards.
+
+$$ G_t = R_{t+1} + R_{t+2} + ... + R_T $$
+
+We might also discount the future rewards by some factor $\gamma \in [0, 1] $ to account for the decrease in certainty we have about future rewards:
+
+$$ G_t = R_{t+1} + \gamma R_{t+2} + \gamma^2 R_{t+2} + ... = \sum_{k=0}^{\infty} \gamma^kR_{t+k+1}$$
+
+\paragraph{The policy} is a mapping between the percieved states to probablilties for selecting earch possible action. For TicTacToe we might imagine a table that lists for all possible states to the agent's action. Due to the size of the state  space \ref{complexity_table} in Abalone this would not be feasable, wherefore we used search processes as a policy so far.
+
+We denote the policy as the function $\pi $ defines a probability distribution over all actions $ a \in \mathcal{A}(s)$ for earch $ s \in \mathcal{S} $. $ \pi(a|s)$ is probability at a given timestep $t$ for the action to be $ a = A_t $ under the condition that $ s = S_t $.
+
+\paragraph{The value function} is an estimation of the reward for the agent to be in a given state $ s $.  As the reward for a state depends on what actions we take in the future, the value depends on the policy $ pi $ defined above. Given that we are at timestep $ t $ and in state $ s = S_t $, the \textit{state-value function $v_{\pi}$}:
+
+$$ v_{\pi}(s) = \mathbb{E}_{\pi}[G_t | S_t = s] = \mathbb{E}_{\pi}\left[\sum_{k=0}^{\infty} \gamma^kR_{t+k+1} \middle| S_t = s \right] $$
+
+Furthermore, we define the value of action $a$ while being in state $s$ under the policy $pi$ as the \textit{action-value function} $q$:
+
+$$ q_{\pi}(s) = \mathbb{E}_{\pi}[G_t | S_t = s, A_t = a] = \mathbb{E}_{\pi}\left[\sum_{k=0}^{\infty} \gamma^kR_{t+k+1} \middle| S_t = s, A_t = a \right] $$
+
+\begin{figure}
+    \centering
+    \includegraphics[height=2cm, keepaspectratio]{policy_value_action_value.png}
+    \caption{A visual explanation of policy, value and action-value \cite[p.62]{sutton_reinforcement_2018}}
+    \label{policy_value_action_value}
+\end{figure}
+
+The figure \ref{policy_value_action_value} shows how the three elements of policy, state-value and action-value relate to each other.
+
+\paragraph{The model} helps to make predicts about how the environment might behave. For a given state and action it might return the next state which aides in planning ahead. In the case of Abalone our model is the rules of the game, used by the function that returns all legal moves or the resulting board from a given board and a move.
+
+
+
+
+\subsection{Markov decision process}
+The state must include information about all aspects of the past agent–environment interaction that make a difference for the future. If it does, then the state is said to have the Markov property.
 
 \subsection{Exploration vs. Exploitation}
 \label{exploration_vs_exploitation}
+
+\subsection{Neural networks}
+
+\subsection{(Stochastic) gradient descent}
+
+\subsection{Deep reinforcement learning}
+
+\subsection{AlphaGo and AlphaZero}
+Now we have reached the culmination of our theoretical analysis. All the components we introduced so far constitute the knowledge necessary to understand AlphaGo and AlphaZero.
