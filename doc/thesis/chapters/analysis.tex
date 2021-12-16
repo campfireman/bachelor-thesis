@@ -388,6 +388,7 @@ $$
 If we continue for an infinite number of times $ Q_t $ is guaranteed to converge to $ q_{*} $ as we sample each action enough to estimate its stationary distribution. We might also let the $ \epsilon $ decay over time to ensure we exploit the optimal lever eventually. This shows how we have to carefully consider what knowledge we have and how we plan to expand it further.
 
 \subsection{(Deep) Neural networks}
+As the MDP is a very abstract specification things like the value function $ v(s)$ are just left as an abstract function. As neural networks are an a general function approximator, we could use them to approximate the optimal value function $ v_{*}(s) $ to maximize rewards.
 
 \paragraph{Loss functions}
 
