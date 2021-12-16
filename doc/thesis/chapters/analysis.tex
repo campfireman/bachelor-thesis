@@ -355,7 +355,7 @@ $$ q_{*}(s, a) = \max_{\pi}q_{\pi}(s, a) $$
 
 \subsection{Exploration vs. Exploitation}
 \label{exploration_vs_exploitation}
-
+As the agent builds its knowledge while it is engaged in the in the environment it has to weigh \textit{exploiting} the gathered knowledge for ensuring a safe short term reward or sacrificing it for \textit{exploring} other actions that might turn out to bring higher rewards in the future. To illustrate this fundamental tradeoff in reinforcement learning, let us imagine a gambling machine with 10 levers, a 10-armed bandit. At each timestep $ t $ we have to decide which lever to pull and then we recieve some reward $ R_t $. Each lever has some stationary distribution over the rewards, that is hidden from us. The distribution looks the the one given in figure \ref{10_armed_bandit}.
 
 \begin{figure}
     \centering
@@ -363,6 +363,29 @@ $$ q_{*}(s, a) = \max_{\pi}q_{\pi}(s, a) $$
     \caption{The reward distributions of a 10-armed bandit \cite[p.28]{sutton_reinforcement_2018}}
     \label{10_armed_bandit}
 \end{figure}
+
+To estimate the action-value of each lever, we sum the rewards recieved for that lever $ R_t(a) $ and devide it by the number of times we've chosen the lever $ N_t(a) $ at the timestep $ t $.
+
+$$
+    Q_t(a) \doteq \frac{R_t(a)}{N_t{a}}
+$$
+
+This is called the \textit{sample-average} method. The simplest policy would be to just always choose the $ Q_t $ with the largest value.
+
+$$
+    A_t \doteq \operatorname*{argmmax}_a Q_t(a)
+$$
+
+Initially, we might choose a random lever and that yields a reward of 0. As all $ Q_t $ are still equivalent we choose another random lever giving us a reward of 1. Then ,according to the greedy policy, we just repeatedly pull this lever indefinitely. We just get stuck on exploiting the small knowledge we have gained. To allow for some exploration of other actions we introduce a small probability $\epsilon $ of choosing a different (random) action:
+$$
+    A_t =
+    \begin{cases}
+        \text{greedy } a & p = 1 - \epsilon \\
+        \text{other } a  & p = \epsilon     \\
+    \end{cases}
+$$
+
+If we continue for an infinite number of times $ Q_t $ is guaranteed to converge to $ q_{*} $ as we sample each action enough to estimate its stationary distribution. We might also let the $ \epsilon $ decay over time to ensure we exploit the optimal lever eventually. This shows how we have to carefully consider what knowledge we have and how we plan to expand it further.
 
 \subsection{Neural networks}
 
