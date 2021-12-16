@@ -219,7 +219,7 @@ The example also shows us an important prerequisite for this method to work. The
 
 Other improvements to the procedure are thinkable as well. Once we perform a search for a certain state, we can store the resulting utility. If we encounter this position again, because of a different permutation of the move sequence (transposition), we can just look up the state utility in the \textit{transposition table}.
 
-Combined with alpha beta pruning, the minimax algorithm is a very efficient way of finding the optimal utility in an adversarial search situation. However, as mentioned before in most games we cannot use the utility of terminal states, because the search tree grows too quickly. By optimizing for a heuristic function the quality of play solely depends on this function. For games such as Chess or Abalone minimax has been very successful, because humans could devise meaningful heuristic functions. For chess the engine stockfish has been the most successful computer player for a long time and is based on this algorithm (and many optimizations). \cite{noauthor_stockfish_2021, noauthor_stockfish_nodate} In Abalone there are multiple implementations, the most successful has been ABA-PRO by Tino Werner \cite{aichholzer_algorithmic_2002} which has been the reference for other algorithms such as Abalearn \cite{campos_abalearn_2003}. A more recent publication claimed a more successful play \cite{papadopoulos_exploring_2012} which was confirmed in a very recent reimplementation thesis \cite{verloop_critical_nodate}. This reimplementation in Java \cite{verloop_abaloneai_nodate} is also the reference for later benchmarks.
+Combined with alpha beta pruning, the minimax algorithm is a very efficient way of finding the optimal utility in an adversarial search situation. However, as mentioned before in most games we cannot use the utility of terminal states, because the search tree grows too quickly. By optimizing for a heuristic function the quality of play solely depends on this function. For games such as Chess or Abalone minimax has been very successful, because humans could devise meaningful heuristic functions. For chess the engine stockfish has been the most successful computer player for a long time and is based on this algorithm (and many optimizations). \cite{noauthor_stockfish_2021, noauthor_stockfish_nodate} In Abalone there are multiple implementations, the most successful has been ABA-PRO by Tino Werner from 2002 \cite{aichholzer_algorithmic_2002} which has been the reference for other algorithms such as Abalearn \cite{campos_abalearn_2003}. A more recent publication by Papadopoulos et. al. claimed to have devised a more successful player than Werner. \cite{papadopoulos_exploring_2012} This was confirmed in a very recent reimplementation thesis by Michiel Verloop \cite{verloop_critical_nodate}. This reimplementation in Java \cite{verloop_abaloneai_nodate} is also the reference for later benchmarks.
 
 \subsection{Monte Carlo Tree Search}
 For games like Go we cannot find powerful heuristic functions, which makes the previous approach of minimax not a viable option. In addition, the initial position of a 19x19 Go board is 361 decreasing only by one for each stone placed. A method proposed in 2006 by Coulom \cite{coulom_efficient_2007} called Monte Carlo Tree search. The main idea is to use simulations or \textit{rollouts} to gain information on the quality of a state. To manage the complexity of the search tree more effectively the algorithm is \textit{selective} in which parts of the tree are \textit{expanded}. This ensures that resources are not wasted on unpromising moves.
@@ -246,7 +246,7 @@ The more we repeated this cycle, the more certainty we gained about the optimal 
     \label{monte_carlo_tree_search}
 \end{figure}
 
-The inception of MCTS led to significant improvements in performance of game-playing agents in the Game of Go. The algorithm "Crazy Stone '' from Coulom won the 10th KGS computer-Go tournament against competitors such as Indigo \cite{bouzy_associating_2006}. To select the next node he estimated the probability of that move being better than the current best move. We order the moves by their current estimated value $ \mu_i $ and calculate the corresponding variance $ \sigma_{i}^{2} $ getting the ordering of $ \mu_0 > \mu_1 > ... > \mu_N $. Selection of a move is proportional to:
+The inception of MCTS led to significant improvements in performance of game-playing agents in the Game of Go. The algorithm "Crazy Stone" from Coulom won the 10th KGS computer-Go tournament against competitors such as Indigo \cite{bouzy_associating_2006}. To select the next node he estimated the probability of that move being better than the current best move. We order the moves by their current estimated value $ \mu_i $ and calculate the corresponding variance $ \sigma_{i}^{2} $ getting the ordering of $ \mu_0 > \mu_1 > ... > \mu_N $. Selection of a move is proportional to:
 
 $$
     u_i = exp\left(-2.4\frac{\mu_0 - \mu_i}{\sqrt{2(\sigma_{0}^{2} + \sigma_{i}^{2})}}\right) + \epsilon_i
@@ -270,7 +270,7 @@ Here we can already see David Silver's handwriting on the wall. As early as 2006
 
 One of the ideas introduced is Rapid Action Value Estimation (RAVE). We already saw how we could reuse information gathered for minimax through a transposition table. In our search tree we will encounter transpositions for that we already performed searches. RAVE allows us to reuse experience gathered from simulations for related positions. A key property observed by Silver was that MoGo scales proportional to the amount of compute or rather number of simulations it can perform per turn as depicted in figure \ref{mogo_scaling}.
 
-The investigations into MCTS in the context of Abalone are quite limited so far. Pascal Chorus has undertaken a comparison of the vanilla implementation against a heuristic agent, showing the dominance of the heuristic agent. \cite{chorus_implementing_2009}
+The investigations into MCTS in the context of Abalone are quite limited so far. Pascal Chorus has undertaken a comparison of the vanilla implementation against a heuristic agent, showing the dominance of the heuristic agent. \cite{chorus_implementing_2009} While in games like Go we don't have loops in Abalone random players can get stuck in very long games making the results of simulations very weak signals. Without any more sophisticated rollout-policy this approach does not work very well.
 
 
 \begin{figure}
@@ -286,13 +286,35 @@ The methods described until this point can be described as "Good old fashioned A
 \subsection{Reinforcement learning}
 By devising a heuristic function, we basically told our agent what to do by indicating how a good position looks. The agent optimized its actions to be in a good position as described by the function. In reinforcement learning the agent learns what action to take through interaction. We don't predefine which actions are to be taken. The agent tries to discover which actions yield the best \textit{reward}. The numerical reward signal might come immediately, but e.g. in the case of Abalone the reward for actions taken comes much later by winning the game (or losing it). According to Sutton and Barto those are the key components of reinforcement learning: "trial-and-error search and delayed reward". \cite{sutton_reinforcement_2018}
 
-Reinforcement learning is not a specific solution or method for this problem domain, all methods for "goal-directed agents interacting in an uncertain environment" are types of reinforcement learning. It is a general formalism that will help us reframe the problem of playing Abalone (well) in a new light. Reinforcement learning has four central components:
+Reinforcement learning is not a specific solution or method for this problem domain, all methods for "goal-directed agents interacting in an uncertain environment" are types of reinforcement learning. It is a general formalism that will help us reframe the problem of playing Abalone (well) in a new light.
+
+\subsection{Markov decision process}
+For reinforcement learning we also need to find a formalism for the environment. Originally derived as an extension of Markov Chains by Richard Bellman \cite{yang_markov_2019, bellman_markovian_1957}, the (finite) Markov Decision Process (MDP) describes sequential decision making where actions have long-term consequences, thus, effect future rewards. The MDP is an abstraction of "goal directed learning from abstraction" that reduces the problem to three signals of actions, states and rewards that are being exchanged between the agent and the environment. We already introduced the agent-environment interaction loop in figure \ref{agent_environment_loop}. We can reframe this image with the new terminology of the MDP framework in figure \ref{mdp_agent_environment}.
+
+\begin{figure}
+    \centering
+    \includegraphics[height=4cm, keepaspectratio]{mdp_agent_environment.png}
+    \caption{The markov decision process as agent-environment interaction loop}
+    \label{mdp_agent_environment}
+\end{figure}
+
+We devide the passage of time into discrete timesteps $ t $ at which the agent senses the state $ S_t \in \mathcal{S} $ and then selects some action $ A_t \in \mathcal{A}(s) $. Resulting in that action is some reward $ R_{t+1} \in \mathcal{R} \subset \mathbb{R} $ that is recieved in the next timestep. For a \textit{finite} MDP the sets $ \mathcal{A}, \mathcal{S}$ and $ \mathcal{R} $ have a finite amount of elements.
+
+The transitions between the state $ s $ and the next state $ s' $ is given by the function $ p $ which essentially defines the decision process as a whole:
+
+$$
+    p(s', r | s, a) \doteq Pr\{S_t=s', R_t = r | s_{t-1} = s, A_{t-1}=a\}
+$$
+
+As the random variables $ R_t $ and $ S_t $ only depend on the previous state and action, "the state must include information about all aspects of the past agent–environment interaction that make a difference for the future. If it does, then the state is said to have the \textit{Markov property}". \cite[p. 48]{sutton_reinforcement_2018}
+
+From these properties of the MDP we can define the four central components of Reinforcement learning:
 
 \paragraph{The reward signal} is the description of the agent's goal. A controller of a cooling system for a server farm might have the goal to minimize the energy spent for cooling while keeping the servers below a certain threshold. The reward signal then encompasses both of these subgoals. The controller has to maximize this reward. The \textit{reward hypothesis} states that:
 \begin{quotation}
     That all of what we mean by goals and purposes can be well thought of as the maximization of the expected value of the cumulative sum of a received scalar signal (called reward).
 \end{quotation}
-Therefore, we introduce the reward $R_t \in \mathbb{R} $ and the goal $ G_t $ which is in the simplest case the sum of future rewards.
+Therefore, we introduce the reward $R_t $ and the goal $ G_t $ which is in the simplest case the sum of future rewards.
 
 $$ G_t = R_{t+1} + R_{t+2} + ... + R_T $$
 
@@ -304,7 +326,7 @@ $$ G_t = R_{t+1} + \gamma R_{t+2} + \gamma^2 R_{t+2} + ... = \sum_{k=0}^{\infty}
 
 We denote the policy as the function $\pi $ defines a probability distribution over all actions $ a \in \mathcal{A}(s)$ for each $ s \in \mathcal{S} $. $ \pi(a|s)$ is probability at a given timestep $t$ for the action to be $ a = A_t $ under the condition that $ s = S_t $.
 
-\paragraph{The value function} is an estimation of the reward for the agent to be in a given state $ s $.  As the reward for a state depends on what actions we take in the future, the value depends on the policy $ pi $ defined above. Given that we are at timestep $ t $ and in state $ s = S_t $, the \textit{state-value function $v_{\pi}$}:
+\paragraph{The value function} is an estimation of the reward for the agent to be in a given state $ s $.  As the reward for a state depends on what actions we take in the future, the value depends on the policy $ \pi $ defined above. Given that we are at timestep $ t $ and in state $ s = S_t $, the \textit{state-value function $v_{\pi}$}:
 
 $$ v_{\pi}(s) = \mathbb{E}_{\pi}[G_t | S_t = s] = \mathbb{E}_{\pi}\left[\sum_{k=0}^{\infty} \gamma^kR_{t+k+1} \middle| S_t = s \right] $$
 
@@ -323,14 +345,24 @@ The figure \ref{policy_value_action_value} shows how the three elements of polic
 
 \paragraph{The model} helps to make predictions about how the environment might behave. For a given state and action it might return to the next state which aides in planning ahead. In the case of Abalone our model is the rules of the game, used by the function that returns all legal moves or the resulting board from a given board and a move.
 
+The goal of reinforcement learning is to find (or approximate) a policy that maximzes the future reward for each action and state. For MDPs we define the \textit{optimal policy} for all $ s \in mathcal{S} $ by:
 
+$$ v_{*}(s) \doteq \max_{\pi} v_{\pi}(s) $$
 
+For this optimal policy we also have an optimal action-value function $ q_{*} $ for all $ s \in \mathcal{S}$:
 
-\subsection{Markov decision process}
-The state must include information about all aspects of the past agent–environment interaction that make a difference for the future. If it does, then the state is said to have the Markov property.
+$$ q_{*}(s, a) = \max_{\pi}q_{\pi}(s, a) $$
 
 \subsection{Exploration vs. Exploitation}
 \label{exploration_vs_exploitation}
+
+
+\begin{figure}
+    \centering
+    \includegraphics[height=7cm, keepaspectratio]{10_armed_bandit.png}
+    \caption{The reward distributions of a 10-armed bandit \cite[p.28]{sutton_reinforcement_2018}}
+    \label{10_armed_bandit}
+\end{figure}
 
 \subsection{Neural networks}
 
