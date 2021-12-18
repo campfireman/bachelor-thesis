@@ -388,11 +388,43 @@ $$
 If we continue for an infinite number of times $ Q_t $ is guaranteed to converge to $ q_{*} $ as we sample each action enough to estimate its stationary distribution. We might also let the $ \epsilon $ decay over time to ensure we exploit the optimal lever eventually. This shows how we have to carefully consider what knowledge we have and how we plan to expand it further.
 
 \subsection{(Deep) Neural networks}
-As the MDP is a very abstract specification things like the value function $ v(s)$ are just left as an abstract function. As neural networks are an a general function approximator, we could use them to approximate the optimal value function $ v_{*}(s) $ to maximize rewards.
+As reinforcement learning is a very general framework things like the value function $ v(s)$ are just left as an abstract function. As neural networks are a general function approximator, we could use them to approximate the optimal value function $ v_{*}(s) $ to maximize rewards. Hence, we should introduce the basic building blocks of this technique to gauge whether we might utilize them further.
+
+Neural networks are one specific machine learning method, that has had large success in the recent past. Machine learning has been a paradigm shift in the way we think about building programs. In the classical development one used the data and predefined rules as input for the development. This means we have to have intricate knowledge about the problem domain to produce the answers we want. For tasks like image classification this is a difficult process as it is very hard to think of patterns and conditions an image has has to have, to find cats in them.
+
+\begin{figure}
+    \centering
+    \includegraphics[height=7cm, keepaspectratio]{programming_paradigm_shift.png}
+    \caption{A fundatmental shift in how we think about programming}
+    \label{programming_paradigm_shift}
+\end{figure}
+
+In machine learning we use the answers and the data as input to the development process and the rules are the output we produce. Figure \ref{programming_paradigm_shift} contrasts this change in programming. \cite{moroney_ai_2020}
+
+Consider any linear function of the form:
+$$
+    f(x) = mx + b,
+$$
+with $ x, m,b \in \mathbb{R} $. We could use this function to make predicions about one dimensional input data. For example we might have living space of houses in $ m^2 $ $ X_i $ and their corresponding price $ Y_i $. We could choose the bias $ b $ and the scale $ m $ such that the squared error for the given data is minimal. When given new data our linear model can make predictions of the potential prices of the houses.
+
+
+\begin{figure}
+    \centering
+    \includegraphics[height=7cm, keepaspectratio]{neural_networks.png}
+    \caption{A fundatmental shift in how we think about programming}
+    \label{neural_network}
+\end{figure}
+
+\paragraph{Activation function}
+Such linear functions are one type of \textit{neuron} that might be utilized in a neural network\ref{neural_network}.
+
+We might arrange multiple of these functions either in a chain, parallel or in layers as depticted in figure
 
 \paragraph{Loss functions}
 
 \paragraph{(Stochastic) gradient descent}
+
+\subsection{Convolutional Neural Network}
 
 \subsection{Deep reinforcement learning}
 
