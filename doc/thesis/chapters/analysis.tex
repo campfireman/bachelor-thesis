@@ -405,22 +405,47 @@ Consider any linear function of the form:
 $$
     f(x) = mx + b,
 $$
-with $ x, m,b \in \mathbb{R} $. We could use this function to make predicions about one dimensional input data. For example we might have living space of houses in $ m^2 $ $ X_i $ and their corresponding price $ Y_i $. We could choose the bias $ b $ and the scale $ m $ such that the squared error for the given data is minimal. When given new data our linear model can make predictions of the potential prices of the houses.
+with $ x, m,b \in \mathbb{R} $. We could use this function to make predicions about one dimensional input data. For example we might have living space of houses in $ m^2 $ $ X_i $ and their corresponding price $ Y_i $. We could choose the bias $ b $ and the scale $ m $ such that the squared error for the given data is minimal in a process we know as linear regression. When given new data our linear model can make predictions of the potential prices of the houses.
 
 
 \begin{figure}
     \centering
-    \includegraphics[height=7cm, keepaspectratio]{neural_networks.png}
-    \caption{A fundatmental shift in how we think about programming}
+    \includegraphics[height=3cm, keepaspectratio]{neural_networks.png}
+    \caption{The fundamental idea behind neurons}
     \label{neural_network}
 \end{figure}
 
+\begin{figure}
+    \centering
+    \includegraphics[height=3cm, keepaspectratio]{neural_network_layers.png}
+    \caption{A small neural network arranged in layers. An input layer, a hidden layer and an output layer}
+    \label{neural_network_layers}
+\end{figure}
+
 \paragraph{Activation function}
-Such linear functions are one type of \textit{neuron} that might be utilized in a neural network\ref{neural_network}.
+In this context we refer to such linear functions as \textit{neuron}. An important component is not only the linear function but also the an activation function: Before we pass the value of the function f(x) on, we apply some function $ \phi $. The activation function allows us to introduce a non-linearity, which in turn makes smaller networks able to perform much better on more complex tasks than just a simple linear activation. Common functions used are:
+\begin{itemize}
+    \item ReLu: $ \phi : max(0, f(x)) $
+    \item Sigmoid: $ \phi : \frac{1}{1 + e^{f(x)}} $
+    \item Binary step: $ \phi : \begin{cases}
+                  0 & f(x) < 0    \\
+                  1 & f(x) \geq 0 \\
+              \end{cases}$
+\end{itemize}
 
-We might arrange multiple of these functions either in a chain, parallel or in layers as depticted in figure
+This resulting basic neuron is depicted in figure \ref{neural_network}. If we want to make more complex inferences than just the prices of houses, we can arrange multiple neurons into larger structures like chains or layers (\ref{neural_network_layers}). To build such networks we need to generalize the linear function of the neuron for higher dimensional input:
 
-\paragraph{Loss functions}
+$$
+    y_k = \phi\left(\sum_{j=0}^{m}w_jx_j\right)
+$$
+
+But this poses a problem. We can find globally optimal solutions with linear regression and the like, but as the size of the network grows, the computational cost of these methods grows too large. A different approach is necessary.
+
+\paragraph{Loss functions} In the context of linear regression the term \textit{mean squared error} was already mentioned. It is the average squared difference between the perdictions and the desired output:
+$$
+    MSE = \frac{1}{n} \sum_{i = 1}^{n}(X_i - Y_i)^2
+$$
+This is one type of loss function.
 
 \paragraph{(Stochastic) gradient descent}
 
