@@ -12,6 +12,13 @@
 \usepackage{mathtools}
 
 \usepackage{graphicx,hyperref,amssymb}
+
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+
+\algnewcommand\algorithmicforeach{\textbf{for each}}
+\algdef{S}[FOR]{ForEach}[1]{\algorithmicforeach\ #1\ \algorithmicdo}
+
 \usepackage{svg}
 \svgsetup{inkscapepath=../figures/svg-inkscape}
 \graphicspath{{../figures/}}

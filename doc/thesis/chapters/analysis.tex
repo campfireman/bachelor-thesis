@@ -403,9 +403,9 @@ In machine learning we use the answers and the data as input to the development 
 
 Consider any linear function of the form:
 $$
-    f(x) = mx + b,
+    f(x) = w_1x + w_0,
 $$
-with $ x, m,b \in \mathbb{R} $. We could use this function to make predicions about one dimensional input data. For example we might have living space of houses in $ m^2 $ $ X_i $ and their corresponding price $ Y_i $. We could choose the bias $ b $ and the scale $ m $ such that the squared error for the given data is minimal in a process we know as linear regression. When given new data our linear model can make predictions of the potential prices of the houses.
+with $ x, w_1, w_0 \in \mathbb{R} $. We could use this function to make predicions about one dimensional input data. For example we might have living space of houses in $ m^2 $ $ X_i $ and their corresponding price $ Y_i $. We could choose the bias $ w_0 $ and the \textit{weight} $ w_1 $ such that the squared error for the given data is minimal in a process we know as linear regression. When given new data our linear model can make predictions of the potential prices of the houses.
 
 
 \begin{figure}
@@ -442,16 +442,73 @@ $$
 But this poses a problem. We can find globally optimal solutions with linear regression and the like, but as the size of the network grows, the computational cost of these methods grows too large. A different approach is necessary.
 
 \paragraph{Loss functions} In the context of linear regression the term \textit{mean squared error} was already mentioned. It is the average squared difference between the perdictions and the desired output:
+
 $$
     MSE = \frac{1}{n} \sum_{i = 1}^{n}(X_i - Y_i)^2
 $$
-This is one type of loss function.
 
-\paragraph{(Stochastic) gradient descent}
+This is one type of \textit{loss function}, which in general are a measure to describe the error we seek to \textit{minimize} in an optimization process.
+
+\begin{figure}
+    \centering
+    \includegraphics[height=5cm, keepaspectratio]{loss_curve.png}
+    \caption{(a) Data points of price versus floor space of houses for sale in Berkeley, CA, in July 2009, along with the linear function hypothesis that minimizes squared-error loss: y = 0.232x + 246. (b) Plot of the loss function for various values of $ w_0 $, $ w_1 $. Note that the loss function is convex, with a single global minimum. \cite[p. 1251]{russell_artificial_2021}}
+    \label{loss_curve}
+\end{figure}
+
+\paragraph{(Stochastic) gradient descent and backpropagation} By utilizing the loss function we can feed an input into the network and measure for any permutation of the weights $ w_i $ how big the error of the network is. By measuring the loss of the training set $ X_i $ we can find out how well the current configuration of the network fits the data.
+
+Lets go back to the problem of house price prediction. If we plot the MSE for the weights $ w_0 $ and $ w_1 $ of our single neuron the result is a parabula in figure \ref{loss_curve}. Ideally, we want to walk down into the valley where the error in minimal. So for any given combination of the weights we have to find out in which direction the downward slope maximal. The direction of the greatest change of a scalar function is called gradient, which is formalized as follows:
+
+$$
+    \nabla f(p)=\left[\begin{array}{c}
+            \dfrac{\partial f}{\partial x_1}(p) \\
+            \dfrac{\partial f}{\partial x_2}(p) \\
+            \vdots                              \\
+            \dfrac{\partial f}{\partial x_n}(p)
+        \end{array}\right]
+$$,
+where the point $p $ is a point in the \textit{parameter space}, e.g. as depicted in figure \ref{loss_curve}(b) for $w_0 $ and $ w_1 $. For a single neuron we can use the methods learned in calculus to find the respective \textit{partial derivatives} $  \dfrac{\partial f}{\partial x_i}(p) $. By repeatedly calculating the gradient and updating the weights to move further in the direction of the downward slope, we describe the algorithm of gradient descent:
+
+\begin{algorithm}
+    \caption{Gradient descent outline \cite[p. 1253]{russell_artificial_2021}}\label{alg:gradient_descent}
+    \begin{algorithmic}
+        \State $w \gets \text{any point in the parameter space}$
+        \While{not converged}
+        \ForEach{$w_i$ in $w$}
+        \State $w_i \gets w_i - \alpha \dfrac{\partial f}{\partial w_i}(Loss(w))$
+        \EndFor
+        \EndWhile
+    \end{algorithmic}
+\end{algorithm}
+
+The variable $ \alpha $ for gradient descent describes the \textit{learning rate}, so by how much we update the weights. The problem is, as soon as we start combining multiple neurons the intuition gained in calculus on how to calculate the gradient breaks down. Luckily our tools still suffice, we just need to inspect the network more closely. Lets constrain our range of possible neural networks by two conditions:
+
+\begin{itemize}
+    \item All functions utilized by the neuron and the network (activation, linear combination of weights) have to be differentiable
+    \item The network has to be a directed graph, thus, no loops etc.
+\end{itemize}
+
+This makes the neural networks one type of \textit{computational graph}, which have the convenient property letting us find the gradients of the weights in respect to the loss by \textit{backpropagation} by essentially applying the chain rule. Figure \ref{computational_graph} shows an example of a computational graph and its derivation.
+
+\begin{figure}[!h]
+    \centering
+    \subfloat[Functions are nodes]{
+        \includegraphics[width=6cm, keepaspectratio]{computational_graph_functions.png}
+    }
+    % \hfill
+    \subfloat[Differentiate the graph by node $e$]{
+        \includegraphics[width=6cm, keepaspectratio]{computational_graph_derivative.png}
+    }
+    \caption{An example of a computational graph}
+    \label{computational_graph}
+\end{figure}
+
+In summary, by defining a neural network, we define a weight space. This space is essentially a room of all possible permutations of the weights and the network as a whole. We can think of neural think of neural networks as functions of programs. Thus, the archtecture of the neural network decides on a range of possible programs. Each of these programs is more or less suited for the task given. The feedback given by the loss function indicates the suitability. With gradient descent we search this space of programs for one that minimizes the error. Due to the nature of gradient descent, we are not guaranteed to find the globally optimal program.
+
+This section on neural networks has only touched the raw fundamentals of neural networks very swiftly. Nevertheless it shows that the core ideas are quite simple (in hindsight of couse), especially compared to the very comprehensive methods of classical AI. The theoretic foundations to these methods are actually quite old. With the unlocking of more and more computational power and data researchers discovered the "unreasonable effectiveness of data" and the combination of neural networks and gradient descent. To dive deeper the book "Artificial Intelligence: A Modern Approach" \cite{russell_artificial_2021} offers a very good first impression.
 
 \subsection{Convolutional Neural Network}
-
-\subsection{Deep reinforcement learning}
 
 \subsection{AlphaGo and AlphaZero}
 Now we have reached the culmination of our theoretical analysis. All the components we introduced so far constitute the knowledge necessary to understand AlphaGo and AlphaZero.
