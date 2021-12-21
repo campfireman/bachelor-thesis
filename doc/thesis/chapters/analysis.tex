@@ -270,7 +270,7 @@ Here we can already see David Silver's handwriting on the wall. As early as 2006
 
 One of the ideas introduced is Rapid Action Value Estimation (RAVE). We already saw how we could reuse information gathered for minimax through a transposition table. In our search tree we will encounter transpositions for that we already performed searches. RAVE allows us to reuse experience gathered from simulations for related positions. A key property observed by Silver was that MoGo scales proportional to the amount of compute or rather number of simulations it can perform per turn as depicted in figure \ref{mogo_scaling}.
 
-The investigations into MCTS in the context of Abalone are quite limited so far. Pascal Chorus has undertaken a comparison of the vanilla implementation against a heuristic agent, showing the dominance of the heuristic agent. \cite{chorus_implementing_2009} While in games like Go we don't have loops in Abalone random players can get stuck in very long games making the results of simulations very weak signals. Without any more sophisticated rollout-policy this approach does not work very well.
+The investigations into MCTS in the context of Abalone are quite limited so far. Pascal Chorus has undertaken a comparison of the vanilla implementation against a heuristic agent, showing the dominance of the heuristic agent. \cite{chorus_implementing_2009} While in games like Go we don't have loops in Abalone, random players can get stuck in very long games making the results of simulations very weak signals. Without any more sophisticated rollout-policy this approach does not work very well.
 
 
 \begin{figure}
@@ -298,7 +298,7 @@ For reinforcement learning we also need to find a formalism for the environment.
     \label{mdp_agent_environment}
 \end{figure}
 
-We devide the passage of time into discrete timesteps $ t $ at which the agent senses the state $ S_t \in \mathcal{S} $ and then selects some action $ A_t \in \mathcal{A}(s) $. Resulting in that action is some reward $ R_{t+1} \in \mathcal{R} \subset \mathbb{R} $ that is recieved in the next timestep. For a \textit{finite} MDP the sets $ \mathcal{A}, \mathcal{S}$ and $ \mathcal{R} $ have a finite amount of elements.
+We divide the passage of time into discrete time steps $ t $ at which the agent senses the state $ S_t \in \mathcal{S} $ and then selects some action $ A_t \in \mathcal{A}(s) $. Resulting in that action is some reward $ R_{t+1} \in \mathcal{R} \subset \mathbb{R} $ that is received in the next timestep. For a \textit{finite} MDP the sets $ \mathcal{A}, \mathcal{S}$ and $ \mathcal{R} $ have a finite amount of elements.
 
 The transitions between the state $ s $ and the next state $ s' $ is given by the function $ p $ which essentially defines the decision process as a whole:
 
@@ -345,7 +345,7 @@ The figure \ref{policy_value_action_value} shows how the three elements of polic
 
 \paragraph{The model} helps to make predictions about how the environment might behave. For a given state and action it might return to the next state which aides in planning ahead. In the case of Abalone our model is the rules of the game, used by the function that returns all legal moves or the resulting board from a given board and a move.
 
-The goal of reinforcement learning is to find (or approximate) a policy that maximzes the future reward for each action and state. For MDPs we define the \textit{optimal policy} for all $ s \in mathcal{S} $ by:
+The goal of reinforcement learning is to find (or approximate) a policy that maximizes the future reward for each action and state. For MDPs we define the \textit{optimal policy} for all $ s \in mathcal{S} $ by:
 
 $$ v_{*}(s) \doteq \max_{\pi} v_{\pi}(s) $$
 
@@ -355,7 +355,7 @@ $$ q_{*}(s, a) = \max_{\pi}q_{\pi}(s, a) $$
 
 \subsection{Exploration vs. Exploitation}
 \label{exploration_vs_exploitation}
-As the agent builds its knowledge while it is engaged in the in the environment it has to weigh \textit{exploiting} the gathered knowledge for ensuring a safe short term reward or sacrificing it for \textit{exploring} other actions that might turn out to bring higher rewards in the future. To illustrate this fundamental tradeoff in reinforcement learning, let us imagine a gambling machine with 10 levers, a 10-armed bandit. At each timestep $ t $ we have to decide which lever to pull and then we recieve some reward $ R_t $. Each lever has some stationary distribution over the rewards, that is hidden from us. The distribution looks the the one given in figure \ref{10_armed_bandit}.
+As the agent builds its knowledge while it is engaged in the environment it has to weigh \textit{exploiting} the gathered knowledge for ensuring a safe short term reward or sacrificing it for \textit{exploring} other actions that might turn out to bring higher rewards in the future. To illustrate this fundamental tradeoff in reinforcement learning, let us imagine a gambling machine with 10 levers, a 10-armed bandit. At each timestep $ t $ we have to decide which lever to pull and then we receive some reward $ R_t $. Each lever has some stationary distribution over the rewards that is hidden from us. The distribution looks like the one given in figure \ref{10_armed_bandit}.
 
 \begin{figure}
     \centering
@@ -364,7 +364,7 @@ As the agent builds its knowledge while it is engaged in the in the environment 
     \label{10_armed_bandit}
 \end{figure}
 
-To estimate the action-value of each lever, we sum the rewards recieved for that lever $ R_t(a) $ and devide it by the number of times we've chosen the lever $ N_t(a) $ at the timestep $ t $.
+To estimate the action-value of each lever, we sum the rewards received for that lever $ R_t(a) $ and divide it by the number of times we've chosen the lever $ N_t(a) $ at the timestep $ t $.
 
 $$
     Q_t(a) \doteq \frac{R_t(a)}{N_t{a}}
@@ -373,7 +373,7 @@ $$
 This is called the \textit{sample-average} method. The simplest policy would be to just always choose the $ Q_t $ with the largest value.
 
 $$
-    A_t \doteq \operatorname*{argmmax}_a Q_t(a)
+    A_t \doteq \operatorname*{argmax}_a Q_t(a)
 $$
 
 Initially, we might choose a random lever and that yields a reward of 0. As all $ Q_t $ are still equivalent we choose another random lever giving us a reward of 1. Then ,according to the greedy policy, we just repeatedly pull this lever indefinitely. We just get stuck on exploiting the small knowledge we have gained. To allow for some exploration of other actions we introduce a small probability $\epsilon $ of choosing a different (random) action:
@@ -390,12 +390,12 @@ If we continue for an infinite number of times $ Q_t $ is guaranteed to converge
 \subsection{(Deep) Neural networks}
 As reinforcement learning is a very general framework things like the value function $ v(s)$ are just left as an abstract function. As neural networks are a general function approximator, we could use them to approximate the optimal value function $ v_{*}(s) $ to maximize rewards. Hence, we should introduce the basic building blocks of this technique to gauge whether we might utilize them further.
 
-Neural networks are one specific machine learning method, that has had large success in the recent past. Machine learning has been a paradigm shift in the way we think about building programs. In the classical development one used the data and predefined rules as input for the development. This means we have to have intricate knowledge about the problem domain to produce the answers we want. For tasks like image classification this is a difficult process as it is very hard to think of patterns and conditions an image has has to have, to find cats in them.
+Neural networks are one specific machine learning method that has had large success in the recent past. Machine learning has been a paradigm shift in the way we think about building programs. In the classical development one used the data and predefined rules as input for the development. This means we have to have intricate knowledge about the problem domain to produce the answers we want. For tasks like image classification this is a difficult process as it is very hard to think of patterns and conditions an image has to have, to find cats in them.
 
 \begin{figure}
     \centering
     \includegraphics[height=7cm, keepaspectratio]{programming_paradigm_shift.png}
-    \caption{A fundatmental shift in how we think about programming}
+    \caption{A fundamental shift in how we think about programming}
     \label{programming_paradigm_shift}
 \end{figure}
 
@@ -405,7 +405,7 @@ Consider any linear function of the form:
 $$
     f(x) = w_1x + w_0,
 $$
-with $ x, w_1, w_0 \in \mathbb{R} $. We could use this function to make predicions about one dimensional input data. For example we might have living space of houses in $ m^2 $ $ X_i $ and their corresponding price $ Y_i $. We could choose the bias $ w_0 $ and the \textit{weight} $ w_1 $ such that the squared error for the given data is minimal in a process we know as linear regression. When given new data our linear model can make predictions of the potential prices of the houses.
+with $ x, w_1, w_0 \in \mathbb{R} $. We could use this function to make predictions about one dimensional input data. For example we might have the living space of houses in $ m^2 $ $ X_i $ and their corresponding price $ Y_i $. We could choose the bias $ w_0 $ and the \textit{weight} $ w_1 $ such that the squared error for the given data is minimal in a process we know as linear regression. When given new data our linear model can make predictions of the potential prices of the houses.
 
 
 \begin{figure}
@@ -423,7 +423,7 @@ with $ x, w_1, w_0 \in \mathbb{R} $. We could use this function to make predicio
 \end{figure}
 
 \paragraph{Activation function}
-In this context we refer to such linear functions as \textit{neuron}. An important component is not only the linear function but also the an activation function: Before we pass the value of the function f(x) on, we apply some function $ \phi $. The activation function allows us to introduce a non-linearity, which in turn makes smaller networks able to perform much better on more complex tasks than just a simple linear activation. Common functions used are:
+In this context we refer to such linear functions as \textit{neuron}. An important component is not only the linear function but also the activation function: Before we pass the value of the function f(x) on, we apply some function $ \phi $. The activation function allows us to introduce a non-linearity, which in turn makes smaller networks able to perform much better on more complex tasks than just a simple linear activation. Common functions used are:
 \begin{itemize}
     \item ReLu: $ \phi : max(0, f(x)) $
     \item Sigmoid: $ \phi : \frac{1}{1 + e^{f(x)}} $
@@ -441,13 +441,13 @@ $$
 
 But this poses a problem. We can find globally optimal solutions with linear regression and the like, but as the size of the network grows, the computational cost of these methods grows too large. A different approach is necessary.
 
-\paragraph{Loss functions} In the context of linear regression the term \textit{mean squared error} was already mentioned. It is the average squared difference between the perdictions and the desired output:
+\paragraph{Loss functions} In the context of linear regression the term \textit{mean squared error} was already mentioned. It is the average squared difference between the predictions and the desired output:
 
 $$
     MSE = \frac{1}{n} \sum_{i = 1}^{n}(X_i - Y_i)^2
 $$
 
-This is one type of \textit{loss function}, which in general are a measure to describe the error we seek to \textit{minimize} in an optimization process.
+This is one type of \textit{loss function}, which in general is a measure to describe the error we seek to \textit{minimize} in an optimization process.
 
 \begin{figure}
     \centering
@@ -458,7 +458,7 @@ This is one type of \textit{loss function}, which in general are a measure to de
 
 \paragraph{(Stochastic) gradient descent and backpropagation} By utilizing the loss function we can feed an input into the network and measure for any permutation of the weights $ w_i $ how big the error of the network is. By measuring the loss of the training set $ X_i $ we can find out how well the current configuration of the network fits the data.
 
-Lets go back to the problem of house price prediction. If we plot the MSE for the weights $ w_0 $ and $ w_1 $ of our single neuron the result is a parabula in figure \ref{loss_curve}. Ideally, we want to walk down into the valley where the error in minimal. So for any given combination of the weights we have to find out in which direction the downward slope maximal. The direction of the greatest change of a scalar function is called gradient, which is formalized as follows:
+Let's go back to the problem of house price prediction. If we plot the MSE for the weights $ w_0 $ and $ w_1 $ of our single neuron the result is a parabola in figure \ref{loss_curve}. Ideally, we want to walk down into the valley where the error is minimal. So for any given combination of the weights we have to find out in which direction the downward slope maximal. The direction of the greatest change of a scalar function is called gradient, which is formalized as follows:
 
 $$
     \nabla f(p)=\left[\begin{array}{c}
@@ -504,14 +504,11 @@ This makes the neural networks one type of \textit{computational graph}, which h
     \label{computational_graph}
 \end{figure}
 
-In summary, by defining a neural network, we define a weight space. This space is essentially a room of all possible permutations of the weights and the network as a whole. We can think of neural think of neural networks as functions of programs. Thus, the archtecture of the neural network decides on a range of possible programs. Each of these programs is more or less suited for the task given. The feedback given by the loss function indicates the suitability. With gradient descent we search this space of programs for one that minimizes the error. Due to the nature of gradient descent, we are not guaranteed to find the globally optimal program.
+In summary, by defining a neural network, we define a weight space. This space is essentially a room of all possible permutations of the weights and the network as a whole. We can think of neural networks as functions of programs. Thus, the architecture of the neural network decides on a range of possible programs. Each of these programs is more or less suited for the task given. The feedback given by the loss function indicates the suitability. With gradient descent we search this space of programs for one that minimizes the error. Due to the nature of gradient descent, we are not guaranteed to find the globally optimal program.
 
-This section on neural networks has only touched the raw fundamentals of neural networks very swiftly. Nevertheless it shows that the core ideas are quite simple (in hindsight of couse), especially compared to the very comprehensive methods of classical AI. The theoretic foundations to these methods are actually quite old. With the unlocking of more and more computational power and data researchers discovered the "unreasonable effectiveness of data" and the combination of neural networks and gradient descent. To dive deeper the book "Artificial Intelligence: A Modern Approach" \cite{russell_artificial_2021} offers a very good first impression.
+This section on neural networks has only touched the raw fundamentals of neural networks very swiftly. Nevertheless it shows that the core ideas are quite simple (in hindsight of course), especially compared to the very comprehensive methods of classical AI. The theoretic foundations to these methods are actually quite old. With the unlocking of more and more computational power and data researchers discovered the "unreasonable effectiveness of data '' and the combination of neural networks and gradient descent. To dive deeper the book "Artificial Intelligence: A Modern Approach" \cite{russell_artificial_2021} offers a very good first impression.
 
 \subsection{Convolutional Neural Network}
 
 \subsection{AlphaGo and AlphaZero}
 Now we have reached the culmination of our theoretical analysis. All the components we introduced so far constitute the knowledge necessary to understand AlphaGo and AlphaZero.
-
-
-
