@@ -504,11 +504,12 @@ This makes the neural networks one type of \textit{computational graph}, which h
     \label{computational_graph}
 \end{figure}
 
-In summary, by defining a neural network, we define a weight space. This space is essentially a room of all possible permutations of the weights and the network as a whole. We can think of neural networks as functions of programs. Thus, the architecture of the neural network decides on a range of possible programs. Each of these programs is more or less suited for the task given. The feedback given by the loss function indicates the suitability. With gradient descent we search this space of programs for one that minimizes the error. Due to the nature of gradient descent, we are not guaranteed to find the globally optimal program.
-
-This section on neural networks has only touched the raw fundamentals of neural networks very swiftly. Nevertheless it shows that the core ideas are quite simple (in hindsight of course), especially compared to the very comprehensive methods of classical AI. The theoretic foundations to these methods are actually quite old. With the unlocking of more and more computational power and data researchers discovered the "unreasonable effectiveness of data '' and the combination of neural networks and gradient descent. To dive deeper the book "Artificial Intelligence: A Modern Approach" \cite{russell_artificial_2021} offers a very good first impression.
+In summary, by defining a neural network, we define a weight space. This space is essentially a room of all possible permutations of the weights. We can think of neural networks as functions of programs. Thus, the architecture of the neural network decides on a range of possible programs. Each of these programs is more or less suited for the task given. The feedback given by the loss function indicates the suitability. With gradient descent we search this space of programs for one that minimizes the error. Due to the nature of gradient descent, we are not guaranteed to find the globally optimal program.
 
 \subsection{Convolutional Neural Network}
+
+
+This section on neural networks has only touched the raw fundamentals of neural networks very swiftly. Nevertheless it shows that the core ideas are quite simple (in hindsight of course), especially compared to the very comprehensive methods of classical AI. The theoretic foundations to these methods are actually quite old. With the unlocking of more and more computational power and data researchers discovered the "unreasonable effectiveness of data \cite{halevy_unreasonable_2009} and the combination of neural networks and gradient descent. To dive deeper the book "Artificial Intelligence: A Modern Approach" \cite{russell_artificial_2021} offers a very good first impression.
 
 \subsection{AlphaGo and AlphaZero}
 Now we have reached the culmination of our theoretical analysis. All the components we introduced so far constitute the knowledge necessary to understand AlphaGo and AlphaZero.
