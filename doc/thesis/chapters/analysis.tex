@@ -523,7 +523,7 @@ $$
     F(u, v) = \sum_{x} \sum_{y} I(u+x, v+y)H(x, y)
 $$
 
-For a given coordinate $u,v$ each value in the Kernel $H$ is multiplied by the  corresponding value of the image returned by function $I$. The figure \ref{convolution} illustrates how a convolution would look on a black and white image. In image processing for example, we might use a Laplacian filter to extract certain features like edges. By using convolutions in a neural network we move away from these hand-crafted features by letting the parameters of the kernels be trained to fit the desired outcome. By combining multiple layers of convolutions the network can extract higher level abstractions of the image.
+For a given coordinate $u,v$ each value in the Kernel $H$ is multiplied by the  corresponding value of the image returned by function $I$. The figure \ref{convolution} illustrates how a convolution would look on a black and white image. In image processing for example, we might use a Laplacian filter to extract certain features like edges. By using convolutions in a neural network we move away from these hand-crafted features by letting the parameters of the kernels be trained to fit the desired outcome. By combining multiple layers of convolutions the network can extract higher level abstractions of the image. \cite{ilin_abstraction_2017}
 
 \begin{figure}
     \centering
@@ -535,10 +535,46 @@ For a given coordinate $u,v$ each value in the Kernel $H$ is multiplied by the  
 
 The application of this method for image related tasks has become very popular. The first large scale application in 2012 by Krizhevsky et al. \cite{krizhevsky_imagenet_2017} vastly outperformed any previous methods. This approach is very relevant to our game setting in Abalone as each board position is essentially an image. Patterns of marbles are relevant in different positions of the board just as different shapes and objects in different places in an image.
 
-
-
+\subsection{Residual networks}
+By stacking many layers a network can fit more complex domains. Their size has earned them the name deep neural networks. But a central issue with increasing the size of the network is the problem of vanishing gradients.
 
 This section on neural networks has only touched the raw fundamentals of neural networks very swiftly. Nevertheless it shows that the core ideas are quite simple (in hindsight of course), especially compared to the very comprehensive methods of classical AI. The theoretic foundations to these methods are actually quite old. With the unlocking of more and more computational power and data researchers discovered the "unreasonable effectiveness of data \cite{halevy_unreasonable_2009} and the combination of neural networks and gradient descent. To dive deeper the book "Artificial Intelligence: A Modern Approach" \cite{russell_artificial_2021} offers a very good first impression.
 
-\subsection{AlphaGo and AlphaZero}
-Now we have reached the culmination of our theoretical analysis. All the components we introduced so far constitute the knowledge necessary to understand AlphaGo and AlphaZero.
+\subsection{AlphaGo}
+Now we have reached the culmination of our theoretical analysis. All the components we introduced so far constitute the knowledge necessary to understand AlphaGo and AlphaZero. Just like Abalone Go is a perfect information zero-sum board game. It already popped up in the complexity comparison \ref{complexity_table}, which clearly shows, that Go is more complex in its state space and its search tree. At the time when there was a lot of success in other games with minimax many people saw Go as the most challenging board game \cite{muller_computer_2002}. The only successful method at the time was MCTS, for which we already saw two influential papers in the context of Go and MCTS by David Silver.
+
+By combining the reinforcement learning framework with MCTS and neural networks David Silver et al. achieved the milestone of beating Lee Seedol. The program AlphaGo consists of three key components:
+
+\begin{enumerate}
+    \item A rollout policy network $p_{\pi}$ and a policy network $p_{\sigma}$ trained by supervised learning
+    \item A policy network $p_p$ trained with reinforcement learning and a value network $v_{\theta}$ derived from $p_p$
+    \item Lookahead search using (asynchrous) Monte Carlo Tree Search guided by $p_{\sigma}$ and $v_{\theta}$. The rollouts for the search are performed by the rollout network $p_{\pi}$.
+\end{enumerate}
+
+The first step is the supervised training based on the KGS Go Server dataset of 30 million positions. The rollout policy network $p_{\pi}$ is a relatively small network that is supposed to provide quick rollouts (simulations). As we already encountered for Abalone this is necessary because random rollouts for such complex games can produce very weak guidance for low numbers and also very long matches. This is supported by comparisons made between the prediction quality of 100 rollouts with a uniformly random policy versus with the network $p_{\pi}$ in figure \ref{alpha_go_prediction_quality}.
+
+\begin{figure}
+    \centering
+    \includegraphics[height=4cm, keepaspectratio]{alpha_go_prediction_quality.png}
+    \caption{Comparision prediction quality of the different components \cite{silver_mastering_2016}}
+    \label{alpha_go_prediction_quality}
+\end{figure}
+
+The policy network $p_{\sigma}$ is trained in the same fashion except it is larger is size and thus is computationally more expensive. This network is used for the next step in which the network $p_{p}$ is initialized with equivalent structure and weights. We then start to play games with the current version of the policy network $p_{p}$ against random previous versions of the network. At timestep $t$, for a mini-batch of $n$ games, the results of the games are taken and gradient ascent is used to fit the weights to the outcome of the game $z_t$.
+
+$$
+    \nabla p \propto \frac{\partial \log p_p(a_t \mid s_t)}{\partial p}z_t
+$$
+
+This is the core of the REINFORCE algorithm. \cite{williams_simple_nodate}
+\begin{figure}
+    \centering
+    \includegraphics[height=6cm, keepaspectratio]{alpha_go_mcts.png}
+    \caption{Monte Carlo Tree Search in AlphaGo. \cite{silver_mastering_2016} Note the algorithm structure mentioned in figure \ref{monte_carlo_tree_search} is maintained, but selection and simulation is more advanced}
+    \label{alpha_go_mcts}
+\end{figure}
+
+A more detailed entry to the topic is provided by the nature article "Mastering the game of Go with deep neural networks and tree search". \cite{silver_mastering_2016}
+
+\subsection{AlphaZero}
+A problem with AlphaGo's architecture is it's complexity. There are many hyperparameters for the four different neural networks and many other moving parts. AlphaZero is a simplification that conveniently performs much better and is easier to generalize.
