@@ -330,6 +330,8 @@ We denote the policy as the function $\pi $ defines a probability distribution o
 
 $$ v_{\pi}(s) = \mathbb{E}_{\pi}[G_t | S_t = s] = \mathbb{E}_{\pi}\left[\sum_{k=0}^{\infty} \gamma^kR_{t+k+1} \middle| S_t = s \right] $$
 
+The heuristic function entcountered pereviously was essentially a value function being used to guide the game-tree search.
+
 Furthermore, we define the value of action $a$ while being in state $s$ under the policy $pi$ as the \textit{action-value function} $q$:
 
 $$ q_{\pi}(s) = \mathbb{E}_{\pi}[G_t | S_t = s, A_t = a] = \mathbb{E}_{\pi}\left[\sum_{k=0}^{\infty} \gamma^kR_{t+k+1} \middle| S_t = s, A_t = a \right] $$
