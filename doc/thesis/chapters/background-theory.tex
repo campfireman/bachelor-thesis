@@ -1,66 +1,6 @@
 \chapter{Background theory}
 Before we move to the nuts and bolts of AlphaZero and our concrete implementation for Abalone, we should establish a general understanding of the problem. That includes building the necessary theoretical background in artificial intelligence in general, as well as insight into the specialized knowledge such as deep reinforcement learning in particular.
 
-\section{Abalone}
-Abalone was devised Michel Lalet and Laurent Lévi. Even though it was created fairly recently more than four million global sales have established Abalone as a classic game \cite{noauthor_abalone_2020}.
-
-\begin{figure}[!h]
-    \centering
-    \subfloat[Starting position]{
-        \includegraphics[width=4.5cm, keepaspectratio]{rules_starting_position.png}
-    }
-    \hfill
-    \subfloat["In-line" moves]{
-        \includegraphics[width=4.5cm, keepaspectratio]{rules_inline_move.png}
-    }
-    \hfill
-    \subfloat["Side-step" moves]{
-        \includegraphics[width=4.5cm, keepaspectratio]{rules_side_step_move.png}
-    }
-    \caption{Basic moves \cite{abalone_sa_abalone_nodate}}
-    \label{basics}
-\end{figure}
-
-In the classical variant each player places 14 marbles on opposing sides. The game's starting position is depicted in figure \ref{basics} (a). There are also other starting position like "German daisy" and "Belgian daisy", as well as four player variants, which will not be considered. One, two, or three adjacent marbles (of the player's own color) may be moved in one of the six possible directions during a player's turn. The marbles have to move in the same direction and can only move to a neighboring field. We differentiate between broadside or "side-step" moves and "in-line" moves, depending on how the chain of marbles moves relative to its direction. The difference is shown in figure \ref{basics} (b) and (c).
-
-\begin{figure}[!h]
-    \centering
-    \subfloat["2-push-1" sumito]{
-        \includegraphics[width=4.5cm, keepaspectratio]{rules_2-push-1_sumito.png}
-    }
-    \hfill
-    \subfloat["3-push-1" sumito]{
-        \includegraphics[width=4.5cm, keepaspectratio]{rules_3-push-1_sumito.png}
-    }
-    \hfill
-    \subfloat["3-push-2" sumito]{
-        \includegraphics[width=4.5cm, keepaspectratio]{rules_3-push-2_sumito.png}
-    }
-    \caption{Sumito positions allow pushing the opponent's marbles \cite{abalone_sa_abalone_nodate}}
-    \label{sumito}
-\end{figure}
-
-A move pushing the opponent's marbles is called "sumito" and comes in three variations, as shown by figure \ref{sumito}. Essentially, the player has to push with superior numbers and the opponent's marbles can not be blocked.
-
-\begin{figure}[!h]
-    \centering
-    \subfloat[Different blocking situations]{
-        \includegraphics[width=4.5cm, keepaspectratio]{rules_block.png}
-    }
-    \hfill
-    \subfloat[Attacking position]{
-        \includegraphics[width=4.5cm, keepaspectratio]{rules_attacking_move.png}
-    }
-    \hfill
-    \subfloat[No legal move available to black]{
-        \includegraphics[width=4.5cm, keepaspectratio]{rules_stalemate.png}
-    }
-    \caption{Additional relevant board positions \cite{abalone_sa_abalone_nodate}}
-    \label{additional_relevant_positions}
-\end{figure}
-
-The figure \ref{additional_relevant_positions} (a) shows ways in which a sumito might be blocked. In 1) the sumito by black is blocked by the black marble, in 2) there is a free space between the marbles and 3) shows how a side-step cannot push a marble. Sumito moves are the only moves that allow for pushing the enemie's marbles, therefore they are the only attacking moves. Figure \ref{additional_relevant_positions} (b) shows a situation in which we can push an enemies marble from the board. The player that pushes six of the opponent's marbles from the board has won. The basic ruleset does not account for a draws but there are, in theory, positions like a stalemate in chess, where no move is possible for one player. In figure \ref{additional_relevant_positions} (c) the black player is locked to the brink of the board and has no move available. Moreover, by limiting the game either by time or by number of moves a draw might occurr.
-
 \section{Artificial intelligence}
 The introduction has already forshadowed how the field of artificial intelligence has undergone a shift in their methodology. In the 1950s and 1960s figures like Alan Turing and von Neumann laid the foundations for modern computers. This sparked the idea one could create programs for these new machines that have similar abilities like humans and other organisms. Researchers at that time assumed there is no "universal principle" behind intelligence and focused on reason and symbol manipulation. Therefore these methods were considered "strong techniques", methods that relied on general principles like learning were labeled "weak techniques". Nowadays, the consensus in the field has revesered. \cite[p. 8f.]{sutton_reinforcement_2018}
 
@@ -72,8 +12,9 @@ The agent exists in an environment which it perceives through sensors and it tak
 Internally the agent might have some built-in knowledge about the world, such as rules on how the environment works. The \textit{agent function} takes the entire history of percepts observed and this built-in knowledge and maps it to an action. A concrete implementation of this abstract function is called \textit{agent program}. The agent program might just be a simple tabular mapping from percepts to actions or could use a complex algorithm with an additional model.
 
 \subsection{Task environment}
+\label{environment}
 
-As we are trying to build an agent that tries to achieve some specified goal, we can consider our environment as a problem or \textit{task} our agent tries to solve. Putting together both agent and the environment we see a loop of observing,  deliberating and finally taking an action as depicted in figure \ref{agent_environment_loop}.
+As we are trying to build an agent that tries to achieve some specified goal, we can consider its environment as a problem or \textit{task} the agent tries to solve. Putting together both agent and the environment we see a loop of observing,  deliberating and finally taking an action as depicted in figure \ref{agent_environment_loop}.
 
 \begin{figure}
     \centering
@@ -82,79 +23,18 @@ As we are trying to build an agent that tries to achieve some specified goal, we
     \label{agent_environment_loop}
 \end{figure}
 
-\subsection{Abalone as task environment}
-Based on the PEAS framework we can specify Abalone as a task environment and show the key components for the implementation of our agent. \cite[p.107]{russell_artificial_2021}
+There are a few categorizations that are extremely helpful for narrowing down potential applicability of different classes of algorithms. A key property is the observability of the environment. If the environment is \textit{fully observable}, the sensors detect all the information that is in any way relevant for taking an action. Conversely if not all information can be observed we call it \textit{partial observability}. For example in poker the other players' cards and the upcoming cards cannot be seen but are highly relevant to the agent's actions. As the current board state of chess fully comprises all information necessary to make a move, we can classify it as fully observable.
 
-\begin{description}
-    \item[Performance measure] Win/loss, number of moves, time to deliberate
-    \item[Environment] Digital playing board
-    \item[Actuators] Move marbles, display text to CLI
-    \item[Sensors] Position of marbles
-\end{description}
+The values of the state of the environment and time can be categorized into discrete and continuous. The autonomous vehicle for instance is dealing with continuous time and also continuous states. The speeds of the car take a smooth range of real values and time can be meaningfully split into increasingly small intervals. Board games are entirely discrete. The set of all states is a finite collection of all (legal) permutations of the board and the marbles. Time progresses on the basis of turns.
 
-There are a few categorizations that are extremely helpful for narrowing down potential applicability of different classes of algorithms. A key property is the observability of the environment. If the environment is \textit{fully observable}, the sensors detect all the information that is in any way relevant for taking an action. Conversely if not all information can be observed we call it \textit{partial observability}. For example in poker the other players' cards and the upcoming cards cannot be seen but are highly relevant to the agent's actions. As the current board state of Abalone fully comprises all information necessary to make a move, we can classify it as fully observable.
+The actions that the agents take might also be \textit{non-deterministic}. When dealing with systems of high complexity the next state might not only depend on the previous state and the action taken. There might be other car drivers taking unexpected actions or a comet hitting our car.
 
-The values of the state of the environment and time can be categorized into discrete and continuous. The autonomous vehicle for instance is dealing with continuous time and also continuous states. The speeds of the car take a smooth range of real values and time can be meaningfully split into increasingly small intervals. However, Abalone is entirely discrete. The set of all states is a finite collection of all (legal) permutations of the board and the marbles. Time progresses on the basis of turns.
+Further expanding on the passage of time we have to take into account if actions have consequences for future states. If each combination of percept and action is independent of each other we call it \textit{episodic} and \textit{sequential} otherwise. If we had to classify a production line of circuit boards as either defective or functional, it would be an episodic environment. The classification of an individual board does not matter for the next one.
 
-The actions that the agents take might also be \textit{non-deterministic}. When dealing with systems of high complexity the next state might not only depend on the previous state and the action taken. There might be other car drivers taking unexpected actions or a comet hitting our car. In Abalone none of these issues arise as it is deterministic.
+Another aspect of time is whether the environment changes while the agent takes time to deliberate on the next move. In a \textit{dynamic} environment like the autonomous vehicle operates in, the environment changes continuously. By the time the car decides whether to go right, to avoid collision with a wall, this decision might have already become obsolete. A  turn-based game like chess is static as the board only changes when a move is made.
 
-Further expanding on the passage of time we have to take into account if actions have consequences for future states. If each combination of percept and action is independent of each other we call it \textit{episodic} and \textit{sequential} otherwise. If we had to classify a production line of circuit boards as either defective or functional, it would be an episodic environment. The classification of an individual board does not matter for the next one. In the case of Abalone, moves taken have long drawn out consequences for later stages of the game.
+Lastly, an additional dimension to consider is the number of agents involved. The classification of circuit boards only involves one agent whereas chess is a \textit{multi-agent} environment. We also have to distinguish whether those multiple agents compete for the performance measure. In most board games, one player's win is the other player's loss. In contrast, the other vehicles apart from our autonomous vehicle all profit when it avoids a collision and vice versa. Therefore, they cooperate.
 
-Another aspect of time is whether the environment changes while the agent takes time to deliberate on the next move. In a \textit{dynamic} environment like the autonomous vehicle operates in, the environment changes continuously. By the time the car decides whether to go right, to avoid collision with a wall, this decision might have already become obsolete. As any turn-based game, Abalone is a \textit{static} environment, as the board only changes after a move is made.
-
-Lastly, an additional dimension to consider is the number of agents involved. The classification of circuit boards only involves one agent whereas Abalone is a \textit{multi-agent} environment. We also have to distinguish whether those multiple agents compete for the performance measure. In Abalone, one player's win is the other player's loss. In contrast, the other vehicles apart from our autonomous vehicle all profit when it avoids a collision and vice versa. Therefore, they cooperate.
-
-Summing this up \textbf{Abalone is a fully observable, deterministic, two-agent, competitive, sequential, static and discrete environment}. Another popular term for this type of environment is a \textit{perfect information zero-sum game}.
-
-\subsection{Abalone complexity}
-
-As Abalone has a finite amount of discrete states, we can make precise statements about its complexity, which can be described in two relevant dimensions.
-
-\paragraph{State space complexity}
-The state space is the set of all possible states the environment can be in.\cite[p. 150]{russell_artificial_2021} For Abalone this means we have to consider all possible board configurations with different numbers of marbles present. Additionally, we would have to remove duplicates that arise from the symmetries of the board. In the case of abalone we have 6 rotations and 6 axes we can mirror the board on. The following formula gives us a good upper bound:
-
-$$
-    \sum_{k=8}^{14}\sum_{m=9}^{14}\frac{61!}{k!(61-k)!}\times\frac{(61-k)!}{m!((61-k)-m)!}
-$$
-
-\paragraph{Game tree complexity} The game tree defines all transitions between board positions (nodes) through moves (edges). The \textit{search tree} is potentially a subset of the game tree, if not all paths are visited. In the case of Abalone the game tree is unbound and has an infinite height as actions might be taken repeatedly forming loops. To get a measure of the complexity the number of nodes in a tree is given by:
-
-$$
-    b^d
-$$
-
-First we consider the branching factor $ b $, or the number of possible moves for any given state. We can only approximate this, as this number greatly varies between different states. On average abalone has $ b = 60 $ possible moves per state as measured in figure \ref{branching_factor}. The depth $ d $ of the tree depends on the number of turns per game. Looking at the average again a game takes in the region of $ d = 87 $ turns, giving us a total of $60^{87}$ nodes. To be precise this is the complexity of an average search tree not the game tree, as mentioned above. \cite{lemmens_constructing_2005}
-
-\begin{figure}
-    \centering
-    \includegraphics[width=7cm, keepaspectratio]{distribution_of_moves.png}
-    \caption{Counts of moves available for random for random player in 5 games}
-    \label{branching_factor}
-\end{figure}
-
-As those numbers in isolation are hard to grasp it is useful to put Abalone's complexity in relation with other popular games. Its state space complexity is on the same level as Reversi, whilst its game tree surpasses chess in complexity (c.f. table \ref{complexity_table})
-
-\begin{table}
-    \begin{center}
-        \begin{tabular}{ | c | c | c | }
-            \hline
-            Game        & state-space complexity (log) & game-tree complexity (log) \\
-            \hline
-            Tic-tac-toe & 3                            & 5                          \\
-            \hline
-            Reversi     & 28                           & 58                         \\
-            \hline
-            Chess       & 46                           & 123                        \\
-            \hline
-            Abalone     & 24                           & 154                        \\
-            \hline
-            Go          & 172                          & 360                        \\
-            \hline
-        \end{tabular}
-    \end{center}
-    \caption{Abalone in comparison with other games \cite{chorus_implementing_2009}}
-    \label{complexity_table}
-\end{table}
 
 
 \section{Classic agent}
@@ -163,7 +43,7 @@ Now that we have an intricate understanding of the environment for our agent we 
 \subsection{Minimax algorithm}
 Minimax assumes two roles: The minimizer and the maximizer. We start the search from the current board state as the role of the maximizer and then alternate between the two. The result of the minimax search gives us the maximum utility for the given state, assuming both players behave optimally. Let us define the functions
 \begin{itemize}
-    \item $\text{utility(s, p)}$ returns the utility or the payoff for the terminal state $s$ seen from the perspective of player $p$. In the case of abalone this might be -1, 0 and 1 for a loss, draw and a win.
+    \item $\text{utility(s, p)}$ returns the utility or the payoff for the terminal state $s$ seen from the perspective of player $p$. In the case of chess this might be $-1, 0$ and $1$ for a loss, draw and a win.
     \item $\text{is-terminal(s)}$ returns whether the given state $s$ is a terminal state or not
     \item $\text{to-move}(s)$ returns the current player for the state $s$
     \item $\text{result}(s, a)$ returns the resulting state if in state $s$ and taking action $a$
@@ -189,17 +69,18 @@ Putting this together we can see in figure \ref{minimax} a graphical representat
 \end{figure}
 
 \subsection{Heuristic functions}
-As the number of nodes of the game tree gets very large, the search on the tree usually does not reach terminal leaves that indicate a clear loss or win. Our computational resources will get exhausted first. For example minimax has already visited $ 60 ^ 4 = 1.2960.000 $ nodes at a depth of $ d = 4 $ in the case of an average Abalone game.
+As the number of nodes of the game tree gets very large, the search on the tree usually does not reach terminal leaves that indicate a clear loss or win. Our computational resources will get exhausted first. For example minimax has already visited $ 361 * 360 * 359 * 358 = 16,702,719,120 $ nodes at a depth of $ d = 4 $ in the case of an average Go game.
 
-Therefore, one has to limit the search to a computationally feasible depth and evaluate the intermediary result of a given transposition based on a so-called \textit{heuristic function}. This function replaces our previous $ utility(s) $ for terminal states and is based on human knowledge. The function should give precise feedback on the quality of a state from the perspective of the given player. A sensible function for Abalone might be a linear combination in the form of:
+Therefore, one has to limit the search to a computationally feasible depth and evaluate the intermediary result of a given transposition based on a so-called \textit{heuristic function}. This function replaces our previous $ utility(s) $ for terminal states and is based on human knowledge. The function should give precise feedback on the quality of a state from the perspective of the given player. A sensible function for chess might be a linear combination in the form of:
 
-$ h(s) = \omega_0f_0(s) + ... + \omega_nf_n(s) $
+$$ h(s) = \omega_0f_0(s) + ... + \omega_nf_n(s) $$
 
 With functions $ f_i $ calculating different values such as
 
 \begin{itemize}
-    \item Adjacency: As a majority of marbles is required to push the opponent's marbles and conversely an equal amount of marbles is needed to avoid being pushed, it can be assumed that keeping one's marbles grouped together is a good move.
-    \item Distance to center: Marbles that are close to the brink of the board put them into danger of being attacked, wherefore it is generally good to place all of the marbles into the center of the board. For each player's marbles we measure their distance from the center of the board as the smallest amount of moves it would take to reach the center (Manhattan distance).
+    \item Material: First, we assign an integer to each piece, that represents the piece's relative value (pawn = 1, bishop/knight = 3, rook = 5, and queen = 9). Then sum the values of the pieces left on the board for each player.
+    \item Space: Count the squares controlled by each player.
+    \item King safety: Check weaknesses in king's position, count attacking piece close to the king etc.
     \item Win and loss: As a more definitive measure we can indicate whether the current state is a terminal state and hence a winning or losing state.
     \item Etc.
 \end{itemize}
@@ -226,18 +107,18 @@ Looking at the example in figure \ref{alpha_beta_pruning} will help us illustrat
 The example also shows us an important prerequisite for this method to work. The order in which we expand which node matters decides how many nodes we can prune. Had we visited move $ c_3 $ and $ c_2 $ first, pruning wouldn't have been possible. The best case of $ O(\sqrt{b^d}) $ is entirely dependent on this ordering. We could find different ways of ranking the moves:
 
 \begin{itemize}
-    \item \textit{Killer move heuristic} prioritizes that are usually undoubtedly good like taking a marble in Abalone.
+    \item \textit{Killer move heuristic} prioritizes that are usually undoubtedly good like taking a piece in chess.
     \item \textit{Iterative deepening} Performs a minimax search only to a depth of one and uses the resulting values to rank the moves. Then searching one level deeper we use this ranking for ordering the moves. Even though there is a lot of redundancy, we make up for this more than enough by pruning much more effectively.
 \end{itemize}
 
 Other improvements to the procedure are thinkable as well. Once we perform a search for a certain state, we can store the resulting utility. If we encounter this position again, because of a different permutation of the move sequence (transposition), we can just look up the state utility in the \textit{transposition table}.
 
-Combined with alpha beta pruning, the minimax algorithm is a very efficient way of finding the optimal utility in an adversarial search situation. However, as mentioned before in most games we cannot use the utility of terminal states, because the search tree grows too quickly. By optimizing for a heuristic function the quality of play solely depends on this function. For games such as Chess or Abalone minimax has been very successful, because humans could devise meaningful heuristic functions. For chess the engine stockfish has been the most successful computer player for a long time and is based on this algorithm (and many optimizations). \cite{noauthor_stockfish_2021, noauthor_stockfish_nodate} In Abalone there are multiple implementations, the most successful has been ABA-PRO by Tino Werner from 2002 \cite{aichholzer_algorithmic_2002} which has been the reference for other algorithms such as Abalearn \cite{campos_abalearn_2003}. A more recent publication by Papadopoulos et. al. claimed to have devised a more successful player than Werner. \cite{papadopoulos_exploring_2012} This was confirmed in a very recent reimplementation thesis by Michiel Verloop \cite{verloop_critical_nodate}. This reimplementation in Java \cite{verloop_abaloneai_nodate} is also the reference for later benchmarks.
+Combined with alpha beta pruning, the minimax algorithm is a very efficient way of finding the optimal utility in an adversarial search situation. However, as mentioned before in most games we cannot use the utility of terminal states, because the search tree grows too quickly. By optimizing for a heuristic function the quality of play solely depends on this function. For games such as chess minimax has been very successful, because humans could devise meaningful heuristic functions. For chess the engine stockfish has been the most successful computer player for a long time and is based on this algorithm (and many optimizations). \cite{noauthor_stockfish_2021, noauthor_stockfish_nodate}
 
 \subsection{Monte Carlo Tree Search}
 For games like Go we cannot find powerful heuristic functions, which makes the previous approach of minimax not a viable option. In addition, the initial position of a 19x19 Go board is 361 decreasing only by one for each stone placed. A method proposed in 2006 by Coulom \cite{coulom_efficient_2007} called Monte Carlo Tree search. The main idea is to use simulations or \textit{rollouts} to gain information on the quality of a state. To manage the complexity of the search tree more effectively the algorithm is \textit{selective} in which parts of the tree are \textit{expanded}. This ensures that resources are not wasted on unpromising moves.
 
-In its purest form the simulations are performed randomly, meaning we take a state or node to be investigated and let two random players take turns until a terminal state is reached. Kocsis and Szepesvári \cite{kocsis_bandit_2006} showed that it does in fact converge to optimal play. For games like Abalone with a high branching factor we need a large number of simulations to get any meaningful information from the simulations, so we might use a \textit{rollout policy} instead. This policy guides the moves taken in the simulation towards better moves. This might be as simple as favoring capturing moves or as we will see later neural networks.
+In its purest form the simulations are performed randomly, meaning we take a state or node to be investigated and let two random players take turns until a terminal state is reached. Kocsis and Szepesvári \cite{kocsis_bandit_2006} showed that it does in fact converge to optimal play. For games with a high branching factor we need a large number of simulations to get any meaningful information from the simulations, so we might use a \textit{rollout policy} instead. This policy guides the moves taken in the simulation towards better moves. This might be as simple as favoring capturing moves or as we will see later neural networks.
 
 The algorithm can be structured into four stages:
 
@@ -283,9 +164,6 @@ Here we can already see David Silver's handwriting on the wall. As early as 2006
 
 One of the ideas introduced is Rapid Action Value Estimation (RAVE). We already saw how we could reuse information gathered for minimax through a transposition table. In our search tree we will encounter transpositions for that we already performed searches. RAVE allows us to reuse experience gathered from simulations for related positions. A key property observed by Silver was that MoGo scales proportional to the amount of compute or rather number of simulations it can perform per turn as depicted in figure \ref{mogo_scaling}.
 
-The investigations into MCTS in the context of Abalone are quite limited so far. Pascal Chorus has undertaken a comparison of the vanilla implementation against a heuristic agent, showing the dominance of the heuristic agent. \cite{chorus_implementing_2009} While in games like Go we don't have loops in Abalone, random players can get stuck in very long games making the results of simulations very weak signals. Without any more sophisticated rollout-policy this approach does not work very well.
-
-
 \begin{figure}
     \centering
     \includegraphics[height=7cm, keepaspectratio]{mogo_scaling.png}
@@ -294,12 +172,12 @@ The investigations into MCTS in the context of Abalone are quite limited so far.
 \end{figure}
 
 \section{Learning agent}
-The methods described until this point can be described as "Good old fashioned AI". They rely on search and human knowledge to perform adequately. We shift our focus now to methods that use learning mechanisms to improve their play. With MCTS we've actually seen a kind of intermediary form of algorithm as it is "simulating moves into the future, observing the outcome, and using the outcome to determine which moves are good ones is one kind of reinforcement learning." \cite{russell_artificial_2021}
+The methods described until this point can be described as "Good old fashioned AI". They rely on search and human knowledge to perform adequately. We shift our focus now to methods that use learning mechanisms to improve their play. With MCTS we've actually seen a kind of intermediary form of algorithm as it is "simulating moves into the future, observing the outcome, and using the outcome to determine which moves are good ones is one kind of reinforcement learning." \cite[p. 331]{russell_artificial_2021}
 
 \subsection{Reinforcement learning}
-By devising a heuristic function, we basically told our agent what to do by indicating how a good position looks. The agent optimized its actions to be in a good position as described by the function. In reinforcement learning the agent learns what action to take through interaction. We don't predefine which actions are to be taken. The agent tries to discover which actions yield the best \textit{reward}. The numerical reward signal might come immediately, but e.g. in the case of Abalone the reward for actions taken comes much later by winning the game (or losing it). According to Sutton and Barto those are the key components of reinforcement learning: "trial-and-error search and delayed reward". \cite{sutton_reinforcement_2018}
+By devising a heuristic function, we basically told our agent what to do by indicating how a good position looks. The agent optimized its actions to be in a good position as described by the function. In reinforcement learning the agent learns what action to take through interaction. We don't predefine which actions are to be taken. The agent tries to discover which actions yield the best \textit{reward}. The numerical reward signal might come immediately, but e.g. in the case of chess the reward for actions taken comes much later by winning the game (or losing it). According to Sutton and Barto those are the key components of reinforcement learning: "trial-and-error search and delayed reward". \cite[p. 1]{sutton_reinforcement_2018}
 
-Reinforcement learning is not a specific solution or method for this problem domain, all methods for "goal-directed agents interacting in an uncertain environment" are types of reinforcement learning. It is a general formalism that will help us reframe the problem of playing Abalone (well) in a new light.
+Reinforcement learning is not a specific solution or method for this problem domain, all methods for "goal-directed agents interacting in an uncertain environment" \cite[p. 3]{sutton_reinforcement_2018} are types of reinforcement learning. It is a general formalism that will help us reframe the problem of playing a board game (well) in a new light.
 
 \subsection{Markov decision process}
 For reinforcement learning we also need to find a formalism for the environment. Originally derived as an extension of Markov Chains by Richard Bellman \cite{yang_markov_2019, bellman_markovian_1957}, the (finite) Markov Decision Process (MDP) describes sequential decision making where actions have long-term consequences, thus, effect future rewards. The MDP is an abstraction of "goal directed learning from abstraction" that reduces the problem to three signals of actions, states and rewards that are being exchanged between the agent and the environment. We already introduced the agent-environment interaction loop in figure \ref{agent_environment_loop}. We can reframe this image with the new terminology of the MDP framework in figure \ref{mdp_agent_environment}.
@@ -335,7 +213,7 @@ We might also discount the future rewards by some factor $\gamma \in [0, 1] $ to
 
 $$ G_t = R_{t+1} + \gamma R_{t+2} + \gamma^2 R_{t+2} + ... = \sum_{k=0}^{\infty} \gamma^kR_{t+k+1}$$
 
-\paragraph{The policy} is a mapping between the perceived states to probabilities for selecting each possible action. For TicTacToe we might imagine a table that lists for all possible states to the agent's action. Due to the size of the state  space \ref{complexity_table} in Abalone this would not be feasible, therefore we used search processes as a policy so far.
+\paragraph{The policy} is a mapping between the perceived states to probabilities for selecting each possible action. For TicTacToe we might imagine a table that lists for all possible states to the agent's action. Due to the size of the state space \ref{complexity_table} in more complex games this would not be feasible, therefore we used search processes as a policy so far.
 
 We denote the policy as the function $\pi $ defines a probability distribution over all actions $ a \in \mathcal{A}(s)$ for each $ s \in \mathcal{S} $. $ \pi(a|s)$ is probability at a given timestep $t$ for the action to be $ a = A_t $ under the condition that $ s = S_t $.
 
@@ -358,7 +236,7 @@ $$ q_{\pi}(s) = \mathbb{E}_{\pi}[G_t | S_t = s, A_t = a] = \mathbb{E}_{\pi}\left
 
 The figure \ref{policy_value_action_value} shows how the three elements of policy, state-value and action-value relate to each other.
 
-\paragraph{The model} helps to make predictions about how the environment might behave. For a given state and action it might return to the next state which aides in planning ahead. In the case of Abalone our model is the rules of the game, used by the function that returns all legal moves or the resulting board from a given board and a move.
+\paragraph{The model} helps to make predictions about how the environment might behave. For a given state and action it might return to the next state which aides in planning ahead. In the case of Abalone the model is the rules of the game, used by the function that returns all legal moves or the resulting board from a given board and a move.
 
 The goal of reinforcement learning is to find (or approximate) a policy that maximizes the future reward for each action and state. For MDPs we define the \textit{optimal policy} for all $ s \in \mathcal{S} $ by:
 
@@ -548,7 +426,7 @@ For a given coordinate $u,v$ each value in the Kernel $H$ is multiplied by the  
 \end{figure}
 
 
-The application of this method for image related tasks has become very popular. The first large scale application in 2012 by Krizhevsky et al. \cite{krizhevsky_imagenet_2017} vastly outperformed any previous methods. This approach is very relevant to our game setting in Abalone as each board position is essentially an image. Patterns of marbles are relevant in different positions of the board just as different shapes and objects in different places in an image.
+The application of this method for image related tasks has become very popular. The first large scale application in 2012 by Krizhevsky et al. \cite{krizhevsky_imagenet_2017} vastly outperformed any previous methods. This approach is very relevant to the board game setting in Abalone as each board position is essentially an image. Patterns of marbles are relevant in different positions of the board just as different shapes and objects in different places in an image.
 
 \subsection{Residual networks}
 By stacking many layers a network can fit more complex domains. Their size has earned them the name deep neural networks. But a central issue with increasing the size of the network is the problem of vanishing gradients.
@@ -593,3 +471,137 @@ A more detailed entry to the topic is provided by the nature article "Mastering 
 
 \subsection{AlphaZero}
 A problem with AlphaGo's architecture is it's complexity. There are many hyperparameters for the four different neural networks and many other moving parts. AlphaZero is a simplification that conveniently performs much better and is easier to generalize.
+
+\section{Abalone}
+Abalone was devised Michel Lalet and Laurent Lévi. Even though it was created fairly recently more than four million global sales have established Abalone as a classic game \cite{noauthor_abalone_2020}.
+
+\subsection{Rules}
+
+\begin{figure}[!h]
+    \centering
+    \subfloat[Starting position]{
+        \includegraphics[width=4.5cm, keepaspectratio]{rules_starting_position.png}
+    }
+    \hfill
+    \subfloat["In-line" moves]{
+        \includegraphics[width=4.5cm, keepaspectratio]{rules_inline_move.png}
+    }
+    \hfill
+    \subfloat["Side-step" moves]{
+        \includegraphics[width=4.5cm, keepaspectratio]{rules_side_step_move.png}
+    }
+    \caption{Basic moves \cite{abalone_sa_abalone_nodate}}
+    \label{basics}
+\end{figure}
+
+In the classical variant each player places 14 marbles on opposing sides. The game's starting position is depicted in figure \ref{basics} (a). There are also other starting position like "German daisy" and "Belgian daisy", as well as four player variants, which will not be considered. One, two, or three adjacent marbles (of the player's own color) may be moved in one of the six possible directions during a player's turn. The marbles have to move in the same direction and can only move to a neighboring field. We differentiate between broadside or "side-step" moves and "in-line" moves, depending on how the chain of marbles moves relative to its direction. The difference is shown in figure \ref{basics} (b) and (c).
+
+\begin{figure}[!h]
+    \centering
+    \subfloat["2-push-1" sumito]{
+        \includegraphics[width=4.5cm, keepaspectratio]{rules_2-push-1_sumito.png}
+    }
+    \hfill
+    \subfloat["3-push-1" sumito]{
+        \includegraphics[width=4.5cm, keepaspectratio]{rules_3-push-1_sumito.png}
+    }
+    \hfill
+    \subfloat["3-push-2" sumito]{
+        \includegraphics[width=4.5cm, keepaspectratio]{rules_3-push-2_sumito.png}
+    }
+    \caption{Sumito positions allow pushing the opponent's marbles \cite{abalone_sa_abalone_nodate}}
+    \label{sumito}
+\end{figure}
+
+A move pushing the opponent's marbles is called "sumito" and comes in three variations, as shown by figure \ref{sumito}. Essentially, the player has to push with superior numbers and the opponent's marbles can not be blocked.
+
+\begin{figure}[!h]
+    \centering
+    \subfloat[Different blocking situations]{
+        \includegraphics[width=4.5cm, keepaspectratio]{rules_block.png}
+    }
+    \hfill
+    \subfloat[Attacking position]{
+        \includegraphics[width=4.5cm, keepaspectratio]{rules_attacking_move.png}
+    }
+    \hfill
+    \subfloat[No legal move available to black]{
+        \includegraphics[width=4.5cm, keepaspectratio]{rules_stalemate.png}
+    }
+    \caption{Additional relevant board positions \cite{abalone_sa_abalone_nodate}}
+    \label{additional_relevant_positions}
+\end{figure}
+
+The figure \ref{additional_relevant_positions} (a) shows ways in which a sumito might be blocked. In 1) the sumito by black is blocked by the black marble, in 2) there is a free space between the marbles and 3) shows how a side-step cannot push a marble. Sumito moves are the only moves that allow for pushing the enemie's marbles, therefore they are the only attacking moves. Figure \ref{additional_relevant_positions} (b) shows a situation in which we can push an enemies marble from the board. The player that pushes six of the opponent's marbles from the board has won. The basic ruleset does not account for a draws but there are, in theory, positions like a stalemate in chess, where no move is possible for one player. In figure \ref{additional_relevant_positions} (c) the black player is locked to the brink of the board and has no move available. Moreover, to force a more eventful game games are often eitherlimited by time or by number of moves. Thus, a draw might occurr when the number of marbles left on the board is equal for each player.
+
+\subsection{Task environment}
+Based on the PEAS framework we can specify Abalone as a task environment and show the key components for the implementation of our agent. \cite[p.107]{russell_artificial_2021}
+
+\begin{description}
+    \item[Performance measure] Win/loss, number of moves, time to deliberate
+    \item[Environment] Digital playing board
+    \item[Actuators] Move marbles, display text to CLI
+    \item[Sensors] Position of marbles
+\end{description}
+
+Using the environment properties learned in \ref{environment} we can classify Abalone as \textbf{a fully observable, deterministic, two-agent, competitive, sequential, static and discrete environment}. Another popular term for this type of environment is a \textit{deterministic two-player  turn-based perfect information zero-sum game}.
+
+\subsection{Complexity}
+As Abalone has a finite amount of discrete states, we can make precise statements about its complexity, which can be described in two relevant dimensions.
+
+\paragraph{State space complexity}
+The state space is the set of all possible states the environment can be in.\cite[p. 150]{russell_artificial_2021} For Abalone this means we have to consider all possible board configurations with different numbers of marbles present. Additionally, we would have to remove duplicates that arise from the symmetries of the board. In the case of abalone we have 6 rotations and 6 axes we can mirror the board on. The following formula gives us a good upper bound:
+
+$$
+    \sum_{k=8}^{14}\sum_{m=9}^{14}\frac{61!}{k!(61-k)!}\times\frac{(61-k)!}{m!((61-k)-m)!}
+$$
+
+\paragraph{Game tree complexity} The game tree defines all transitions between board positions (nodes) through moves (edges). The \textit{search tree} is potentially a subset of the game tree, if not all paths are visited. In the case of Abalone the game tree is unbound and has an infinite height as actions might be taken repeatedly forming loops. To get a measure of the complexity the number of nodes in a tree is given by:
+
+$$
+    b^d
+$$
+
+First we consider the branching factor $ b $, or the number of possible moves for any given state. We can only approximate this, as this number greatly varies between different states. On average abalone has $ b = 60 $ possible moves per state as measured in figure \ref{branching_factor}. The depth $ d $ of the tree depends on the number of turns per game. Looking at the average again a game takes in the region of $ d = 87 $ turns, giving us a total of $60^{87}$ nodes. To be precise this is the complexity of an average search tree not the game tree, as mentioned above. \cite{lemmens_constructing_2005}
+
+\begin{figure}
+    \centering
+    \includegraphics[width=7cm, keepaspectratio]{distribution_of_moves.png}
+    \caption{Counts of moves available for random for random player in 5 games}
+    \label{branching_factor}
+\end{figure}
+
+As those numbers in isolation are hard to grasp it is useful to put Abalone's complexity in relation with other popular games. Its state space complexity is on the same level as Reversi, whilst its game tree surpasses chess in complexity (c.f. table \ref{complexity_table})
+
+\begin{table}
+    \begin{center}
+        \begin{tabular}{ | c | c | c | }
+            \hline
+            Game        & state-space complexity (log) & game-tree complexity (log) \\
+            \hline
+            Tic-tac-toe & 3                            & 5                          \\
+            \hline
+            Reversi     & 28                           & 58                         \\
+            \hline
+            Chess       & 46                           & 123                        \\
+            \hline
+            Abalone     & 24                           & 154                        \\
+            \hline
+            Go          & 172                          & 360                        \\
+            \hline
+        \end{tabular}
+    \end{center}
+    \caption{Abalone in comparison with other games \cite{chorus_implementing_2009}}
+    \label{complexity_table}
+\end{table}
+
+\subsection{Existing game playing agents}
+Abalone has seen
+
+\begin{itemize}
+    \item Adjacency: As a majority of marbles is required to push the opponent's marbles and conversely an equal amount of marbles is needed to avoid being pushed, it can be assumed that keeping one's marbles grouped together is a good move.
+    \item Distance to center: Marbles that are close to the brink of the board put them into danger of being attacked, wherefore it is generally good to place all of the marbles into the center of the board. For each player's marbles we measure their distance from the center of the board as the smallest amount of moves it would take to reach the center (Manhattan distance).
+\end{itemize}
+In Abalone there are multiple implementations, the most successful has been ABA-PRO by Tino Werner from 2002 \cite{aichholzer_algorithmic_2002} which has been the reference for other algorithms such as Abalearn \cite{campos_abalearn_2003}. A more recent publication by Papadopoulos et. al. claimed to have devised a more successful player than Werner. \cite{papadopoulos_exploring_2012} This was confirmed in a very recent reimplementation thesis by Michiel Verloop \cite{verloop_critical_nodate}. This reimplementation in Java \cite{verloop_abaloneai_nodate} is also the reference for later benchmarks.
+
+The investigations into MCTS in the context of Abalone are quite limited so far. Pascal Chorus has undertaken a comparison of the vanilla implementation against a heuristic agent, showing the dominance of the heuristic agent. \cite{chorus_implementing_2009} While in games like Go we don't have loops in Abalone, random players can get stuck in very long games making the results of simulations very weak signals. Without any more sophisticated rollout-policy this approach does not work very well.
