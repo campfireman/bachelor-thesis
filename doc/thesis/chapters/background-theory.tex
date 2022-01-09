@@ -11,7 +11,7 @@ The agent exists in an environment which it perceives through sensors and it tak
 
 Internally the agent might have some built-in knowledge about the world, such as rules on how the environment works. The \textit{agent function} takes the entire history of percepts observed and this built-in knowledge and maps it to an action. A concrete implementation of this abstract function is called \textit{agent program}. The agent program might just be a simple tabular mapping from percepts to actions or could use a complex algorithm with an additional model.
 
-\subsection{Task environment}
+\subsection{(Task) environment}
 \label{environment}
 
 As we are trying to build an agent that tries to achieve some specified goal, we can consider its environment as a problem or \textit{task} the agent tries to solve. Putting together both agent and the environment we see a loop of observing,  deliberating and finally taking an action as depicted in figure \ref{agent_environment_loop}.
@@ -23,11 +23,22 @@ As we are trying to build an agent that tries to achieve some specified goal, we
     \label{agent_environment_loop}
 \end{figure}
 
-There are a few categorizations that are extremely helpful for narrowing down potential applicability of different classes of algorithms. A key property is the observability of the environment. If the environment is \textit{fully observable}, the sensors detect all the information that is in any way relevant for taking an action. Conversely if not all information can be observed we call it \textit{partial observability}. For example in poker the other players' cards and the upcoming cards cannot be seen but are highly relevant to the agent's actions. As the current board state of chess fully comprises all information necessary to make a move, we can classify it as fully observable.
+To specify the task environment there are four key components. Let us specify the task environment for a machine classifying defective parts in a production line:
 
-The values of the state of the environment and time can be categorized into discrete and continuous. The autonomous vehicle for instance is dealing with continuous time and also continuous states. The speeds of the car take a smooth range of real values and time can be meaningfully split into increasingly small intervals. Board games are entirely discrete. The set of all states is a finite collection of all (legal) permutations of the board and the marbles. Time progresses on the basis of turns.
+\begin{enumerate}
+    \item Performance measure: This might be the percentage of correctly broken parts (true positives) weighted against the number of incorrectly identified parts (false positives).
+    \item Environment: The conveyor belt and the parts
+    \item Actuators: An arm to push the parts to a different conveyor belt
+    \item Sensors: Possibly a camera, infrared sensors, etc.
+\end{enumerate}
 
-The actions that the agents take might also be \textit{non-deterministic}. When dealing with systems of high complexity the next state might not only depend on the previous state and the action taken. There might be other car drivers taking unexpected actions or a comet hitting our car.
+The initial letters form the acronym PEAS (framework).
+
+There are a few categorizations of the properties of task environments that are extremely helpful for narrowing down potential applicability of different classes of algorithms. A key property is the observability of the environment. If the environment is \textit{fully observable}, the sensors detect all the information that is in any way relevant for taking an action. Conversely if not all information can be observed we call it \textit{partial observability}. For example in poker the other players' cards and the upcoming cards cannot be seen but are highly relevant to the agent's actions. As the current board state of chess fully comprises all information necessary to make a move, we can classify it as fully observable.
+
+The values of the state of the environment and time can be categorized into discrete and continuous. An autonomous vehicle for instance is dealing with continuous time and also continuous states. The speed of the car takes a smooth range of real values and time can be meaningfully split into increasingly small intervals. Board games are entirely discrete. The set of all states is a finite collection of all (legal) permutations of the board and the marbles. Time progresses on the basis of turns.
+
+An agent's actions might also be \textit{non-deterministic}. When dealing with systems of high complexity the next state might not only depend on the previous state and the action taken. There might be other car drivers taking unexpected actions or a comet hitting our car.
 
 Further expanding on the passage of time we have to take into account if actions have consequences for future states. If each combination of percept and action is independent of each other we call it \textit{episodic} and \textit{sequential} otherwise. If we had to classify a production line of circuit boards as either defective or functional, it would be an episodic environment. The classification of an individual board does not matter for the next one.
 
@@ -38,25 +49,26 @@ Lastly, an additional dimension to consider is the number of agents involved. Th
 
 
 \section{Classic agent}
-Now that we have an intricate understanding of the environment for our agent we have also narrowed down the choice of algorithms we can employ. In general, perfect information games can be solved by adversarial search algorithms. That means in theory we can find the optimal solution by traversing the entire game tree to terminal states (game ending state). The theory behind this type of agent was already laid out as early as 1945 by Konrad Zuse's program generating legal chess moves \cite{knuth_early_1980}, but was described most comprehensively by Claude Shannon in 1950 in "programming a Computer for Playing Chess". \cite{shannon_xxii_1950}
+Now that we have an intricate understanding of the environment of agents we have also narrowed down the choice of algorithms we can employ. In general, perfect information games can be solved by adversarial search algorithms. That means in theory one can find the optimal solution by traversing the entire game tree to terminal states (game ending state). The theory behind this type of agent was already laid out as early as 1945 by Konrad Zuse's program generating legal chess moves \cite{knuth_early_1980}, but was described most comprehensively by Claude Shannon in 1950 in "Programming a Computer for Playing Chess". \cite{shannon_xxii_1950}
 
 \subsection{Minimax algorithm}
-Minimax assumes two roles: The minimizer and the maximizer. We start the search from the current board state as the role of the maximizer and then alternate between the two. The result of the minimax search gives us the maximum utility for the given state, assuming both players behave optimally. Let us define the functions
+Minimax assumes two roles: The minimizer ($min$) and the maximizer ($max$). We start the search from the current board state as the role of the maximizer and then alternate between the two. The result of the minimax search gives us the maximum utility for the given state, assuming both players behave optimally. Let us define the functions \cite[p. 303f.]{russell_artificial_2021}
 \begin{itemize}
-    \item $\text{utility(s, p)}$ returns the utility or the payoff for the terminal state $s$ seen from the perspective of player $p$. In the case of chess this might be $-1, 0$ and $1$ for a loss, draw and a win.
-    \item $\text{is-terminal(s)}$ returns whether the given state $s$ is a terminal state or not
-    \item $\text{to-move}(s)$ returns the current player for the state $s$
-    \item $\text{result}(s, a)$ returns the resulting state if in state $s$ and taking action $a$
+    \item $\texttt{utility}(s, p)$ returns the utility or the payoff for the terminal state $s$ seen from the perspective of player $p$. In the case of chess this might be $-1, 0$ and $1$ for a loss, draw and a win.
+    \item $\texttt{is-terminal}(s)$ returns whether the given state $s$ is a terminal state or not.
+    \item $\texttt{to-move}(s)$ returns the current player for the state $s$, either $min$ or $max$.
+    \item $\texttt{result}(s, a)$ returns the resulting state if in state $s$ and taking action $a$.
+    \item $\texttt{actions}(s)$ returns all legal moves for the given state $s$.
 \end{itemize}
-such that we can define minimax recursively as:
-$$
-    \text{minimax}(s) =
+
+\begin{equation}
+    \texttt{minimax}(s) =
     \begin{cases}
-        \text{utility}(s, max)                                                & \text{is-terminal}(s)    \\
-        \text{max}_{a\in\text{actions}(s)}\text{minimax}(\text{result}(s, a)) & \text{to-move}(s) == max \\
-        \text{min}_{a\in\text{actions}(s)}\text{minimax}(\text{result}(s, a)) & \text{to-move}(s) == min \\
+        \texttt{utility}(s, max)                                                      & \texttt{is-terminal}(s)    \\
+        \texttt{max}_{a\in\texttt{actions}(s)}\texttt{minimax}(\texttt{result}(s, a)) & \texttt{to-move}(s) == max \\
+        \texttt{min}_{a\in\texttt{actions}(s)}\texttt{minimax}(\texttt{result}(s, a)) & \texttt{to-move}(s) == min \\
     \end{cases}
-$$
+\end{equation}
 
 Putting this together we can see in figure \ref{minimax} a graphical representation of the search tree for an abstract example. The algorithm traverses down to a leaf node, evaluates its utility and passes the value back up to the parent node. Depending on whether it is a minimizer or a maximizer it chooses the smallest or the largest value passed up by its children. This value again is passed up to the parent until we reach the parent node which is always a maximizer, yielding us the maximum utility we can achieve given our opponent plays optimally.
 
@@ -85,9 +97,9 @@ With functions $ f_i $ calculating different values such as
     \item Etc.
 \end{itemize}
 
-By applying different weights $ \omega_i $ to the functions $ f_i $ we essentially give incentives to the agent to prioritize certain behavior. If the win or loss function returns a value of either -1 or +1, we might combine it with a weight of 10.000 to make sure we choose winning states and avoid losing states above all. Armed with this heuristic function we can find good moves with minimax search even in highly complex state spaces.
+By applying different weights $ \omega_i $ to the functions $ f_i $ we essentially give incentives to the agent to prioritize certain behavior. If the win or loss function returns a value of either $-1$ or $+1$, we might combine it with a weight of 10,000 to make sure we choose winning states and avoid losing states above all. Armed with this heuristic function we can find good moves with minimax search even in highly complex state spaces.
 
-However, the problem with heuristic is we need expert knowledge and a lot of empirical testing to find a suitable heuristic. In some cases like with Go, such a heuristic function might not be competitive with even moderate human players. In other cases such as chess this strategy is very powerful. As mentioned in the introduction IBM's Deep Blue could beat the world's best player Gary Kasparov with this heuristic based adversarial search.
+However, the problem with heuristic functions is we need expert knowledge and a lot of empirical testing to find a suitable heuristic. In some cases like Go, such a heuristic function might not be competitive with even moderate human players. In other cases such as chess this strategy is very powerful. As mentioned in the introduction IBM's Deep Blue could beat the world's best player Gary Kasparov with heuristic based adversarial search.
 
 \subsection{Alpha-beta pruning}
 We can further improve minimax search markedly by using Alpha-beta-pruning. This method tries to eliminate unnecessary traversals down the search tree. In the best case, this leads to a reduction of nodes from $ O(b^d) $ to $ O(\sqrt{b^d}) $.
@@ -102,35 +114,36 @@ We can further improve minimax search markedly by using Alpha-beta-pruning. This
 
 The order in which we visit nodes in minimax is similar to a graph traversal with depth first search, meaning we descend down until we find a leaf node. This gives us information about the utility of that node and, consequently, part of the tree. Going up the tree we keep an alpha value for the minimum value the maximizer will receive and a beta value for the maximum value the minimizer will achieve. For instance this lets us know if the minimizer already can choose a move worse than what we can achieve with another move, we do not descend further $ (\alpha > \beta) $.
 
-Looking at the example in figure \ref{alpha_beta_pruning} will help us illustrate this principle. Our search revealed that choosing move $ a_1 $ will yield us an utility of at least 0. Traversing down move $ a_2 $ the first leaf has a utility of -1. Hence, the minimizer will choose a move that is at most -1 which is already worse than the utility of 0. We need not look further at this part of the tree.
+Looking at the example in figure \ref{alpha_beta_pruning} will help us illustrate this principle. Our search revealed that choosing move $ a_1 $ will yield us a utility of at least $0$. Traversing down move $ a_2 $ the first leaf has a utility of $-1$. Hence, the minimizer will choose a move that is at most $-1$ which is already worse than the utility of $0$. We need not look further at this part of the tree.
 
 The example also shows us an important prerequisite for this method to work. The order in which we expand which node matters decides how many nodes we can prune. Had we visited move $ c_3 $ and $ c_2 $ first, pruning wouldn't have been possible. The best case of $ O(\sqrt{b^d}) $ is entirely dependent on this ordering. We could find different ways of ranking the moves:
 
 \begin{itemize}
-    \item \textit{Killer move heuristic} prioritizes that are usually undoubtedly good like taking a piece in chess.
+    \item \textit{Killer move heuristic} prioritizes moves that are usually undoubtedly good like taking a piece in chess.
     \item \textit{Iterative deepening} Performs a minimax search only to a depth of one and uses the resulting values to rank the moves. Then searching one level deeper we use this ranking for ordering the moves. Even though there is a lot of redundancy, we make up for this more than enough by pruning much more effectively.
 \end{itemize}
 
 Other improvements to the procedure are thinkable as well. Once we perform a search for a certain state, we can store the resulting utility. If we encounter this position again, because of a different permutation of the move sequence (transposition), we can just look up the state utility in the \textit{transposition table}.
 
-Combined with alpha beta pruning, the minimax algorithm is a very efficient way of finding the optimal utility in an adversarial search situation. However, as mentioned before in most games we cannot use the utility of terminal states, because the search tree grows too quickly. By optimizing for a heuristic function the quality of play solely depends on this function. For games such as chess minimax has been very successful, because humans could devise meaningful heuristic functions. For chess the engine stockfish has been the most successful computer player for a long time and is based on this algorithm (and many optimizations). \cite{noauthor_stockfish_2021, noauthor_stockfish_nodate}
+Combined with alpha beta pruning, the minimax algorithm is a very efficient way of finding the optimal utility in an adversarial search situation. However, as mentioned before in most games we cannot use the utility of terminal states, because the search tree grows too quickly. By optimizing for a heuristic function the quality of play solely depends on this function. For games such as chess minimax has been very successful, because humans could devise meaningful heuristic functions. The chess engine stockfish has been the most successful computer player for a long time and is based on this algorithm (and many optimizations). \cite{noauthor_stockfish_2021, noauthor_stockfish_nodate}
 
 \subsection{Monte Carlo Tree Search}
-For games like Go we cannot find powerful heuristic functions, which makes the previous approach of minimax not a viable option. In addition, the initial position of a 19x19 Go board is 361 decreasing only by one for each stone placed. A method proposed in 2006 by Coulom \cite{coulom_efficient_2007} called Monte Carlo Tree search. The main idea is to use simulations or \textit{rollouts} to gain information on the quality of a state. To manage the complexity of the search tree more effectively the algorithm is \textit{selective} in which parts of the tree are \textit{expanded}. This ensures that resources are not wasted on unpromising moves.
+For games like Go we cannot find powerful heuristic functions, which makes the previous approach of minimax not a viable option. In addition, the initial position of a $19\times19$ Go board has a branching factor of $361$ decreasing only by one for each stone placed. A method proposed in 2006 by Coulom \cite{coulom_efficient_2007} called Monte Carlo Tree search was more successful for Go. The main idea is to use simulations or \textit{rollouts (or playouts)} to gain information on the quality of a state. To manage the complexity of the search tree more effectively the algorithm is \textit{selective} in which parts of the tree are \textit{expanded}. This ensures that resources are not wasted on unpromising moves.
 
 In its purest form the simulations are performed randomly, meaning we take a state or node to be investigated and let two random players take turns until a terminal state is reached. Kocsis and Szepesvári \cite{kocsis_bandit_2006} showed that it does in fact converge to optimal play. For games with a high branching factor we need a large number of simulations to get any meaningful information from the simulations, so we might use a \textit{rollout policy} instead. This policy guides the moves taken in the simulation towards better moves. This might be as simple as favoring capturing moves or as we will see later neural networks.
 
-The algorithm can be structured into four stages:
+The algorithm iteratively expands the search tree. For each iteration it runs through four steps:
+\begin{itemize}
+    \item \textbf{Selection} is the process of deciding which node to consider next. We start at the root node and select a node until we reach a leaf node. This is the selected Node. We could select the nodes according to some stationary distribution or we could use the information that we gain over time.
 
-\paragraph{Selection} is the process of deciding which node to consider next. We start at the root node and select a node until we reach a leaf node. This is the selected Node. We could select the nodes according to some stationary distribution or we could use the information that we gain over time.
+    \item \textbf{Expansion} is the step in which we expand the selected node by appending a fresh child node.
 
-\paragraph{Expansion} is the step in which we expand the selected node by appending a fresh child node.
+    \item \textbf{Simulation} is as described before the step in which we perform a simulation with our rollout policy starting from the state of the newly generated child node.
 
-\paragraph{Simulation} is as described before the step in which we perform a simulation with our rollout policy starting from the state of the newly generated child node.
+    \item \textbf{Back-propagation} is the last step. We take the result of the simulation (utility) and write it to the node and parent nodes above until we reach the root node. Each node updates its cumulative utility $U(n)$ and the number of times it was visited $N(n)$.
+\end{itemize}
 
-\paragraph{Back-propagation} is the last step. We take the result of the simulation (utility) and write it to the node and parent nodes above until we reach the root node. Each node updates its cumulative utility $U(n)$ and the number of times it was visited $N(n)$.
-
-The more we repeated this cycle, the more certainty we gained about the optimal move to take.
+The more this cycle is repeated, the more certainty is gained about the best move to take.
 
 \begin{figure}
     \centering
@@ -140,7 +153,7 @@ The more we repeated this cycle, the more certainty we gained about the optimal 
     \label{monte_carlo_tree_search}
 \end{figure}
 
-The inception of MCTS led to significant improvements in performance of game-playing agents in the Game of Go. The algorithm "Crazy Stone" from Coulom won the 10th KGS computer-Go tournament against competitors such as Indigo \cite{bouzy_associating_2006}. To select the next node he estimated the probability of that move being better than the current best move. We order the moves by their current estimated value $ \mu_i $ and calculate the corresponding variance $ \sigma_{i}^{2} $ getting the ordering of $ \mu_0 > \mu_1 > ... > \mu_N $. Selection of a move is proportional to:
+The development of MCTS led to significant improvements in performance of game-playing agents in the game of Go. The algorithm "Crazy Stone" from Coulom won the 10th KGS computer-Go tournament against competitors such as Indigo \cite{bouzy_associating_2006}. To select the next node the program estimates the probability of that move being better than the current best move. Then it orders the moves by their current estimated value $ \mu_i $ and calculates the corresponding variance $ \sigma_{i}^{2} $ getting the ordering of $ \mu_0 > \mu_1 > ... > \mu_N $. Selection of a move is proportional to:
 
 $$
     u_i = exp\left(-2.4\frac{\mu_0 - \mu_i}{\sqrt{2(\sigma_{0}^{2} + \sigma_{i}^{2})}}\right) + \epsilon_i
@@ -539,8 +552,8 @@ Based on the PEAS framework we can specify Abalone as a task environment and sho
 
 \begin{description}
     \item[Performance measure] Win/loss, number of moves, time to deliberate
-    \item[Environment] Digital playing board
-    \item[Actuators] Move marbles, display text to CLI
+    \item[Environment] Digital playing board and rules of the game
+    \item[Actuators] Move marbles
     \item[Sensors] Position of marbles
 \end{description}
 
@@ -550,24 +563,26 @@ Using the environment properties learned in \ref{environment} we can classify Ab
 As Abalone has a finite amount of discrete states, we can make precise statements about its complexity, which can be described in two relevant dimensions.
 
 \paragraph{State space complexity}
-The state space is the set of all possible states the environment can be in.\cite[p. 150]{russell_artificial_2021} For Abalone this means we have to consider all possible board configurations with different numbers of marbles present. Additionally, we would have to remove duplicates that arise from the symmetries of the board. In the case of abalone we have 6 rotations and 6 axes we can mirror the board on. The following formula gives us a good upper bound:
+The state space is the set of all possible states "the environment can be in".\cite[p. 150]{russell_artificial_2021} For Abalone this means we have to consider all possible board configurations with different numbers of marbles present. Additionally, we would have to remove duplicates that arise from the symmetries of the board. In the case of abalone we have 6 rotations and 6 axes we can mirror the board on. The following formula gives us a good upper bound:
 
-$$
+\begin{equation}
     \sum_{k=8}^{14}\sum_{m=9}^{14}\frac{61!}{k!(61-k)!}\times\frac{(61-k)!}{m!((61-k)-m)!}
-$$
+\end{equation}
 
-\paragraph{Game tree complexity} The game tree defines all transitions between board positions (nodes) through moves (edges). The \textit{search tree} is potentially a subset of the game tree, if not all paths are visited. In the case of Abalone the game tree is unbound and has an infinite height as actions might be taken repeatedly forming loops. To get a measure of the complexity the number of nodes in a tree is given by:
+As the board has six rotational symmetries and additional six mirror axis we have to divide the result by 12 which results in a total of $ 6 \times 10^{23} $ possible board configurations. \cite[p. 4]{lemmens_constructing_2005}
 
-$$
+\paragraph{Game tree complexity} The game tree contains all possible transitions between board positions (nodes) through moves (edges). The root of the tree is the default start position. The \textit{search tree} is potentially a subset of the game tree, if not all paths are visited. In the case of Abalone the game tree is unbound and has an infinite height as actions might be taken repeatedly forming loops. Therefore, Abalone's complexity can only be approximateed by an average search tree not the game tree. First we consider the branching factor $ b $, or the number of possible moves for any given state. This number greatly varies between different states. On average Abalone has $ b = 60 $ possible moves per state as measured in figure \ref{branching_factor}. The depth $ d $ of the tree depends on the number of turns per game. Looking at the average again a game takes in the region of $ d = 87 $ turns. To get a measure of the complexity the number of nodes in a tree is given by
+
+\begin{equation}
     b^d
-$$
+\end{equation}
 
-First we consider the branching factor $ b $, or the number of possible moves for any given state. We can only approximate this, as this number greatly varies between different states. On average abalone has $ b = 60 $ possible moves per state as measured in figure \ref{branching_factor}. The depth $ d $ of the tree depends on the number of turns per game. Looking at the average again a game takes in the region of $ d = 87 $ turns, giving us a total of $60^{87}$ nodes. To be precise this is the complexity of an average search tree not the game tree, as mentioned above. \cite{lemmens_constructing_2005}
+resulting in a total of $60^{87} \approx 5 \times 10^{154}$ nodes. \cite{lemmens_constructing_2005}
 
 \begin{figure}
     \centering
     \includegraphics[width=7cm, keepaspectratio]{distribution_of_moves.png}
-    \caption{Counts of moves available for random for random player in 5 games}
+    \caption{Counts of moves available a random player in 5 games}
     \label{branching_factor}
 \end{figure}
 
