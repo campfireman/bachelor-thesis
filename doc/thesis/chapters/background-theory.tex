@@ -1,13 +1,15 @@
 \chapter{Background theory}
-Before we move to the nuts and bolts of AlphaZero and our concrete implementation for Abalone, we should establish a general understanding of the problem. That includes building the necessary theoretical background in artificial intelligence in general, as well as insight into the specialized knowledge such as deep reinforcement learning in particular.
+Before we move to the nuts and bolts of AlphaZero and the concrete implementation for Abalone, we should establish a general understanding of the problem. That includes building the necessary theoretical background in artificial intelligence in general, as well as insight into the specialized knowledge such as deep reinforcement learning in particular.
 
 \section{Artificial intelligence}
 The introduction has already forshadowed how the field of artificial intelligence has undergone a shift in their methodology. In the 1950s and 1960s figures like Alan Turing and von Neumann laid the foundations for modern computers. This sparked the idea one could create programs for these new machines that have similar abilities like humans and other organisms. Researchers at that time assumed there is no "universal principle" behind intelligence and focused on reason and symbol manipulation. Therefore these methods were considered "strong techniques", methods that relied on general principles like learning were labeled "weak techniques". Nowadays, the consensus in the field has revesered. \cite[p. 8f.]{sutton_reinforcement_2018}
 
-\subsection{Rational agent}
-Stemming from the latin word \textit{agere} meaning "to act", an agent is something that acts. As we expect an agent to take sensible or intelligent actions we further qualify this definition by calling it rational. This means that it acts so as "to achieve the best outcome or, when there is uncertainty, the best expected outcome". \cite[p. 36]{russell_artificial_2021}
+% definition of artificial intellligence
 
-The agent exists in an environment which it perceives through sensors and it takes actions through its actuators. We refer to the content of the sensor's output for one observation as \textit{percept}. A cat uses eyes, ears and other organs to perceive the world and its legs, claws and so on to interact with the world. An autonomous car might use radar and cameras for acquiring information and steering and motors for navigation.
+\subsection{Rational agent}
+Stemming from the latin word \textit{agere} meaning "to act", an agent is something that acts. As one expects an agent to take sensible or intelligent actions the definition has to be further qualified by calling the agent ratinoal. This means that it acts so as "to achieve the best outcome or, when there is uncertainty, the best expected outcome". \cite[p. 36]{russell_artificial_2021}
+
+The agent exists in an environment which it perceives through sensors and it takes actions through its actuators. The content of the sensor's output for one observation is referred to as \textit{percept}. A cat uses eyes, ears and other organs to perceive the world and its legs, claws and so on to interact with the world. An autonomous car might use radar and cameras for acquiring information and steering and motors for navigation.
 
 Internally the agent might have some built-in knowledge about the world, such as rules on how the environment works. The \textit{agent function} takes the entire history of percepts observed and this built-in knowledge and maps it to an action. A concrete implementation of this abstract function is called \textit{agent program}. The agent program might just be a simple tabular mapping from percepts to actions or could use a complex algorithm with an additional model.
 
@@ -85,7 +87,9 @@ As the number of nodes of the game tree gets very large, the search on the tree 
 
 Therefore, one has to limit the search to a computationally feasible depth and evaluate the intermediary result of a given transposition based on a so-called \textit{heuristic function}. This function replaces our previous $ utility(s) $ for terminal states and is based on human knowledge. The function should give precise feedback on the quality of a state from the perspective of the given player. A sensible function for chess might be a linear combination in the form of:
 
-$$ h(s) = \omega_0f_0(s) + ... + \omega_nf_n(s) $$
+\begin{equation}
+    h(s) = \omega_0f_0(s) + ... + \omega_nf_n(s)
+\end{equation}
 
 With functions $ f_i $ calculating different values such as
 
@@ -128,7 +132,7 @@ Other improvements to the procedure are thinkable as well. Once we perform a sea
 Combined with alpha beta pruning, the minimax algorithm is a very efficient way of finding the optimal utility in an adversarial search situation. However, as mentioned before in most games we cannot use the utility of terminal states, because the search tree grows too quickly. By optimizing for a heuristic function the quality of play solely depends on this function. For games such as chess minimax has been very successful, because humans could devise meaningful heuristic functions. The chess engine stockfish has been the most successful computer player for a long time and is based on this algorithm (and many optimizations). \cite{noauthor_stockfish_2021, noauthor_stockfish_nodate}
 
 \subsection{Monte Carlo Tree Search}
-For games like Go we cannot find powerful heuristic functions, which makes the previous approach of minimax not a viable option. In addition, the initial position of a $19\times19$ Go board has a branching factor of $361$ decreasing only by one for each stone placed. A method proposed in 2006 by Coulom \cite{coulom_efficient_2007} called Monte Carlo Tree search was more successful for Go. The main idea is to use simulations or \textit{rollouts (or playouts)} to gain information on the quality of a state. To manage the complexity of the search tree more effectively the algorithm is \textit{selective} in which parts of the tree are \textit{expanded}. This ensures that resources are not wasted on unpromising moves.
+For games like Go it was deemed impossible find powerful heuristic functions, which makes the previous approach of minimax not a viable option. In addition, the initial position of a $19\times19$ Go board has a branching factor of $361$ decreasing only by one for each stone placed. A method proposed in 2006 by Coulom \cite{coulom_efficient_2007} called Monte Carlo Tree search was more successful for Go. The main idea is to use simulations or \textit{rollouts (or playouts)} to gain information on the quality of a state. To manage the complexity of the search tree more effectively the algorithm is \textit{selective} in which parts of the tree are \textit{expanded}. This ensures that resources are not wasted on unpromising moves.
 
 In its purest form the simulations are performed randomly, meaning we take a state or node to be investigated and let two random players take turns until a terminal state is reached. Kocsis and Szepesvári \cite{kocsis_bandit_2006} showed that it does in fact converge to optimal play. For games with a high branching factor we need a large number of simulations to get any meaningful information from the simulations, so we might use a \textit{rollout policy} instead. This policy guides the moves taken in the simulation towards better moves. This might be as simple as favoring capturing moves or as we will see later neural networks.
 
@@ -140,7 +144,7 @@ The algorithm iteratively expands the search tree. For each iteration it runs th
 
     \item \textbf{Simulation} is as described before the step in which we perform a simulation with our rollout policy starting from the state of the newly generated child node.
 
-    \item \textbf{Back-propagation} is the last step. We take the result of the simulation (utility) and write it to the node and parent nodes above until we reach the root node. Each node updates its cumulative utility $U(n)$ and the number of times it was visited $N(n)$.
+    \item \textbf{Back-propagation} is the last step. We take the result of the simulation (utility) and write it to the node and parent nodes above until we reach the root node. Each node updates its cumulative utility $U(n)$ and the number of times it was visited $N(n)$. It is important to note, that this to be differentiated from backpropagation in the context of neural networks (c.f. \ref{neural_networks}).
 \end{itemize}
 
 The more this cycle is repeated, the more certainty is gained about the best move to take.
@@ -153,47 +157,47 @@ The more this cycle is repeated, the more certainty is gained about the best mov
     \label{monte_carlo_tree_search}
 \end{figure}
 
-The development of MCTS led to significant improvements in performance of game-playing agents in the game of Go. The algorithm "Crazy Stone" from Coulom won the 10th KGS computer-Go tournament against competitors such as Indigo \cite{bouzy_associating_2006}. To select the next node the program estimates the probability of that move being better than the current best move. Then it orders the moves by their current estimated value $ \mu_i $ and calculates the corresponding variance $ \sigma_{i}^{2} $ getting the ordering of $ \mu_0 > \mu_1 > ... > \mu_N $. Selection of a move is proportional to:
+The development of MCTS led to significant improvements in performance of game-playing agents in the game of Go. The algorithm "Crazy Stone" from Coulom won the 10th KGS computer-Go tournament against competitors such as Indigo \cite{bouzy_associating_2006}. In the selection phase Crazy Stone estimates the probability of that move being better than the current best move and selects the them according to that probability. The probability distribution over the moves is similar to the Gaussian distribution and the Boltzman equations. \cite[p. 4]{coulom_efficient_2007}
 
-$$
-    u_i = exp\left(-2.4\frac{\mu_0 - \mu_i}{\sqrt{2(\sigma_{0}^{2} + \sigma_{i}^{2})}}\right) + \epsilon_i
-$$
+Another idea for selection is the upper confidence bound formula (\textit{UCB1}) \cite{auer_finite-time_nodate}, that weights how often we have visited a node $n$ and how promising it is. Let us define \cite[cf. p. 328]{russell_artificial_2021}:
 
-The Term $ \epsilon_i $ ensures that the probability of selection never goes to zero as defined by $ \epsilon_i = \frac{0.1 + 2^{-i} + a_i}{N} $. The resulting distribution is similar to the Gaussian distribution and the Boltzman equations \cite{coulom_efficient_2007}
+\begin{enumerate}
+    \item $\texttt{Parent}(n)$ returns the parent node of node $n$.
+    \item $N(n) $ returns number of playouts performed on node $n$ and its children.
+    \item $U(n) $ returns the cumulative utility of node $n$. For instance, this might be the number of wins for node $n$ and its children.
+\end{enumerate}
 
-Another idea for selection is the UCB1 formula \cite{auer_finite-time_nodate}, that weights how often we have visited a node and how promising it is.
+\begin{equation}
+    \textit{UCB1}(n) = \frac{U(n)}{N(n)} + C \times \sqrt{\frac{\log{N(\texttt{Parent}(n))}}{N(n)}}
+\end{equation}
 
-$$
-    \text{UCB1}(n) = \frac{U(n)}{N(n)} + C \times \sqrt{\frac{\log{N(Parent(n))}}{N(n)}}
-$$
+The cumulative utility $U(n)$ is normalized by the number of times the node was visited $N(u)$. This helps favor moves that are either relatively unexplored and promising or have proven to be good over a larger set of nodes. It is also called the exploitation term. The additional term is called the exploration term. The more often a node is visited, the smaller this term gets, converging to 0 for large $N(n)$. The constant factor $C$ is subject to some debate which value might be optimal, some choose $\sqrt{2}$. In general, this hints at another point of investigation: The problem of \textit{exploration vs. exploitation} \ref{exploration_vs_exploitation} that we will inspect more closely later.
 
-The cumulative utility $U(n)$ is normalized by the number of times we have visited the node $N(u)$. This helps favor moves that are either relatively unexplored and promising or have proven to be good over a larger set of nodes. It is also called the exploitation term. The additional term is called the exploitation term. The more often we visit a node, the smaller this term gets, converging to 0 for large $N(n)$. The constant factor $C$ is subject to some debate which value might be optimal, some choose $\sqrt{2}$. In general, this hints at another point of investigation: The problem of \textit{exploration vs. exploitation} \ref{exploration_vs_exploitation} that we will inspect more closely later.
-
-Here we can already see David Silver's handwriting on the wall. As early as 2006 he, and Sylvian Gelly, investigated optimization to MCTS \cite{gelly_achieving_nodate} for the game of Go. In 2011 they published a comprehensive paper \cite{gelly_monte-carlo_2011} proposing the algorithm MoGo and evaluating different strategies to improve the effectiveness of MCTS in Go. Seeing that
+The leading researcher behind AlphaGo and AlphaZero David Silver started his research on Go with MCTS. As early as 2006 he, and Sylvian Gelly, investigated optimizations to MCTS \cite{gelly_achieving_nodate} for the game of Go. In 2011 they published a comprehensive paper \cite{gelly_monte-carlo_2011} proposing the algorithm MoGo and evaluating different strategies to improve the effectiveness of MCTS in Go. Seeing that
 
 \begin{quotation}
-    [...] professional Go players often play moves according to intuitive feelings that are hard to express or quantify. Precisely encoding their knowledge into machine-understandable rules has proven to be a dead-end: a classic example of the knowledge acquisition bottleneck.
+    [...] professional Go players often play moves according to intuitive feelings that are hard to express or quantify. Precisely encoding their knowledge into machine-understandable rules has proven to be a dead-end: a classic example of the knowledge acquisition bottleneck. \cite[p. 1873]{gelly_monte-carlo_2011}
 \end{quotation}
 
-One of the ideas introduced is Rapid Action Value Estimation (RAVE). We already saw how we could reuse information gathered for minimax through a transposition table. In our search tree we will encounter transpositions for that we already performed searches. RAVE allows us to reuse experience gathered from simulations for related positions. A key property observed by Silver was that MoGo scales proportional to the amount of compute or rather number of simulations it can perform per turn as depicted in figure \ref{mogo_scaling}.
+One of the ideas introduced is Rapid Action Value Estimation (RAVE). It already mentioned how one could reuse information gathered for minimax through a transposition table. In a search tree one will encounter transpositions for that searches were already performed. RAVE allows to reuse experience gathered from simulations for related positions. A key property observed by Silver was that MoGo scales proportional to the amount of compute or rather number of simulations it can perform per turn as depicted in figure \ref{mogo_scaling}.
 
 \begin{figure}
     \centering
     \includegraphics[height=7cm, keepaspectratio]{mogo_scaling.png}
-    \caption{Elo rating of MoGo in relation to the computational resources granted to the algorithm \cite{gelly_monte-carlo_2011}}
+    \caption{Elo rating of MoGo in relation to the computational resources granted to the algorithm \cite[p. 1872]{gelly_monte-carlo_2011}}
     \label{mogo_scaling}
 \end{figure}
 
 \section{Learning agent}
-The methods described until this point can be described as "Good old fashioned AI". They rely on search and human knowledge to perform adequately. We shift our focus now to methods that use learning mechanisms to improve their play. With MCTS we've actually seen a kind of intermediary form of algorithm as it is "simulating moves into the future, observing the outcome, and using the outcome to determine which moves are good ones is one kind of reinforcement learning." \cite[p. 331]{russell_artificial_2021}
+The methods described until this point can be described as "Good old fashioned AI". They rely on search and human knowledge to perform adequately. Now we shift our focus to methods that use learning mechanisms to improve their play. With MCTS we've actually seen a kind of intermediary form of algorithm as it is "simulating moves into the future, observing the outcome, and using the outcome to determine which moves are good ones is one kind of reinforcement learning." \cite[p. 331]{russell_artificial_2021}
 
 \subsection{Reinforcement learning}
 By devising a heuristic function, we basically told our agent what to do by indicating how a good position looks. The agent optimized its actions to be in a good position as described by the function. In reinforcement learning the agent learns what action to take through interaction. We don't predefine which actions are to be taken. The agent tries to discover which actions yield the best \textit{reward}. The numerical reward signal might come immediately, but e.g. in the case of chess the reward for actions taken comes much later by winning the game (or losing it). According to Sutton and Barto those are the key components of reinforcement learning: "trial-and-error search and delayed reward". \cite[p. 1]{sutton_reinforcement_2018}
 
-Reinforcement learning is not a specific solution or method for this problem domain, all methods for "goal-directed agents interacting in an uncertain environment" \cite[p. 3]{sutton_reinforcement_2018} are types of reinforcement learning. It is a general formalism that will help us reframe the problem of playing a board game (well) in a new light.
+Reinforcement learning is not a specific solution or method, all methods for "goal-directed agents interacting in an uncertain environment" \cite[p. 3]{sutton_reinforcement_2018} are types of reinforcement learning. It is a general formalism that will help us reframe the problem of playing a board game (well) in a new light.
 
-\subsection{Markov decision process}
-For reinforcement learning we also need to find a formalism for the environment. Originally derived as an extension of Markov Chains by Richard Bellman \cite{yang_markov_2019, bellman_markovian_1957}, the (finite) Markov Decision Process (MDP) describes sequential decision making where actions have long-term consequences, thus, effect future rewards. The MDP is an abstraction of "goal directed learning from abstraction" that reduces the problem to three signals of actions, states and rewards that are being exchanged between the agent and the environment. We already introduced the agent-environment interaction loop in figure \ref{agent_environment_loop}. We can reframe this image with the new terminology of the MDP framework in figure \ref{mdp_agent_environment}.
+\subsection{Markov decision processes}
+Central to reinforcement learning is a formalism for the environment called Markov decision process (MDP). Originally derived as an extension of Markov Chains by Richard Bellman \cite{yang_markov_2019, bellman_markovian_1957}, a (finite) MDP describes sequential decision making where actions have long-term consequences, thus, effect future rewards. The MDP is an abstraction of "goal directed learning from abstraction" that reduces the problem to three components: Actions, states and rewards that are being exchanged between the agent and the environment. We already introduced the agent-environment interaction loop in figure \ref{agent_environment_loop}. We can reframe this image with the new terminology of the MDP framework in figure \ref{mdp_agent_environment}. For a \textit{finite} MDP the sets of all actions $ \mathcal{A}$ (\textit{action space}), states $\mathcal{S}$ (\textit{state space}) and rewards $ \mathcal{R} $ have a finite amount of elements.
 
 \begin{figure}
     \centering
@@ -202,66 +206,81 @@ For reinforcement learning we also need to find a formalism for the environment.
     \label{mdp_agent_environment}
 \end{figure}
 
-We divide the passage of time into discrete time steps $ t $ at which the agent senses the state $ S_t \in \mathcal{S} $ and then selects some action $ A_t \in \mathcal{A}(s) $. Resulting in that action is some reward $ R_{t+1} \in \mathcal{R} \subset \mathbb{R} $ that is received in the next timestep. For a \textit{finite} MDP the sets $ \mathcal{A}, \mathcal{S}$ and $ \mathcal{R} $ have a finite amount of elements.
+We divide the passage of time into discrete time steps $ t $ at which the agent senses the state $ S_t \in \mathcal{S} $ and then selects some action $ A_t \in \mathcal{A}(s) $. Resulting in that action is some reward $ R_{t+1} \in \mathcal{R} \subset \mathbb{R} $ that is received in the next timestep.
 
-The transitions between the state $ s $ and the next state $ s' $ is given by the function $ p $ which essentially defines the decision process as a whole:
+The transition probabilities between the state $ s $ and the next state $ s' $ and its reward $r \in \mathcal{R}$ is given by the function $ p $ which essentially defines the decision process as a whole. A game of chess is deterministic, all transitions have a probability of $1$ and these probabilities are defined by the rules of the game. However, the MDP is formulated to encorporate stochastic environments as well:
 
-$$
-    p(s', r | s, a) \doteq Pr\{S_t=s', R_t = r | s_{t-1} = s, A_{t-1}=a\}
-$$
+\begin{equation}
+    p(s', r | s, a) = P\{S_t=s', R_t = r | S_{t-1} = s, A_{t-1}=a\}
+\end{equation}
 
-As the random variables $ R_t $ and $ S_t $ only depend on the previous state and action, "the state must include information about all aspects of the past agent–environment interaction that make a difference for the future. If it does, then the state is said to have the \textit{Markov property}". \cite[p. 48]{sutton_reinforcement_2018}
+In a MDP "the state must include information about all aspects of the past agent environment interaction that make a difference for the future. If it does, then the state is said to have the \textit{Markov property}". \cite[p. 48]{sutton_reinforcement_2018} This means the transition probability $p$ is independent of the history of preceeding states.
 
 From these properties of the MDP we can define the four central components of Reinforcement learning:
 
-\paragraph{The reward signal} is the description of the agent's goal. A controller of a cooling system for a server farm might have the goal to minimize the energy spent for cooling while keeping the servers below a certain threshold. The reward signal then encompasses both of these subgoals. The controller has to maximize this reward. The \textit{reward hypothesis} states that:
-\begin{quotation}
-    That all of what we mean by goals and purposes can be well thought of as the maximization of the expected value of the cumulative sum of a received scalar signal (called reward).
-\end{quotation}
-Therefore, we introduce the reward $R_t $ and the goal $ G_t $ which is in the simplest case the sum of future rewards.
+\begin{itemize}
+    \item \textbf{The reward signal} is the description of the agent's goal. A controller of a cooling system for a server farm might have the goal to minimize the energy spent for cooling while keeping the servers below a certain threshold. The reward signal then encompasses both of these subgoals. The controller has to maximize this reward. The \textit{reward hypothesis} states that:
+          \begin{quotation}
+              That all of what we mean by goals and purposes can be well thought of as the maximization of the expected value of the cumulative sum of a received scalar signal (called reward). \cite[p. 52]{sutton_reinforcement_2018}
+          \end{quotation}
+          Therefore, we introduce the reward $R_t $ and the goal $ G_t $ which is in the simplest case the sum of future rewards until the final time step $T$.
 
-$$ G_t = R_{t+1} + R_{t+2} + ... + R_T $$
+          \begin{equation}
+              G_t = R_{t+1} + R_{t+2} + ... + R_T
+          \end{equation}
 
-We might also discount the future rewards by some factor $\gamma \in [0, 1] $ to account for the decrease in certainty we have about future rewards:
+          We might also discount the future rewards by some factor $\gamma \in [0, 1] $ to account for the decrease in certainty we have about future rewards:
 
-$$ G_t = R_{t+1} + \gamma R_{t+2} + \gamma^2 R_{t+2} + ... = \sum_{k=0}^{\infty} \gamma^kR_{t+k+1}$$
+          \begin{equation}
+              G_t = R_{t+1} + \gamma R_{t+2} + \gamma^2 R_{t+3} + ... = \sum_{k=0}^{\infty} \gamma^kR_{t+k+1}
+          \end{equation}
 
-\paragraph{The policy} is a mapping between the perceived states to probabilities for selecting each possible action. For TicTacToe we might imagine a table that lists for all possible states to the agent's action. Due to the size of the state space \ref{complexity_table} in more complex games this would not be feasible, therefore we used search processes as a policy so far.
+    \item \textbf{The policy} is a mapping between the perceived states to probabilities of selecting each possible action. For TicTacToe we might imagine a table that lists for all possible states to the agent's action. Due to the size of the state space \ref{complexity_table} in more complex games this would not be feasible, therefore we used search processes as a policy so far.
 
-We denote the policy as the function $\pi $ defines a probability distribution over all actions $ a \in \mathcal{A}(s)$ for each $ s \in \mathcal{S} $. $ \pi(a|s)$ is probability at a given timestep $t$ for the action to be $ a = A_t $ under the condition that $ s = S_t $.
+          We denote the policy as the function $\pi $. It defines a probability distribution over all actions $ a \in \mathcal{A}(s)$ for each $ s \in \mathcal{S} $. $ \pi(a|s)$ is probability at a given timestep $t$ for the action to be $ a = A_t $ under the condition that $ s = S_t $.
 
-\paragraph{The value function} is an estimation of the reward for the agent to be in a given state $ s $.  As the reward for a state depends on what actions we take in the future, the value depends on the policy $ \pi $ defined above. Given that we are at timestep $ t $ and in state $ s = S_t $, the \textit{state-value function $v_{\pi}$}:
+    \item \textbf{The value function} is an estimation of the reward for the agent to be in a given state $ s $. In other words, it is the expected value $\mathbb{E}$  for the goal $G_t$ given the state $s$.  As the reward for a state depends on what actions we take in the future, the value depends on the policy $ \pi $ defined above. Given that we are at timestep $ t $ and in state $ s = S_t $, the \textit{state-value function $v_{\pi}$}:
 
-$$ v_{\pi}(s) = \mathbb{E}_{\pi}[G_t | S_t = s] = \mathbb{E}_{\pi}\left[\sum_{k=0}^{\infty} \gamma^kR_{t+k+1} \middle| S_t = s \right] $$
+          \begin{equation}
+              v_{\pi}(s) = \mathbb{E}_{\pi}[G_t | S_t = s] = \mathbb{E}_{\pi}\left[\sum_{k=0}^{\infty} \gamma^kR_{t+k+1} \middle| S_t = s \right]
+          \end{equation}
 
-The heuristic function entcountered pereviously was essentially a value function being used to guide the game-tree search.
+          The heuristic function entcountered pereviously was essentially a value function being used to guide the game-tree search.
 
-Furthermore, we define the value of action $a$ while being in state $s$ under the policy $pi$ as the \textit{action-value function} $q$:
+          Furthermore, we define the value of action $a$ while being in state $s$ under the policy $\abstractname{}pi$ as the \textit{action-value function} $q$:
 
-$$ q_{\pi}(s) = \mathbb{E}_{\pi}[G_t | S_t = s, A_t = a] = \mathbb{E}_{\pi}\left[\sum_{k=0}^{\infty} \gamma^kR_{t+k+1} \middle| S_t = s, A_t = a \right] $$
 
-\begin{figure}
-    \centering
-    \includegraphics[height=2cm, keepaspectratio]{policy_value_action_value.png}
-    \caption{A visual explanation of policy, value and action-value \cite[p.62]{sutton_reinforcement_2018}}
-    \label{policy_value_action_value}
-\end{figure}
+          \begin{equation}
+              q_{\pi}(s) = \mathbb{E}_{\pi}[G_t | S_t = s, A_t = a] = \mathbb{E}_{\pi}\left[\sum_{k=0}^{\infty} \gamma^kR_{t+k+1} \middle| S_t = s, A_t = a \right]
+          \end{equation}
 
-The figure \ref{policy_value_action_value} shows how the three elements of policy, state-value and action-value relate to each other.
+          \begin{figure}
+              \centering
+              \includegraphics[height=2cm, keepaspectratio]{policy_value_action_value.png}
+              \caption{A visual explanation of policy, value and action-value \cite[p.62]{sutton_reinforcement_2018}}
+              \label{policy_value_action_value}
+          \end{figure}
 
-\paragraph{The model} helps to make predictions about how the environment might behave. For a given state and action it might return to the next state which aides in planning ahead. In the case of Abalone the model is the rules of the game, used by the function that returns all legal moves or the resulting board from a given board and a move.
+          The figure \ref{policy_value_action_value} shows how the three elements of policy, state-value and action-value relate to each other.
 
-The goal of reinforcement learning is to find (or approximate) a policy that maximizes the future reward for each action and state. For MDPs we define the \textit{optimal policy} for all $ s \in \mathcal{S} $ by:
+    \item \textbf{The model} helps to make predictions about how the environment might behave. For a given state and action it might return to the next state which aides in planning ahead. In the case of Abalone the model is the rules of the game, used by the function that returns all legal moves or the resulting board from a given board and a move.
+\end{itemize}
 
-$$ v_{*}(s) \doteq \max_{\pi} v_{\pi}(s) $$
+The goal of reinforcement learning is to find (or approximate) a policy that maximizes the future reward for each action and state. For MDPs we define the \textit{optimal policy} $\pi_*$ as having higher or equal return than all other policies. Thus, the optimal policy maximizes the value function, resulting in the \textit{optimal state-value function}:
 
-For this optimal policy we also have an optimal action-value function $ q_{*} $ for all $ s \in \mathcal{S}$:
+\begin{equation}
+    v_{*}(s) = \max_{\pi} v_{\pi}(s)
+\end{equation}
 
-$$ q_{*}(s, a) = \max_{\pi}q_{\pi}(s, a) $$
+for all $s \in mathcal{S}$. For instance, in chess the goal is to find a policy that approximates the utility returned by exhaustive search. Given such policy one could evaluate the best possible outcome for any state $s$ with the optimal state-value function. For this optimal policy we also have an optimal action-value function $ q_{*} $ for all $ s \in \mathcal{S}$:
+
+\begin{equation}
+    q_{*}(s, a) = \max_{\pi}q_{\pi}(s, a)
+\end{equation}
 
 \subsection{Exploration vs. Exploitation}
 \label{exploration_vs_exploitation}
-As the agent builds its knowledge while it is engaged in the environment it has to weigh \textit{exploiting} the gathered knowledge for ensuring a safe short term reward or sacrificing it for \textit{exploring} other actions that might turn out to bring higher rewards in the future. To illustrate this fundamental tradeoff in reinforcement learning, let us imagine a gambling machine with 10 levers, a 10-armed bandit. At each timestep $ t $ we have to decide which lever to pull and then we receive some reward $ R_t $. Each lever has some stationary distribution over the rewards that is hidden from us. The distribution looks like the one given in figure \ref{10_armed_bandit}.
+As the agent builds its knowledge while it is engaged in the environment it has to weigh \textit{exploiting} the gathered knowledge for ensuring a safe short term reward or sacrificing it for \textit{exploring} other actions that might turn out to bring higher rewards in the future. To illustrate this fundamental tradeoff in reinforcement learning, let us imagine a gambling machine with 10 levers, a 10-armed bandit. At each timestep $ t $ we have to decide which lever to pull and then we receive some reward $ R_t $. Each lever has some unchanging (\textit{stationary}) distribution over the rewards that is hidden from us. The distribution looks like the one given in figure \ref{10_armed_bandit}.
 
 \begin{figure}
     \centering
@@ -270,33 +289,34 @@ As the agent builds its knowledge while it is engaged in the environment it has 
     \label{10_armed_bandit}
 \end{figure}
 
-To estimate the action-value of each lever, we sum the rewards received for that lever $ R_t(a) $ and divide it by the number of times we've chosen the lever $ N_t(a) $ at the timestep $ t $.
+To estimate the action-value of each lever, we sum the rewards received for that lever $ \texttt{total-reward}(a) $ and divide it by the number of times we've chosen the lever $ N_t(a) $ at the timestep $ t $.
 
 $$
-    Q_t(a) \doteq \frac{R_t(a)}{N_t{a}}
+    Q_t(a) = \frac{\texttt{total-reward}(a)}{N_t(a)}
 $$
 
-This is called the \textit{sample-average} method. The simplest policy would be to just always choose the $ Q_t $ with the largest value.
+This is called the \textit{sample-average} method. The simplest policy would be to just always choose the action with the largest sample-average $ Q_t $ a \textit{greedy} policy.
 
 $$
-    A_t \doteq \operatorname*{argmax}_a Q_t(a)
+    A_t = \operatorname*{argmax}_a Q_t(a)
 $$
 
-Initially, we might choose a random lever and that yields a reward of 0. As all $ Q_t $ are still equivalent we choose another random lever giving us a reward of 1. Then ,according to the greedy policy, we just repeatedly pull this lever indefinitely. We just get stuck on exploiting the small knowledge we have gained. To allow for some exploration of other actions we introduce a small probability $\epsilon $ of choosing a different (random) action:
+Initially, we might choose a random lever and that yields a reward of 0. As all $ Q_t $ are still 0 we choose another random lever giving us a reward of 1. Then ,according to the greedy policy, we just repeatedly pull this lever indefinitely. We just get stuck on exploiting the small knowledge we have gained. To allow for some exploration of other actions we introduce a small probability $\varepsilon $ of choosing a different (random) action:
 $$
     A_t =
     \begin{cases}
-        \text{greedy } a & p = 1 - \epsilon \\
-        \text{other } a  & p = \epsilon     \\
+        \operatorname*{argmax}_a Q_t(a) & \text{with } 1 - \varepsilon \\
+        \text{random } a                & \text{with }  \varepsilon    \\
     \end{cases}
 $$
 
 If we continue for an infinite number of times $ Q_t $ is guaranteed to converge to $ q_{*} $ as we sample each action enough to estimate its stationary distribution. We might also let the $ \epsilon $ decay over time to ensure we exploit the optimal lever eventually. This shows how we have to carefully consider what knowledge we have and how we plan to expand it further.
 
 \subsection{(Deep) Neural networks}
+\label{neural_networks}
 As reinforcement learning is a very general framework things like the value function $ v(s)$ are just left as an abstract function. As neural networks are a general function approximator, we could use them to approximate the optimal value function $ v_{*}(s) $ to maximize rewards. Hence, we should introduce the basic building blocks of this technique to gauge whether we might utilize them further.
 
-Neural networks are one specific machine learning method that has had large success in the recent past. Machine learning has been a paradigm shift in the way we think about building programs. In the classical development one used the data and predefined rules as input for the development. This means we have to have intricate knowledge about the problem domain to produce the answers we want. For tasks like image classification this is a difficult process as it is very hard to think of patterns and conditions an image has to have, to find cats in them.
+Neural networks are one specific machine learning method that has had large success in the recent past. Machine learning has been a paradigm shift in the way we think about building programs. In the classical development one uses the data and predefined rules as input for the development. This means we have to have intricate knowledge about the problem domain to produce the answers we want. For tasks like image classification this is a difficult process as it is very hard to think of patterns and conditions an image has to have, to find cats in them.
 
 \begin{figure}
     \centering
@@ -311,7 +331,7 @@ Consider any linear function of the form:
 $$
     f(x) = w_1x + w_0,
 $$
-with $ x, w_1, w_0 \in \mathbb{R} $. We could use this function to make predictions about one dimensional input data. For example we might have the living space of houses in $ m^2 $ $ X_i $ and their corresponding price $ Y_i $. We could choose the bias $ w_0 $ and the \textit{weight} $ w_1 $ such that the squared error for the given data is minimal in a process we know as linear regression. When given new data our linear model can make predictions of the potential prices of the houses.
+with $ x, w_1, w_0 \in \mathbb{R} $. We could use this function to make predictions about one dimensional input data. For example we might have a (training) dataset of living space of houses in $ m^2 $ $ X $ and their corresponding price $ Y $. Each row $X_i$ corresponds to the row $Y_i$. We could choose the bias $ w_0 $ and the \textit{weight} $ w_1 $ such that the squared error for all rows $i$ is minimal in a process we know as linear regression. When given new data our linear model can make predictions of the potential prices of the houses.
 
 
 \begin{figure}
@@ -329,7 +349,7 @@ with $ x, w_1, w_0 \in \mathbb{R} $. We could use this function to make predicti
 \end{figure}
 
 \paragraph{Activation function}
-In this context we refer to such linear functions as \textit{neuron}. An important component is not only the linear function but also the activation function: Before we pass the value of the function f(x) on, we apply some function $ \phi $. The activation function allows us to introduce a non-linearity, which in turn makes smaller networks able to perform much better on more complex tasks than just a simple linear activation. Common functions used are:
+An important component is not only the linear function but also the activation function: Before we pass the value of the function f(x) on, we apply some function $ \phi $. An activation function applied to a linear function is referred to as \textit{neuron}. The activation function allows us to introduce a non-linearity, which in turn makes smaller networks of neurons able to perform much better on more complex tasks than just a simple linear activation. Common functions used are:
 \begin{itemize}
     \item ReLu: $ \phi : max(0, f(x)) $
     \item Sigmoid: $ \phi : \frac{1}{1 + e^{f(x)}} $
@@ -341,17 +361,17 @@ In this context we refer to such linear functions as \textit{neuron}. An importa
 
 This resulting basic neuron is depicted in figure \ref{neural_network}. If we want to make more complex inferences than just the prices of houses, we can arrange multiple neurons into larger structures like chains or layers (\ref{neural_network_layers}). To build such networks we need to generalize the linear function of the neuron for higher dimensional input:
 
-$$
+\begin{equation}
     y_k = \phi\left(\sum_{j=0}^{m}w_jx_j\right)
-$$
+\end{equation}
 
-But this poses a problem. We can find globally optimal solutions with linear regression and the like, but as the size of the network grows, the computational cost of these methods grows too large. A different approach is necessary.
+But this poses a problem. We can find globally optimal solutions with for linear neurons with linear regression. However, this does not work for other activation function. Moreover, as the size of the network grows, the computational cost of these methods grows too large. Moreover A different approach is necessary.
 
 \paragraph{Loss functions} In the context of linear regression the term \textit{mean squared error} was already mentioned. It is the average squared difference between the predictions and the desired output:
 
-$$
+\begin{equation}
     MSE = \frac{1}{n} \sum_{i = 1}^{n}(X_i - Y_i)^2
-$$
+\end{equation}
 
 This is one type of \textit{loss function}, which in general is a measure to describe the error we seek to \textit{minimize} in an optimization process.
 
@@ -362,7 +382,7 @@ This is one type of \textit{loss function}, which in general is a measure to des
     \label{loss_curve}
 \end{figure}
 
-\paragraph{(Stochastic) gradient descent and backpropagation} By utilizing the loss function we can feed an input into the network and measure for any permutation of the weights $ w_i $ how big the error of the network is. By measuring the loss of the training set $ X_i $ we can find out how well the current configuration of the network fits the data.
+\paragraph{(Stochastic) gradient descent and backpropagation} By utilizing the loss function we can feed an input into the network and measure for any permutation of the weights $ w_i $ how big the error of the network is. By measuring the loss of the training set $ X $ we can find out how well the current configuration of the network fits the data.
 
 Let's go back to the problem of house price prediction. If we plot the MSE for the weights $ w_0 $ and $ w_1 $ of our single neuron the result is a parabola in figure \ref{loss_curve}. Ideally, we want to walk down into the valley where the error is minimal. So for any given combination of the weights we have to find out in which direction the downward slope maximal. The direction of the greatest change of a scalar function is called gradient, which is formalized as follows:
 
@@ -388,11 +408,11 @@ where the point $p $ is a point in the \textit{parameter space}, e.g. as depicte
     \end{algorithmic}
 \end{algorithm}
 
-The variable $ \alpha $ for gradient descent describes the \textit{learning rate}, so by how much we update the weights. The problem is, as soon as we start combining multiple neurons the intuition gained in calculus on how to calculate the gradient breaks down. Luckily our tools still suffice, we just need to inspect the network more closely. Lets constrain our range of possible neural networks by two conditions:
+The variable $ \alpha $ for gradient descent describes the \textit{learning rate}, so by how much we update the weights. As we have to differentiate not only a single neuron but a network of neurons, some constraints have to be defined to make derivation possible:
 
 \begin{itemize}
     \item All functions utilized by the neuron and the network (activation, linear combination of weights) have to be differentiable
-    \item The network has to be a directed graph, thus, no loops etc.
+    \item The network has to be a directed acyclic graph, thus, no loops etc.
 \end{itemize}
 
 This makes the neural networks one type of \textit{computational graph}, which have the convenient property letting us find the gradients of the weights in respect to the loss by \textit{backpropagation} by essentially applying the chain rule. Figure \ref{computational_graph} shows an example of a computational graph and its derivation.
@@ -410,7 +430,7 @@ This makes the neural networks one type of \textit{computational graph}, which h
     \label{computational_graph}
 \end{figure}
 
-In summary, by defining a neural network, we define a weight space. This space is essentially a room of all possible permutations of the weights. We can think of neural networks as functions of programs. Thus, the architecture of the neural network decides on a range of possible programs. Each of these programs is more or less suited for the task given. The feedback given by the loss function indicates the suitability. With gradient descent we search this space of programs for one that minimizes the error. Due to the nature of gradient descent, we are not guaranteed to find the globally optimal program.
+In summary, by defining a neural network, we define a weight space. This space is essentially a room of all possible values of the weights. We can think of neural networks as functions or programs. Thus, the architecture of the neural network decides on a range of possible programs. Each of these programs is more or less suited for the task given. The feedback given by the loss function indicates the suitability. With gradient descent we search this space of programs for one that minimizes the error. Due to the nature of gradient descent, we are not guaranteed to find the globally optimal program.
 
 \subsection{Convolutional Neural Network}
 As we've already stated, we are not limited to one particular type of function in the neural network or computational graph as long as the function can be differentiated. As shown in \ref{neural_network_layers} in its basic form, neural networks have a n-dimensional vector as input. If we have an input like an image, we would have to break down the information about the adjacency to fit the form of a vector. As a result, permutations of the values of the image wouldn't change the result of the output.
