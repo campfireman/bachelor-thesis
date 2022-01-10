@@ -433,7 +433,7 @@ This makes the neural networks one type of \textit{computational graph}, which h
 In summary, by defining a neural network, we define a weight space. This space is essentially a room of all possible values of the weights. We can think of neural networks as functions or programs. Thus, the architecture of the neural network decides on a range of possible programs. Each of these programs is more or less suited for the task given. The feedback given by the loss function indicates the suitability. With gradient descent we search this space of programs for one that minimizes the error. Due to the nature of gradient descent, we are not guaranteed to find the globally optimal program.
 
 \subsection{Convolutional Neural Network}
-As we've already stated, we are not limited to one particular type of function in the neural network or computational graph as long as the function can be differentiated. As shown in \ref{neural_network_layers} in its basic form, neural networks have a n-dimensional vector as input. If we have an input like an image, we would have to break down the information about the adjacency to fit the form of a vector. As a result, permutations of the values of the image wouldn't change the result of the output.
+As already stated, the neural network or computational graph is not limited to one specific type of function as long as the function can be differentiated. As shown in \ref{neural_network_layers} in its basic form, neural networks have a n-dimensional vector as input. If we have an input like an image, we would have to break down the information about the adjacency to fit the form of a vector. As a result, permutations of the values of the image wouldn't change the result of the output.
 
 Furthermore, the computational requirements for such an approach would grow rapidly. A fully connected first layer would need $n^2$ weights for an image of the size $n$. A small image of the size 256x256 would need 65536 weights for the first layer alone. Ideally we would also like the output of the network to be invariant to translation. This means that a pattern found in the corner should produce the same response as a pattern found in the center of the image.
 
@@ -462,7 +462,22 @@ For a given coordinate $u,v$ each value in the Kernel $H$ is multiplied by the  
 The application of this method for image related tasks has become very popular. The first large scale application in 2012 by Krizhevsky et al. \cite{krizhevsky_imagenet_2017} vastly outperformed any previous methods. This approach is very relevant to the board game setting in Abalone as each board position is essentially an image. Patterns of marbles are relevant in different positions of the board just as different shapes and objects in different places in an image.
 
 \subsection{Residual networks}
-By stacking many layers a network can fit more complex domains. Their size has earned them the name deep neural networks. But a central issue with increasing the size of the network is the problem of vanishing gradients.
+By stacking many layers a network can fit more complex domains. Their size has earned them the name \textit{deep neural networks}. But a central issue with increasing the size of the network is the problem of \textit{vanishing gradients}. For example the sigmoid function is in it's limit $0$ for $-\infty$ and $1$ for $\infty$ and its derivative approaches $0$ for both cases as depicted in figure \ref{residual_network} (a). That means in backpropagation larger input values produces very small output values when passed through such a neuron. As the derivatives are multiplied during the backpropagation (chain rule) they become even smaller, thus vanishing as they further approach $0$ with each added layer.
+
+\begin{figure}[!h]
+    \centering
+    \subfloat[Sigmoid function and its derivative \cite{noauthor_wolframalpha_nodate}]{
+        \includegraphics[height=4cm, keepaspectratio]{sigmoid_vs_derivative.png}
+    }
+    % \hfill
+    \subfloat[A residual block \cite{li_sewer_2019}]{
+        \includegraphics[height=4cm, keepaspectratio]{residual_block.png}
+    }
+    \caption{Motivation and implementation of residual networks}
+    \label{residual_network}
+\end{figure}
+
+To mitigate this issue one could either use different activation functions like the ReLu or use residual connections. The value of the input before passing through the neuron is added with some weight to the output as shown in figure \ref{residual_network}(b).
 
 This section on neural networks has only touched the raw fundamentals of neural networks very swiftly. Nevertheless it shows that the core ideas are quite simple (in hindsight of course), especially compared to the very comprehensive methods of classical AI. The theoretic foundations to these methods are actually quite old. With the unlocking of more and more computational power and data researchers discovered the "unreasonable effectiveness of data \cite{halevy_unreasonable_2009} and the combination of neural networks and gradient descent. To dive deeper the book "Artificial Intelligence: A Modern Approach" \cite{russell_artificial_2021} offers a very good first impression.
 
