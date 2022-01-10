@@ -2,12 +2,12 @@
 Before we move to the nuts and bolts of AlphaZero and the concrete implementation for Abalone, we should establish a general understanding of the problem. That includes building the necessary theoretical background in artificial intelligence in general, as well as insight into the specialized knowledge such as deep reinforcement learning in particular.
 
 \section{Artificial intelligence}
-The introduction has already forshadowed how the field of artificial intelligence has undergone a shift in their methodology. In the 1950s and 1960s figures like Alan Turing and von Neumann laid the foundations for modern computers. This sparked the idea one could create programs for these new machines that have similar abilities like humans and other organisms. Researchers at that time assumed there is no "universal principle" behind intelligence and focused on reason and symbol manipulation. Therefore these methods were considered "strong techniques", methods that relied on general principles like learning were labeled "weak techniques". Nowadays, the consensus in the field has revesered. \cite[p. 8f.]{sutton_reinforcement_2018}
+The introduction has already foreshadowed how the field of artificial intelligence has undergone a shift in their methodology. In the 1950s and 1960s figures like Alan Turing and von Neumann laid the foundations for modern computers. This sparked the idea one could create programs for these new machines that have similar abilities like humans and other organisms. Researchers at that time assumed there is no "universal principle" behind intelligence and focused on reason and symbol manipulation. Therefore these methods were considered "strong techniques", methods that relied on general principles like learning were labeled "weak techniques". Nowadays, the consensus in the field has reversed. \cite[p. 8f.]{sutton_reinforcement_2018}
 
-% definition of artificial intellligence
+% definition of artificial intelligence
 
 \subsection{Rational agent}
-Stemming from the latin word \textit{agere} meaning "to act", an agent is something that acts. As one expects an agent to take sensible or intelligent actions the definition has to be further qualified by calling the agent ratinoal. This means that it acts so as "to achieve the best outcome or, when there is uncertainty, the best expected outcome". \cite[p. 36]{russell_artificial_2021}
+Stemming from the Latin word \textit{agere} meaning "to act", an agent is something that acts. As one expects an agent to take sensible or intelligent actions the definition has to be further qualified by calling the agent rational. This means that it acts so as "to achieve the best outcome or, when there is uncertainty, the best expected outcome". \cite[p. 36]{russell_artificial_2021}
 
 The agent exists in an environment which it perceives through sensors and it takes actions through its actuators. The content of the sensor's output for one observation is referred to as \textit{percept}. A cat uses eyes, ears and other organs to perceive the world and its legs, claws and so on to interact with the world. An autonomous car might use radar and cameras for acquiring information and steering and motors for navigation.
 
@@ -94,9 +94,9 @@ Therefore, one has to limit the search to a computationally feasible depth and e
 With functions $ f_i $ calculating different values such as
 
 \begin{itemize}
-    \item Material: First, we assign an integer to each piece, that represents the piece's relative value (pawn = 1, bishop/knight = 3, rook = 5, and queen = 9). Then sum the values of the pieces left on the board for each player.
+    \item Material: First, we assign an integer to each piece that represents the piece's relative value (pawn = 1, bishop/knight = 3, rook = 5, and queen = 9). Then sum the values of the pieces left on the board for each player.
     \item Space: Count the squares controlled by each player.
-    \item King safety: Check weaknesses in king's position, count attacking piece close to the king etc.
+    \item King safety: Check weaknesses in king's position, count attacking pieces close to the king etc.
     \item Win and loss: As a more definitive measure we can indicate whether the current state is a terminal state and hence a winning or losing state.
     \item Etc.
 \end{itemize}
@@ -132,7 +132,7 @@ Other improvements to the procedure are thinkable as well. Once we perform a sea
 Combined with alpha beta pruning, the minimax algorithm is a very efficient way of finding the optimal utility in an adversarial search situation. However, as mentioned before in most games we cannot use the utility of terminal states, because the search tree grows too quickly. By optimizing for a heuristic function the quality of play solely depends on this function. For games such as chess minimax has been very successful, because humans could devise meaningful heuristic functions. The chess engine stockfish has been the most successful computer player for a long time and is based on this algorithm (and many optimizations). \cite{noauthor_stockfish_2021, noauthor_stockfish_nodate}
 
 \subsection{Monte Carlo Tree Search}
-For games like Go it was deemed impossible find powerful heuristic functions, which makes the previous approach of minimax not a viable option. In addition, the initial position of a $19\times19$ Go board has a branching factor of $361$ decreasing only by one for each stone placed. A method proposed in 2006 by Coulom \cite{coulom_efficient_2007} called Monte Carlo Tree search was more successful for Go. The main idea is to use simulations or \textit{rollouts (or playouts)} to gain information on the quality of a state. To manage the complexity of the search tree more effectively the algorithm is \textit{selective} in which parts of the tree are \textit{expanded}. This ensures that resources are not wasted on unpromising moves.
+For games like Go it was deemed impossible to find powerful heuristic functions, which makes the previous approach of minimax not a viable option. In addition, the initial position of a $19\times19$ Go board has a branching factor of $361$ decreasing only by one for each stone placed. A method proposed in 2006 by Coulom \cite{coulom_efficient_2007} called Monte Carlo Tree search was more successful for Go. The main idea is to use simulations or \textit{rollouts (or playouts)} to gain information on the quality of a state. To manage the complexity of the search tree more effectively the algorithm is \textit{selective} in which parts of the tree are \textit{expanded}. This ensures that resources are not wasted on unpromising moves.
 
 In its purest form the simulations are performed randomly, meaning we take a state or node to be investigated and let two random players take turns until a terminal state is reached. Kocsis and Szepesvári \cite{kocsis_bandit_2006} showed that it does in fact converge to optimal play. For games with a high branching factor we need a large number of simulations to get any meaningful information from the simulations, so we might use a \textit{rollout policy} instead. This policy guides the moves taken in the simulation towards better moves. This might be as simple as favoring capturing moves or as we will see later neural networks.
 
@@ -157,13 +157,13 @@ The more this cycle is repeated, the more certainty is gained about the best mov
     \label{monte_carlo_tree_search}
 \end{figure}
 
-The development of MCTS led to significant improvements in performance of game-playing agents in the game of Go. The algorithm "Crazy Stone" from Coulom won the 10th KGS computer-Go tournament against competitors such as Indigo \cite{bouzy_associating_2006}. In the selection phase Crazy Stone estimates the probability of that move being better than the current best move and selects the them according to that probability. The probability distribution over the moves is similar to the Gaussian distribution and the Boltzman equations. \cite[p. 4]{coulom_efficient_2007}
+The development of MCTS led to significant improvements in performance of game-playing agents in the game of Go. The algorithm "Crazy Stone '' from Coulom won the 10th KGS computer-Go tournament against competitors such as Indigo \cite{bouzy_associating_2006}. In the selection phase Crazy Stone estimates the probability of that move being better than the current best move and selects them according to that probability. The probability distribution over the moves is similar to the Gaussian distribution and the Boltzman equations. \cite[p. 4]{coulom_efficient_2007}
 
 Another idea for selection is the upper confidence bound formula (\textit{UCB1}) \cite{auer_finite-time_nodate}, that weights how often we have visited a node $n$ and how promising it is. Let us define \cite[cf. p. 328]{russell_artificial_2021}:
 
 \begin{enumerate}
     \item $\texttt{Parent}(n)$ returns the parent node of node $n$.
-    \item $N(n) $ returns number of playouts performed on node $n$ and its children.
+    \item $N(n) $ returns the number of playouts performed on node $n$ and its children.
     \item $U(n) $ returns the cumulative utility of node $n$. For instance, this might be the number of wins for node $n$ and its children.
 \end{enumerate}
 
@@ -197,7 +197,7 @@ By devising a heuristic function, we basically told our agent what to do by indi
 Reinforcement learning is not a specific solution or method, all methods for "goal-directed agents interacting in an uncertain environment" \cite[p. 3]{sutton_reinforcement_2018} are types of reinforcement learning. It is a general formalism that will help us reframe the problem of playing a board game (well) in a new light.
 
 \subsection{Markov decision processes}
-Central to reinforcement learning is a formalism for the environment called Markov decision process (MDP). Originally derived as an extension of Markov Chains by Richard Bellman \cite{yang_markov_2019, bellman_markovian_1957}, a (finite) MDP describes sequential decision making where actions have long-term consequences, thus, effect future rewards. The MDP is an abstraction of "goal directed learning from abstraction" that reduces the problem to three components: Actions, states and rewards that are being exchanged between the agent and the environment. We already introduced the agent-environment interaction loop in figure \ref{agent_environment_loop}. We can reframe this image with the new terminology of the MDP framework in figure \ref{mdp_agent_environment}. For a \textit{finite} MDP the sets of all actions $ \mathcal{A}$ (\textit{action space}), states $\mathcal{S}$ (\textit{state space}) and rewards $ \mathcal{R} $ have a finite amount of elements.
+Central to reinforcement learning is a formalism for the environment called Markov decision process (MDP). Originally derived as an extension of Markov Chains by Richard Bellman \cite{yang_markov_2019, bellman_markovian_1957}, a (finite) MDP describes sequential decision making where actions have long-term consequences, thus, affecting future rewards. The MDP is an abstraction of "goal directed learning from abstraction" that reduces the problem to three components: Actions, states and rewards that are being exchanged between the agent and the environment. We already introduced the agent-environment interaction loop in figure \ref{agent_environment_loop}. We can reframe this image with the new terminology of the MDP framework in figure \ref{mdp_agent_environment}. For a \textit{finite} MDP the sets of all actions $ \mathcal{A}$ (\textit{action space}), states $\mathcal{S}$ (\textit{state space}) and rewards $ \mathcal{R} $ have a finite amount of elements.
 
 \begin{figure}
     \centering
@@ -208,13 +208,13 @@ Central to reinforcement learning is a formalism for the environment called Mark
 
 We divide the passage of time into discrete time steps $ t $ at which the agent senses the state $ S_t \in \mathcal{S} $ and then selects some action $ A_t \in \mathcal{A}(s) $. Resulting in that action is some reward $ R_{t+1} \in \mathcal{R} \subset \mathbb{R} $ that is received in the next timestep.
 
-The transition probabilities between the state $ s $ and the next state $ s' $ and its reward $r \in \mathcal{R}$ is given by the function $ p $ which essentially defines the decision process as a whole. A game of chess is deterministic, all transitions have a probability of $1$ and these probabilities are defined by the rules of the game. However, the MDP is formulated to encorporate stochastic environments as well:
+The transition probabilities between the state $ s $ and the next state $ s' $ and its reward $r \in \mathcal{R}$ is given by the function $ p $ which essentially defines the decision process as a whole. A game of chess is deterministic, all transitions have a probability of $1$ and these probabilities are defined by the rules of the game. However, the MDP is formulated to incorporate stochastic environments as well:
 
 \begin{equation}
     p(s', r | s, a) = P\{S_t=s', R_t = r | S_{t-1} = s, A_{t-1}=a\}
 \end{equation}
 
-In a MDP "the state must include information about all aspects of the past agent environment interaction that make a difference for the future. If it does, then the state is said to have the \textit{Markov property}". \cite[p. 48]{sutton_reinforcement_2018} This means the transition probability $p$ is independent of the history of preceeding states.
+In a MDP "the state must include information about all aspects of the past agent environment interaction that make a difference for the future. If it does, then the state is said to have the \textit{Markov property}". \cite[p. 48]{sutton_reinforcement_2018} This means the transition probability $p$ is independent of the history of preceding states.
 
 From these properties of the MDP we can define the four central components of Reinforcement learning:
 
@@ -245,7 +245,7 @@ From these properties of the MDP we can define the four central components of Re
               v_{\pi}(s) = \mathbb{E}_{\pi}[G_t | S_t = s] = \mathbb{E}_{\pi}\left[\sum_{k=0}^{\infty} \gamma^kR_{t+k+1} \middle| S_t = s \right]
           \end{equation}
 
-          The heuristic function entcountered pereviously was essentially a value function being used to guide the game-tree search.
+          The heuristic function encountered previously was essentially a value function being used to guide the game-tree search.
 
           Furthermore, we define the value of action $a$ while being in state $s$ under the policy $\abstractname{}pi$ as the \textit{action-value function} $q$:
 
@@ -272,7 +272,7 @@ The goal of reinforcement learning is to find (or approximate) a policy that max
     v_{*}(s) = \max_{\pi} v_{\pi}(s)
 \end{equation}
 
-for all $s \in mathcal{S}$. For instance, in chess the goal is to find a policy that approximates the utility returned by exhaustive search. Given such policy one could evaluate the best possible outcome for any state $s$ with the optimal state-value function. For this optimal policy we also have an optimal action-value function $ q_{*} $ for all $ s \in \mathcal{S}$:
+for all $s \in mathcal{S}$. For instance, in chess the goal is to find a policy that approximates the utility returned by exhaustive search. Given such a policy one could evaluate the best possible outcome for any state $s$ with the optimal state-value function. For this optimal policy we also have an optimal action-value function $ q_{*} $ for all $ s \in \mathcal{S}$:
 
 \begin{equation}
     q_{*}(s, a) = \max_{\pi}q_{\pi}(s, a)
@@ -365,7 +365,7 @@ This resulting basic neuron is depicted in figure \ref{neural_network}. If we wa
     y_k = \phi\left(\sum_{j=0}^{m}w_jx_j\right)
 \end{equation}
 
-But this poses a problem. We can find globally optimal solutions with for linear neurons with linear regression. However, this does not work for other activation function. Moreover, as the size of the network grows, the computational cost of these methods grows too large. Moreover A different approach is necessary.
+But this poses a problem. We can find globally optimal solutions for linear neurons with linear regression. However, this does not work for other activation functions. Moreover, as the size of the network grows, the computational cost of these methods grows too large. Moreover A different approach is necessary.
 
 \paragraph{Loss functions} In the context of linear regression the term \textit{mean squared error} was already mentioned. It is the average squared difference between the predictions and the desired output:
 
@@ -462,7 +462,7 @@ For a given coordinate $u,v$ each value in the Kernel $H$ is multiplied by the  
 The application of this method for image related tasks has become very popular. The first large scale application in 2012 by Krizhevsky et al. \cite{krizhevsky_imagenet_2017} vastly outperformed any previous methods. This approach is very relevant to the board game setting in Abalone as each board position is essentially an image. Patterns of marbles are relevant in different positions of the board just as different shapes and objects in different places in an image.
 
 \subsection{Residual networks}
-By stacking many layers a network can fit more complex domains. Their size has earned them the name \textit{deep neural networks}. But a central issue with increasing the size of the network is the problem of \textit{vanishing gradients}. For example the sigmoid function is in it's limit $0$ for $-\infty$ and $1$ for $\infty$ and its derivative approaches $0$ for both cases as depicted in figure \ref{residual_network} (a). That means in backpropagation larger input values produces very small output values when passed through such a neuron. As the derivatives are multiplied during the backpropagation (chain rule) they become even smaller, thus vanishing as they further approach $0$ with each added layer.
+By stacking many layers a network can fit more complex domains. Their size has earned them the name \textit{deep neural networks}. But a central issue with increasing the size of the network is the problem of \textit{vanishing gradients}. For example the sigmoid function is in it's limit $0$ for $-\infty$ and $1$ for $\infty$ and its derivative approaches $0$ for both cases as depicted in figure \ref{residual_network} (a). That means in backpropagation larger input values produce very small output values when passed through such a neuron. As the derivatives are multiplied during the backpropagation (chain rule) they become even smaller, thus vanishing as they further approach $0$ with each added layer.
 
 \begin{figure}[!h]
     \centering
@@ -482,14 +482,14 @@ To mitigate this issue one could either use different activation functions like 
 This section on neural networks has only touched the raw fundamentals of neural networks very swiftly. Nevertheless it shows that the core ideas are quite simple (in hindsight of course), especially compared to the very comprehensive methods of classical AI. The theoretic foundations to these methods are actually quite old. With the unlocking of more and more computational power and data researchers discovered the "unreasonable effectiveness of data \cite{halevy_unreasonable_2009} and the combination of neural networks and gradient descent. To dive deeper the book "Artificial Intelligence: A Modern Approach" \cite{russell_artificial_2021} offers a very good first impression.
 
 \subsection{AlphaGo}
-Now we have reached the culmination of our theoretical analysis. All the components we introduced so far constitute the knowledge necessary to understand AlphaGo and AlphaZero. Just like Abalone Go is a perfect information zero-sum board game. It already popped up in the complexity comparison \ref{complexity_table}, which clearly shows, that Go is more complex in its state space and its search tree. At the time when there was a lot of success in other games with minimax many people saw Go as the most challenging board game \cite{muller_computer_2002}. The only successful method at the time was MCTS, for which we already saw two influential papers in the context of Go and MCTS by David Silver.
+Now we have reached the culmination of our theoretical analysis. All the components we introduced so far constitute the knowledge necessary to understand AlphaGo and AlphaZero. Just like Abalone Go is a perfect information zero-sum board game. It already popped up in the complexity comparison \ref{complexity_table}, which clearly shows that Go is more complex in its state space and its search tree. At the time when there was a lot of success in other games with minimax many people saw Go as the most challenging board game \cite{muller_computer_2002}. The only successful method at the time was MCTS, for which we already saw two influential papers in the context of Go and MCTS by David Silver.
 
 By combining the reinforcement learning framework with MCTS and neural networks David Silver et al. achieved the milestone of beating Lee Seedol. The program AlphaGo consists of three key components:
 
 \begin{enumerate}
     \item A rollout policy network $p_{\pi}$ and a policy network $p_{\sigma}$ trained by supervised learning
     \item A policy network $p_p$ trained with reinforcement learning and a value network $v_{\theta}$ derived from $p_p$
-    \item Lookahead search using (asynchrous) Monte Carlo Tree Search guided by $p_{\sigma}$ and $v_{\theta}$. The rollouts for the search are performed by the rollout network $p_{\pi}$.
+    \item Lookahead search using (asynchronous) Monte Carlo Tree Search guided by $p_{\sigma}$ and $v_{\theta}$. The rollouts for the search are performed by the rollout network $p_{\pi}$.
 \end{enumerate}
 
 The first step is the supervised training based on the KGS Go Server dataset of 30 million positions. The rollout policy network $p_{\pi}$ is a relatively small network that is supposed to provide quick rollouts (simulations). As we already encountered for Abalone this is necessary because random rollouts for such complex games can produce very weak guidance for low numbers and also very long matches. This is supported by comparisons made between the prediction quality of 100 rollouts with a uniformly random policy versus with the network $p_{\pi}$ in figure \ref{alpha_go_prediction_quality}.
@@ -497,11 +497,11 @@ The first step is the supervised training based on the KGS Go Server dataset of 
 \begin{figure}
     \centering
     \includegraphics[height=4cm, keepaspectratio]{alpha_go_prediction_quality.png}
-    \caption{Comparision prediction quality of the different components \cite{silver_mastering_2016}}
+    \caption{Comparison prediction quality of the different components \cite{silver_mastering_2016}}
     \label{alpha_go_prediction_quality}
 \end{figure}
 
-The policy network $p_{\sigma}$ is trained in the same fashion except it is larger is size and thus is computationally more expensive. This network is used for the next step in which the network $p_{p}$ is initialized with equivalent structure and weights. We then start to play games with the current version of the policy network $p_{p}$ against random previous versions of the network. At timestep $t$, for a mini-batch of $n$ games, the results of the games are taken and gradient ascent is used to fit the weights to the outcome of the game $z_t$.
+The policy network $p_{\sigma}$ is trained in the same fashion except it is larger in size and thus is computationally more expensive. This network is used for the next step in which the network $p_{p}$ is initialized with equivalent structure and weights. We then start to play games with the current version of the policy network $p_{p}$ against random previous versions of the network. At timestep $t$, for a mini-batch of $n$ games, the results of the games are taken and gradient ascent is used to fit the weights to the outcome of the game $z_t$.
 
 $$
     \nabla p \propto \frac{\partial \log p_p(a_t \mid s_t)}{\partial p}z_t
@@ -518,10 +518,10 @@ This is the core of the REINFORCE algorithm. \cite{williams_simple_nodate}
 A more detailed entry to the topic is provided by the nature article "Mastering the game of Go with deep neural networks and tree search". \cite{silver_mastering_2016}
 
 \subsection{AlphaZero}
-A problem with AlphaGo's architecture is it's complexity. There are many hyperparameters for the four different neural networks and many other moving parts. AlphaZero is a simplification that conveniently performs much better and is easier to generalize.
+A problem with AlphaGo's architecture is its complexity. There are many hyperparameters for the four different neural networks and many other moving parts. AlphaZero is a simplification that conveniently performs much better and is easier to generalize.
 
 \section{Abalone}
-Abalone was devised Michel Lalet and Laurent Lévi. Even though it was created fairly recently more than four million global sales have established Abalone as a classic game \cite{noauthor_abalone_2020}.
+Abalone was devised by Michel Lalet and Laurent Lévi. Even though it was created fairly recently, more than four million global sales have established Abalone as a classic game \cite{noauthor_abalone_2020}.
 
 \subsection{Rules}
 
@@ -542,7 +542,7 @@ Abalone was devised Michel Lalet and Laurent Lévi. Even though it was created f
     \label{basics}
 \end{figure}
 
-In the classical variant each player places 14 marbles on opposing sides. The game's starting position is depicted in figure \ref{basics} (a). There are also other starting position like "German daisy" and "Belgian daisy", as well as four player variants, which will not be considered. One, two, or three adjacent marbles (of the player's own color) may be moved in one of the six possible directions during a player's turn. The marbles have to move in the same direction and can only move to a neighboring field. We differentiate between broadside or "side-step" moves and "in-line" moves, depending on how the chain of marbles moves relative to its direction. The difference is shown in figure \ref{basics} (b) and (c).
+In the classical variant each player places 14 marbles on opposing sides. The game's starting position is depicted in figure \ref{basics} (a). There are also other starting positions like "German daisy" and "Belgian daisy", as well as four player variants, which will not be considered. One, two, or three adjacent marbles (of the player's own color) may be moved in one of the six possible directions during a player's turn. The marbles have to move in the same direction and can only move to a neighboring field. We differentiate between broadside or "side-step" moves and "in-line" moves, depending on how the chain of marbles moves relative to its direction. The difference is shown in figure \ref{basics} (b) and (c).
 
 \begin{figure}[!h]
     \centering
@@ -580,7 +580,7 @@ A move pushing the opponent's marbles is called "sumito" and comes in three vari
     \label{additional_relevant_positions}
 \end{figure}
 
-The figure \ref{additional_relevant_positions} (a) shows ways in which a sumito might be blocked. In 1) the sumito by black is blocked by the black marble, in 2) there is a free space between the marbles and 3) shows how a side-step cannot push a marble. Sumito moves are the only moves that allow for pushing the enemie's marbles, therefore they are the only attacking moves. Figure \ref{additional_relevant_positions} (b) shows a situation in which we can push an enemies marble from the board. The player that pushes six of the opponent's marbles from the board has won. The basic ruleset does not account for a draws but there are, in theory, positions like a stalemate in chess, where no move is possible for one player. In figure \ref{additional_relevant_positions} (c) the black player is locked to the brink of the board and has no move available. Moreover, to force a more eventful game games are often eitherlimited by time or by number of moves. Thus, a draw might occurr when the number of marbles left on the board is equal for each player.
+The figure \ref{additional_relevant_positions} (a) shows ways in which a sumito might be blocked. In 1) the sumito by black is blocked by the black marble, in 2) there is a free space between the marbles and 3) shows how a side-step cannot push a marble. Sumito moves are the only moves that allow for pushing the enemy's marbles, therefore they are the only attacking moves. Figure \ref{additional_relevant_positions} (b) shows a situation in which we can push an enemy marble from the board. The player that pushes six of the opponent's marbles from the board has won. The basic ruleset does not account for a draw but there are, in theory, positions like a stalemate in chess, where no move is possible for one player. In figure \ref{additional_relevant_positions} (c) the black player is locked to the brink of the board and has no move available. Moreover, to force a more eventful game, games are often either limited by time or by number of moves. Thus, a draw might occur when the number of marbles left on the board is equal for each player.
 
 \subsection{Task environment}
 Based on the PEAS framework we can specify Abalone as a task environment and show the key components for the implementation of our agent. \cite[p.107]{russell_artificial_2021}
@@ -604,9 +604,9 @@ The state space is the set of all possible states "the environment can be in".\c
     \sum_{k=8}^{14}\sum_{m=9}^{14}\frac{61!}{k!(61-k)!}\times\frac{(61-k)!}{m!((61-k)-m)!}
 \end{equation}
 
-As the board has six rotational symmetries and additional six mirror axis we have to divide the result by 12 which results in a total of $ 6 \times 10^{23} $ possible board configurations. \cite[p. 4]{lemmens_constructing_2005}
+As the board has six rotational symmetries and additional six mirror axes we have to divide the result by 12 which results in a total of $ 6 \times 10^{23} $ possible board configurations. \cite[p. 4]{lemmens_constructing_2005}
 
-\paragraph{Game tree complexity} The game tree contains all possible transitions between board positions (nodes) through moves (edges). The root of the tree is the default start position. The \textit{search tree} is potentially a subset of the game tree, if not all paths are visited. In the case of Abalone the game tree is unbound and has an infinite height as actions might be taken repeatedly forming loops. Therefore, Abalone's complexity can only be approximateed by an average search tree not the game tree. First we consider the branching factor $ b $, or the number of possible moves for any given state. This number greatly varies between different states. On average Abalone has $ b = 60 $ possible moves per state as measured in figure \ref{branching_factor}. The depth $ d $ of the tree depends on the number of turns per game. Looking at the average again a game takes in the region of $ d = 87 $ turns. To get a measure of the complexity the number of nodes in a tree is given by
+\paragraph{Game tree complexity} The game tree contains all possible transitions between board positions (nodes) through moves (edges). The root of the tree is the default start position. The \textit{search tree} is potentially a subset of the game tree, if not all paths are visited. In the case of Abalone the game tree is unbound and has an infinite height as actions might be taken repeatedly forming loops. Therefore, Abalone's complexity can only be approximated by an average search tree not the game tree. First we consider the branching factor $ b $, or the number of possible moves for any given state. This number greatly varies between different states. On average Abalone has $ b = 60 $ possible moves per state as measured in figure \ref{branching_factor}. The depth $ d $ of the tree depends on the number of turns per game. Looking at the average again a game takes in the region of $ d = 87 $ turns. To get a measure of the complexity the number of nodes in a tree is given by
 
 \begin{equation}
     b^d
@@ -658,4 +658,4 @@ There are multiple implementations of minimax for Abalone \cite{chorus_implement
 
 The investigations into MCTS in the context of Abalone are quite limited so far. Pascal Chorus has undertaken a comparison of the vanilla implementation against a heuristic agent, showing the dominance of the heuristic agent. \cite{chorus_implementing_2009} While in games like Go we don't have loops in Abalone, random players can get stuck in very long games making the results of simulations very weak signals. Without any more sophisticated rollout-policy this approach does not work very well.
 
-"Abalearn" was the first learning-based approach to playing Abalone. \cite{campos_abalearn_2003} It was created in 2003 based on temporal difference learning (TD-learning), which is a reinforcement learning method. In the years before TD-learning had been very successful for backgammon ("TD-Gammon") \cite{tesauro_td-gammon_1994} and for Abalone the authors achieved to draw ABA-PRO up to a search depth of five. An interesting feature of their approach is the fact that they exclusively used self-play for training the algorithm. Moreover, they introduced a tunable mechanism for making the risk sensitivity of the algorithm dealing with proplem of the agent playing very passively or getting stuck in loops. Modern reinforcement learning methods like Q-learning have only been considered in a smaller project that achieved better than random performance. \cite{mizrachi_introduction_2017}
+"Abalearn" was the first learning-based approach to playing Abalone. \cite{campos_abalearn_2003} It was created in 2003 based on temporal difference learning (TD-learning), which is a reinforcement learning method. In the years before TD-learning had been very successful for backgammon ("TD-Gammon") \cite{tesauro_td-gammon_1994} and for Abalone the authors achieved to draw ABA-PRO up to a search depth of five. An interesting feature of their approach is the fact that they exclusively used self-play for training the algorithm. Moreover, they introduced a tunable mechanism for making the risk sensitivity of the algorithm dealing with the problem of the agent playing very passively or getting stuck in loops. Modern reinforcement learning methods like Q-learning have only been considered in a smaller project that achieved better than random performance. \cite{mizrachi_introduction_2017}
