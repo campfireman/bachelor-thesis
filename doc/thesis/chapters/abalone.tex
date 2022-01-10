@@ -1,0 +1,139 @@
+\chapter{Abalone}
+Abalone was devised by Michel Lalet and Laurent Lévi. Even though it was created fairly recently, more than four million global sales have established Abalone as a classic game \cite{noauthor_abalone_2020}.
+
+\section{Rules}
+
+\begin{figure}[!h]
+    \centering
+    \subfloat[Starting position]{
+        \includegraphics[width=4.5cm, keepaspectratio]{rules_starting_position.png}
+    }
+    \hfill
+    \subfloat["In-line" moves]{
+        \includegraphics[width=4.5cm, keepaspectratio]{rules_inline_move.png}
+    }
+    \hfill
+    \subfloat["Side-step" moves]{
+        \includegraphics[width=4.5cm, keepaspectratio]{rules_side_step_move.png}
+    }
+    \caption{Basic moves \cite{abalone_sa_abalone_nodate}}
+    \label{basics}
+\end{figure}
+
+In the classical variant each player places 14 marbles on opposing sides. The game's starting position is depicted in figure \ref{basics} (a). There are also other starting positions like "German daisy" and "Belgian daisy", as well as four player variants, which will not be considered. One, two, or three adjacent marbles (of the player's own color) may be moved in one of the six possible directions during a player's turn. The marbles have to move in the same direction and can only move to a neighboring field. We differentiate between broadside or "side-step" moves and "in-line" moves, depending on how the chain of marbles moves relative to its direction. The difference is shown in figure \ref{basics} (b) and (c).
+
+\begin{figure}[!h]
+    \centering
+    \subfloat["2-push-1" sumito]{
+        \includegraphics[width=4.5cm, keepaspectratio]{rules_2-push-1_sumito.png}
+    }
+    \hfill
+    \subfloat["3-push-1" sumito]{
+        \includegraphics[width=4.5cm, keepaspectratio]{rules_3-push-1_sumito.png}
+    }
+    \hfill
+    \subfloat["3-push-2" sumito]{
+        \includegraphics[width=4.5cm, keepaspectratio]{rules_3-push-2_sumito.png}
+    }
+    \caption{Sumito positions allow pushing the opponent's marbles \cite{abalone_sa_abalone_nodate}}
+    \label{sumito}
+\end{figure}
+
+A move pushing the opponent's marbles is called "sumito" and comes in three variations, as shown by figure \ref{sumito}. Essentially, the player has to push with superior numbers and the opponent's marbles can not be blocked.
+
+\begin{figure}[!h]
+    \centering
+    \subfloat[Different blocking situations]{
+        \includegraphics[width=4.5cm, keepaspectratio]{rules_block.png}
+    }
+    \hfill
+    \subfloat[Attacking position]{
+        \includegraphics[width=4.5cm, keepaspectratio]{rules_attacking_move.png}
+    }
+    \hfill
+    \subfloat[No legal move available to black]{
+        \includegraphics[width=4.5cm, keepaspectratio]{rules_stalemate.png}
+    }
+    \caption{Additional relevant board positions \cite{abalone_sa_abalone_nodate}}
+    \label{additional_relevant_positions}
+\end{figure}
+
+The figure \ref{additional_relevant_positions} (a) shows ways in which a sumito might be blocked. In 1) the sumito by black is blocked by the black marble, in 2) there is a free space between the marbles and 3) shows how a side-step cannot push a marble. Sumito moves are the only moves that allow for pushing the enemy's marbles, therefore they are the only attacking moves. Figure \ref{additional_relevant_positions} (b) shows a situation in which we can push an enemy marble from the board. The player that pushes six of the opponent's marbles from the board has won. The basic ruleset does not account for a draw but there are, in theory, positions like a stalemate in chess, where no move is possible for one player. In figure \ref{additional_relevant_positions} (c) the black player is locked to the brink of the board and has no move available. Moreover, to force a more eventful game, games are often either limited by time or by number of moves. Thus, a draw might occur when the number of marbles left on the board is equal for each player.
+
+\section{Task environment}
+Based on the PEAS framework we can specify Abalone as a task environment and show the key components for the implementation of our agent. \cite[p.107]{russell_artificial_2021}
+
+\begin{description}
+    \item[Performance measure] Win/loss, number of moves, time to deliberate
+    \item[Environment] Digital playing board and rules of the game
+    \item[Actuators] Move marbles
+    \item[Sensors] Position of marbles
+\end{description}
+
+Using the environment properties learned in \ref{environment} we can classify Abalone as \textbf{a fully observable, deterministic, two-agent, competitive, sequential, static and discrete environment}. Another popular term for this type of environment is a \textit{deterministic two-player  turn-based perfect information zero-sum game}.
+
+\section{Complexity}
+As Abalone has a finite amount of discrete states, we can make precise statements about its complexity, which can be described in two relevant dimensions.
+
+\paragraph{State space complexity}
+The state space is the set of all possible states "the environment can be in".\cite[p. 150]{russell_artificial_2021} For Abalone this means we have to consider all possible board configurations with different numbers of marbles present. Additionally, we would have to remove duplicates that arise from the symmetries of the board. In the case of abalone we have 6 rotations and 6 axes we can mirror the board on. The following formula gives us a good upper bound:
+
+\begin{equation}
+    \sum_{k=8}^{14}\sum_{m=9}^{14}\frac{61!}{k!(61-k)!}\times\frac{(61-k)!}{m!((61-k)-m)!}
+\end{equation}
+
+As the board has six rotational symmetries and additional six mirror axes we have to divide the result by 12 which results in a total of $ 6 \times 10^{23} $ possible board configurations. \cite[p. 4]{lemmens_constructing_2005}
+
+\paragraph{Game tree complexity} The game tree contains all possible transitions between board positions (nodes) through moves (edges). The root of the tree is the default start position. The \textit{search tree} is potentially a subset of the game tree, if not all paths are visited. In the case of Abalone the game tree is unbound and has an infinite height as actions might be taken repeatedly forming loops. Therefore, Abalone's complexity can only be approximated by an average search tree not the game tree. First we consider the branching factor $ b $, or the number of possible moves for any given state. This number greatly varies between different states. On average Abalone has $ b = 60 $ possible moves per state as measured in figure \ref{branching_factor}. The depth $ d $ of the tree depends on the number of turns per game. Looking at the average again a game takes in the region of $ d = 87 $ turns. To get a measure of the complexity the number of nodes in a tree is given by
+
+\begin{equation}
+    b^d
+\end{equation}
+
+resulting in a total of $60^{87} \approx 5 \times 10^{154}$ nodes. \cite{lemmens_constructing_2005}
+
+\begin{figure}
+    \centering
+    \includegraphics[width=7cm, keepaspectratio]{distribution_of_moves.png}
+    \caption{Counts of moves available a random player in 5 games}
+    \label{branching_factor}
+\end{figure}
+
+As those numbers in isolation are hard to grasp it is useful to put Abalone's complexity in relation with other popular games. Its state space complexity is on the same level as Reversi, whilst its game tree surpasses chess in complexity (c.f. table \ref{complexity_table})
+
+\begin{table}
+    \begin{center}
+        \begin{tabular}{ | c | c | c | }
+            \hline
+            Game        & state-space complexity (log) & game-tree complexity (log) \\
+            \hline
+            Tic-tac-toe & 3                            & 5                          \\
+            \hline
+            Reversi     & 28                           & 58                         \\
+            \hline
+            Chess       & 46                           & 123                        \\
+            \hline
+            Abalone     & 24                           & 154                        \\
+            \hline
+            Go          & 172                          & 360                        \\
+            \hline
+        \end{tabular}
+    \end{center}
+    \caption{Abalone in comparison with other games \cite{chorus_implementing_2009}}
+    \label{complexity_table}
+\end{table}
+
+\section{Existing game playing agents}
+For all the previously discussed methods, game-playing agents based on minimax have been the most successful so far. Heuristic functions are quite similar to those mentioned for chess. Some of the more significant game situations optimized for are:
+
+\begin{itemize}
+    \item Adjacency: As a majority of marbles is required to push the opponent's marbles and conversely an equal amount of marbles is needed to avoid being pushed, it can be assumed that keeping one's marbles grouped together is a good move.
+    \item Distance to center: Marbles that are close to the brink of the board put them into danger of being attacked, wherefore it is generally good to place all of the marbles into the center of the board. For each player's marbles we measure their distance from the center of the board as the smallest amount of moves it would take to reach the center (Manhattan distance).
+    \item Number of marbles, formation break, single and double marble capturing danger, ... \cite[p. 64]{papadopoulos_exploring_2012}
+\end{itemize}
+
+There are multiple implementations of minimax for Abalone \cite{chorus_implementing_2009,lemmens_constructing_2005,ozcan_simple_2004-1,aichholzer_algorithmic_2002}, but software is only openly available for ABA-PRO by Tino Werner from 2002 \cite{aichholzer_oswin_2006}. There are a few mentions of (commercial) Abalone programs like RandomAba (Random Soft), AliAba, AbaloneNet mentioned by Lemmens \cite[p. 7]{lemmens_constructing_2005} but those have not been attainable through the internet. Even though ABA-PRO was not the strongest algorithm at the time, it's availability has made it a frequent benchmark for other papers. Aside from previously mentioned optimizations for minimax like alpha-beta pruning these programs use more advanced techniques like quiescence search, aspiration windows and combined move ordering. A more recent publication from 2012 by Papadopoulos et. al. claimed to have devised a more successful player. \cite{papadopoulos_exploring_2012}  Those claims could not be confirmed entirely in a recent reimplementation thesis by Michiel Verloop as Papadopoulos' does not describe the weights for the heuristic \cite{verloop_critical_nodate}. This reimplementation in Java \cite{verloop_abaloneai_nodate} is also the reference for later benchmarks as it is open source \cite{verloop_abaloneai_nodate} and thus allows programmatic interaction.
+
+The investigations into MCTS in the context of Abalone are quite limited so far. Pascal Chorus has undertaken a comparison of the vanilla implementation against a heuristic agent, showing the dominance of the heuristic agent. \cite{chorus_implementing_2009} While in games like Go we don't have loops in Abalone, random players can get stuck in very long games making the results of simulations very weak signals. Without any more sophisticated rollout-policy this approach does not work very well.
+
+"Abalearn" was the first learning-based approach to playing Abalone. \cite{campos_abalearn_2003} It was created in 2003 based on temporal difference learning (TD-learning), which is a reinforcement learning method. In the years before TD-learning had been very successful for backgammon ("TD-Gammon") \cite{tesauro_td-gammon_1994} and for Abalone the authors achieved to draw ABA-PRO up to a search depth of five. An interesting feature of their approach is the fact that they exclusively used self-play for training the algorithm. Moreover, they introduced a tunable mechanism for making the risk sensitivity of the algorithm dealing with the problem of the agent playing very passively or getting stuck in loops. Modern reinforcement learning methods like Q-learning have only been considered in a smaller project that achieved better than random performance. \cite{mizrachi_introduction_2017}
