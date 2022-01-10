@@ -523,12 +523,12 @@ During live play against an opponent AlphaGo uses MCTS to improve the performanc
           \begin{equation}
               u(s, a) \propto \frac{P(s,a)}{1 + N(s,a)}
           \end{equation}
-    \item When a leaf node is reached at timestep $T$, the state $s_T$ is \textbf{expanded} by the policy network $p_{\sigma}$ (Note that $p_{\sigma}$ is being used instead of $p_{\rho}$, empericial analysis be the team showed this performs better). The resulting probability distribution over the actions is stored as prior probabilities: $P(s_T, a) = p_{a|s_T}$.
+    \item When a leaf node is reached at timestep $T$, the state $s_T$ is \textbf{expanded} by the policy network $p_{\sigma}$ (Note that $p_{\sigma}$ is being used instead of $p_{\rho}$, empirical analysis be the team showed this performs better). The resulting probability distribution over the actions is stored as prior probabilities: $P(s_T, a) = p_{a|s_T}$.
     \item The \textbf{evaluation} of the leaf node $s_L$ is done by combining the evaluation function $v_{\theta}$ and the results of the rollouts $z_L$ played with the rollout network $p_{\pi}$. Both elements are weighted by a mixing parameter $\lambda$:
           \begin{equation}
               V(s_L) = (1 - \lambda)v_{\theta}(s_L) + \lambda z_L
           \end{equation}
-    \item Lastly, after each simulation the results are \textbf{backpropagated} through all visited edges the root node. The count $N(s,a)$ is incremented and $Q(s,a)$ is updated by:
+    \item Lastly, after each simulation the results are \textbf{backpropagated} through all visited edges of the root node. The count $N(s,a)$ is incremented and $Q(s,a)$ is updated by:
           \begin{equation}
               Q(s,a) = \frac{1}{N(s,a)}\sum_{i=1}^{n}1(s,a,i)V(s_L^i)
           \end{equation}
@@ -563,14 +563,14 @@ The network $f_{\theta}$ takes the current board state and the last seven boards
     \subfloat[The layers of the value head]{
         \includegraphics[width=3cm, keepaspectratio]{alphazero_architecture_value_head.png}
     }
-    \caption{The archtecture of the neural network $f_{\theta}$ \cite{silver_mastering_2017}}
+    \caption{The architecture of the neural network $f_{\theta}$ \cite{silver_mastering_2017}}
     \label{alpha_zero_neural_network}
 \end{figure}
 
 As shown by figure \ref{alpha_zero_neural_network} (a) the network is divided into four types of blocks:
 
 \begin{itemize}
-    \item The convolutional block and residual tower hold they main chunk of trainable parameters.
+    \item The convolutional block and residual tower hold their main chunk of trainable parameters.
     \item The value head outputs a scalar representing the value function.
     \item The policy head returns a probability distribution over all possible moves.
 \end{itemize}
@@ -592,4 +592,4 @@ The team showed empirically \cite[p. 9]{silver_mastering_2017} that this \textit
 
 To train the network $f_{\theta}$, it is initialized with random weights. At each turn $i$ during self-play $f_{\theta}$ guides a MCTS, which produces a probability distribution $\pi_t$ over all (legal) moves. The move $a_i$ is selected according to the probabilities $pi$: $a_i ~ \pi_t$. So instead of using the network $f_{\theta}$ directly to decide on the next move, MCTS produces an improved policy through repeated application of $f_{\theta}$. The authors describe MCTS in this context as a \textit{policy improvement} operator. The self-play games are played until a terminal state $s_T$ is reached. The result of the game is $z_T \in \{-1, +1\}$ for either a loss or a win.  For each move during the game he result of the game $z_t$ is recorded together with the board state $s_t$ and the search probabilities $\pi_t$, where $z_t \mp z_T $ depending on the players perspective: $(s_t, \pi_t, z_t)$. The self-play is illustrated in figure \ref{alpha_zero_training} (a).
 
-This tuple is stored in an experience buffer which is used for training the next iteration of the network. The parameters of the networks are fitted to mini-batches from the experience buffer match the probabilities $\pi_t$ for the policy head and the game result $z_t$ for the value head. In total, $700,000$ mini batches of size $2,048$ from $4.9$ million games were sampled.
+This tuple is stored in an experience buffer which is used for training the next iteration of the network. The parameters of the networks are fitted to mini-batches from the experience buffer that match the probabilities $\pi_t$ for the policy head and the game result $z_t$ for the value head. In total, $700,000$ mini batches of size $2,048$ from $4.9$ million games were sampled.
