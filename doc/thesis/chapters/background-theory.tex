@@ -132,7 +132,7 @@ Other improvements to the procedure are thinkable as well. Once we perform a sea
 Combined with alpha beta pruning, the minimax algorithm is a very efficient way of finding the optimal utility in an adversarial search situation. However, as mentioned before in most games we cannot use the utility of terminal states, because the search tree grows too quickly. By optimizing for a heuristic function the quality of play solely depends on this function. For games such as chess minimax has been very successful, because humans could devise meaningful heuristic functions. The chess engine stockfish has been the most successful computer player for a long time and is based on this algorithm (and many optimizations). \cite{noauthor_stockfish_2021, noauthor_stockfish_nodate}
 
 \subsection{Monte Carlo Tree Search}
-For games like Go it was deemed impossible to find powerful heuristic functions, which makes the previous approach of minimax not a viable option. In addition, the initial position of a $19\times19$ Go board has a branching factor of $361$ decreasing only by one for each stone placed. A method proposed in 2006 by Coulom \cite{coulom_efficient_2007} called Monte Carlo Tree search was more successful for Go. The main idea is to use simulations or \textit{rollouts (or playouts)} to gain information on the quality of a state. To manage the complexity of the search tree more effectively the algorithm is \textit{selective} in which parts of the tree are \textit{expanded}. This ensures that resources are not wasted on unpromising moves.
+For games like Go it was deemed impossible to find powerful heuristic functions, which makes the previous approach of minimax not a viable option. In addition, the initial position of a $19 \cdot 19$ Go board has a branching factor of $361$ decreasing only by one for each stone placed. A method proposed in 2006 by Coulom \cite{coulom_efficient_2007} called Monte Carlo Tree search was more successful for Go. The main idea is to use simulations or \textit{rollouts (or playouts)} to gain information on the quality of a state. To manage the complexity of the search tree more effectively the algorithm is \textit{selective} in which parts of the tree are \textit{expanded}. This ensures that resources are not wasted on unpromising moves.
 
 In its purest form the simulations are performed randomly, meaning we take a state or node to be investigated and let two random players take turns until a terminal state is reached. Kocsis and Szepesvári \cite{kocsis_bandit_2006} showed that it does in fact converge to optimal play. For games with a high branching factor we need a large number of simulations to get any meaningful information from the simulations, so we might use a \textit{rollout policy} instead. This policy guides the moves taken in the simulation towards better moves. This might be as simple as favoring capturing moves or as we will see later neural networks.
 
@@ -168,7 +168,7 @@ Another idea for selection is the upper confidence bound formula (\textit{UCB1})
 \end{enumerate}
 
 \begin{equation}
-    \textit{UCB1}(n) = \frac{U(n)}{N(n)} + C \times \sqrt{\frac{\log{N(\texttt{Parent}(n))}}{N(n)}}
+    \textit{UCB1}(n) = \frac{U(n)}{N(n)} + C \cdot \sqrt{\frac{\log{N(\texttt{Parent}(n))}}{N(n)}}
 \end{equation}
 
 The cumulative utility $U(n)$ is normalized by the number of times the node was visited $N(u)$. This helps favor moves that are either relatively unexplored and promising or have proven to be good over a larger set of nodes. It is also called the exploitation term. The additional term is called the exploration term. The more often a node is visited, the smaller this term gets, converging to 0 for large $N(n)$. The constant factor $C$ is subject to some debate which value might be optimal, some choose $\sqrt{2}$. In general, this hints at another point of investigation: The problem of \textit{exploration vs. exploitation} \ref{exploration_vs_exploitation} that we will inspect more closely later.
@@ -206,7 +206,7 @@ Central to reinforcement learning is a formalism for the environment called Mark
     \label{mdp_agent_environment}
 \end{figure}
 
-We divide the passage of time into discrete time steps $ t $ at which the agent senses the state $ S_t \in \mathcal{S} $ and then selects some action $ A_t \in \mathcal{A}(s) $. Resulting in that action is some reward $ R_{t+1} \in \mathcal{R} \subset \mathbb{R} $ that is received in the next timestep.
+We divide the passage of time into discrete time steps $ t $ at which the agent senses the state $ S_t \in \mathcal{S} $ and then selects some action $ A_t \in \mathcal{A}(S_t) $. Resulting in that action is some reward $ R_{t+1} \in \mathcal{R} \subset \mathbb{R} $ that is received in the next timestep.
 
 The transition probabilities between the state $ s $ and the next state $ s' $ and its reward $r \in \mathcal{R}$ is given by the function $ p $ which essentially defines the decision process as a whole. A game of chess is deterministic, all transitions have a probability of $1$ and these probabilities are defined by the rules of the game. However, the MDP is formulated to incorporate stochastic environments as well:
 
@@ -548,7 +548,7 @@ AlphaZero learns "tabula rasa", from a blank slate. Essentially, AlphaZero only 
     \item A simplified version of AlphaGo's MCTS, that doesn't use rollouts and only relies on the network $f_{\theta}$ to guide the search. The MCTS variant is not only used for live play but also for self-play.
 \end{enumerate}
 
-The network $f_{\theta}$ takes the current board state and the last seven boards as input. The position of the players marbles is split into seperate planes, $1$ for a placed stone and $0$ if there is none. Additionally, there is one feature plane to indicate the player in turn which is set to $1$ for black's turn and $0$ for white's turn. This makes a total of 17 planes forming an input stack of the size $19 \times 19 \times 17$.
+The network $f_{\theta}$ takes the current board state and the last seven boards as input. The position of the players marbles is split into seperate planes, $1$ for a placed stone and $0$ if there is none. Additionally, there is one feature plane to indicate the player in turn which is set to $1$ for black's turn and $0$ for white's turn. This makes a total of 17 planes forming an input stack of the size $19 \cdot 19 \cdot 17$.
 
 \begin{figure}[!h]
     \centering
