@@ -488,7 +488,7 @@ By combining the reinforcement learning framework with MCTS and neural networks 
 
 \begin{enumerate}
     \item A rollout policy network $p_{\pi}$ and a policy network $p_{\sigma}$ trained by supervised learning
-    \item A policy network $p_p$ trained with reinforcement learning and a value network $v_{\theta}$ derived from $p_p$
+    \item A policy network $p_{\rho}$ trained with reinforcement learning and a value network $v_{\theta}$ derived from $p_{\rho}$
     \item Lookahead search using (asynchronous) Monte Carlo Tree Search guided by $p_{\sigma}$ and $v_{\theta}$. The rollouts for the search are performed by the rollout network $p_{\pi}$.
 \end{enumerate}
 
@@ -501,19 +501,41 @@ The first step is the supervised training based on the KGS Go Server dataset of 
     \label{alpha_go_prediction_quality}
 \end{figure}
 
-The policy network $p_{\sigma}$ is trained in the same fashion except it is larger in size and thus is computationally more expensive. This network is used for the next step in which the network $p_{p}$ is initialized with equivalent structure and weights. We then start to play games with the current version of the policy network $p_{p}$ against random previous versions of the network. At timestep $t$, for a mini-batch of $n$ games, the results of the games are taken and gradient ascent is used to fit the weights to the outcome of the game $z_t$.
+The policy network $p_{\sigma}$ is trained in the same fashion except it is larger in size and thus is computationally more expensive. The policy network $p_{\sigma}$ is used for the next step. The goal is to adjust "the policy towards the correct goal of winning games, rather than maximizing predictive accuracy" \cite[p.484]{silver_mastering_2016} by using policy gradient RL and self-play. Initially, the network $p_{\rho}$ is initialized with structure and weights equivalent to $p_{\sigma}$. Then games with the current version of the policy network $p_{p}$ are played against random previous versions of the network. At timestep $t$, for a mini-batch of $n$ games, the results of the games are taken and the REINFORCE algorithm is used to fit the weights of the networks to the outcome of the game $z_t$. The newly trained policy network $p_{\rho}$ wins 80\% of the games against $p_{\sigma}$.
 
-$$
-    \nabla p \propto \frac{\partial \log p_p(a_t \mid s_t)}{\partial p}z_t
-$$
+Lastly, $p_{\rho}$ is used to train a neural network with weights $\theta$ for the evaluation function $v_{\theta}(s)$. This evaluation function approaches the state-value function $v_{p_{\rho}}(s)$, so the expected outcome of the game given the policy $p_{\rho}$: $v_{\theta}(s) \approx v_{p_{\rho}}(s)$. Figure \ref{alpha_go_prediction_quality} shows how $v_{\theta}$ appraches the same prediction accuracy as doing 15,000 rollouts with policy $p_{\rho}$.
 
-This is the core of the REINFORCE algorithm. \cite{williams_simple_nodate}
 \begin{figure}
     \centering
-    \includegraphics[height=6cm, keepaspectratio]{alpha_go_mcts.png}
+    \includegraphics[width=16cm, keepaspectratio]{alpha_go_mcts.png}
     \caption{Monte Carlo Tree Search in AlphaGo. \cite{silver_mastering_2016} Note the algorithm structure mentioned in figure \ref{monte_carlo_tree_search} is maintained, but selection and simulation is more advanced}
     \label{alpha_go_mcts}
 \end{figure}
+
+During live play against an opponent AlphaGo uses MCTS to improve the performance versus just using the pure output of the policy network. The edges, or state $s$ action $a$ pairs, of the search tree store an action value $Q(s, a)$, a visit count $N(s, a)$ and a prior probability $P(s, a)$ (cf. figure \ref{alpha_go_mcts}).
+
+\begin{itemize}
+    \item During the \textbf{selection} phase the next child is selected by taking the action with maximum action value. To encourage exploration in the beginning an additional term $u(s,a)$ is added to the action value $Q$. Each step during selection can be described as $t$ yielding:
+          \begin{equation}
+              a_t = \operatorname*{argmax}_a (Q(s_t,a) + u(s_t, a))
+          \end{equation}
+          with the exploration term:
+          \begin{equation}
+              u(s, a) \propto \frac{P(s,a)}{1 + N(s,a)}
+          \end{equation}
+    \item When a leaf node is reached at timestep $T$, the state $s_T$ is \textbf{expanded} by the policy network $p_{\sigma}$ (Note that $p_{\sigma}$ is being used instead of $p_{\rho}$, empericial analysis be the team showed this performs better). The resulting probability distribution over the actions is stored as prior probabilities: $P(s_T, a) = p_{a|s_T}$.
+    \item The \textbf{evaluation} of the leaf node $s_L$ is done by combining the evaluation function $v_{\theta}$ and the results of the rollouts $z_L$ played with the rollout network $p_{\pi}$. Both elements are weighted by a mixing parameter $\lambda$:
+          \begin{equation}
+              V(s_L) = (1 - \lambda)v_{\theta}(s_L) + \lambda z_L
+          \end{equation}
+    \item Lastly, after each simulation the results are \textbf{backpropagated} through all visited edges the root node. The count $N(s,a)$ is incremented and $Q(s,a)$ is updated by:
+          \begin{equation}
+              Q(s,a) = \frac{1}{N(s,a)}\sum_{i=1}^{n}1(s,a,i)V(s_L^i)
+          \end{equation}
+          where $n$ is the number of simulations " s L i is the leaf node from the $i$th simulation, and $1(s,a,i)$ indicates whether the edge was traversed during the $i$th simulation" \cite[p. 529]{silver_mastering_2016}.
+\end{itemize}
+
+The computational requirements for AlphaGo are significant. During training the team utilized 50 GPUs, the supervised learning stage ran for 3 weeks anyways. During live play they utilized a machine with 48 CPUs and 8 GPUs, a distributed variant with 1,202 CPUs and 176 GPUs was tested as well.
 
 A more detailed entry to the topic is provided by the nature article "Mastering the game of Go with deep neural networks and tree search". \cite{silver_mastering_2016}
 
