@@ -84,8 +84,10 @@ As shown by table \ref{training_framework_comparison}, the winner by those crite
 \subsection{Game library}
 There are multiple implementations of game libraries for Abalone. As the interfacing language for pytorch is Python it makes sense to restrict the libraries to Python.
 \begin{itemize}
-    \item Abalone-BoAI is a game library that is specifically designed for 
+    \item Abalone-BoAI is a game library that is specifically designed for interfacing with computational agents. It is very simple and has been used for the precursor project of this thesis \cite{scriptim_scriptimabalone-boai_2021}.
+    \item Gym-abalone is tightly integrated with OpenAI's gym allowing agents to potentially play other games as well. The API is more designed for the reinforcement learning setting \cite{towzeur_towzeurgym-abalone_2021}.
 \end{itemize}
+
 
 \begin{figure}
     \centering
