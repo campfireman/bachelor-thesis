@@ -79,10 +79,10 @@ As Abalone has a finite amount of discrete states, we can make precise statement
 The state space is the set of all possible states "the environment can be in".\cite[p. 150]{russell_artificial_2021} For Abalone this means we have to consider all possible board configurations with different numbers of marbles present. Additionally, we would have to remove duplicates that arise from the symmetries of the board. In the case of abalone we have 6 rotations and 6 axes we can mirror the board on. The following formula gives us a good upper bound:
 
 \begin{equation}
-    \sum_{k=8}^{14}\sum_{m=9}^{14}\frac{61!}{k!(61-k)!}\times\frac{(61-k)!}{m!((61-k)-m)!}
+    \sum_{k=8}^{14}\sum_{m=9}^{14}\frac{61!}{k!(61-k)!}\cdot\frac{(61-k)!}{m!((61-k)-m)!}
 \end{equation}
 
-As the board has six rotational symmetries and additional six mirror axes we have to divide the result by 12 which results in a total of $ 6 \times 10^{23} $ possible board configurations. \cite[p. 4]{lemmens_constructing_2005}
+As the board has six rotational symmetries and additional six mirror axes we have to divide the result by 12 which results in a total of $ 6 \cdot 10^{23} $ possible board configurations. \cite[p. 4]{lemmens_constructing_2005}
 
 \paragraph{Game tree complexity} The game tree contains all possible transitions between board positions (nodes) through moves (edges). The root of the tree is the default start position. The \textit{search tree} is potentially a subset of the game tree, if not all paths are visited. In the case of Abalone the game tree is unbound and has an infinite height as actions might be taken repeatedly forming loops. Therefore, Abalone's complexity can only be approximated by an average search tree not the game tree. First we consider the branching factor $ b $, or the number of possible moves for any given state. This number greatly varies between different states. On average Abalone has $ b = 60 $ possible moves per state as measured in figure \ref{branching_factor}. The depth $ d $ of the tree depends on the number of turns per game. Looking at the average again a game takes in the region of $ d = 87 $ turns. To get a measure of the complexity the number of nodes in a tree is given by
 

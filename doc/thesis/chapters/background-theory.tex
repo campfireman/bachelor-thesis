@@ -169,6 +169,7 @@ Another idea for selection is the upper confidence bound formula (\textit{UCB1})
 
 \begin{equation}
     \textit{UCB1}(n) = \frac{U(n)}{N(n)} + C \cdot \sqrt{\frac{\log{N(\texttt{Parent}(n))}}{N(n)}}
+    \label{eq:UCB1}
 \end{equation}
 
 The cumulative utility $U(n)$ is normalized by the number of times the node was visited $N(u)$. This helps favor moves that are either relatively unexplored and promising or have proven to be good over a larger set of nodes. It is also called the exploitation term. The additional term is called the exploration term. The more often a node is visited, the smaller this term gets, converging to 0 for large $N(n)$. The constant factor $C$ is subject to some debate which value might be optimal, some choose $\sqrt{2}$. In general, this hints at another point of investigation: The problem of \textit{exploration vs. exploitation} \ref{exploration_vs_exploitation} that we will inspect more closely later.
@@ -433,14 +434,14 @@ This makes the neural networks one type of \textit{computational graph}, which h
 In summary, by defining a neural network, we define a weight space. This space is essentially a room of all possible values of the weights. We can think of neural networks as functions or programs. Thus, the architecture of the neural network decides on a range of possible programs. Each of these programs is more or less suited for the task given. The feedback given by the loss function indicates the suitability. With gradient descent we search this space of programs for one that minimizes the error. Due to the nature of gradient descent, we are not guaranteed to find the globally optimal program.
 
 \subsection{Convolutional Neural Network}
-As already stated, the neural network or computational graph is not limited to one specific type of function as long as the function can be differentiated. As shown in \ref{neural_network_layers} in its basic form, neural networks have a n-dimensional vector as input. If we have an input like an image, we would have to break down the information about the adjacency to fit the form of a vector. As a result, permutations of the values of the image wouldn't change the result of the output.
+As already stated, the neural network or computational graph is not limited to one specific type of function as long as the function can be differentiated. As shown in \ref{neural_network_layers} in its basic form, neural networks have a $n$-dimensional vector as input. If we have an input like an image, we would have to break down the information about the adjacency to fit the form of a vector.
 
-Furthermore, the computational requirements for such an approach would grow rapidly. A fully connected first layer would need $n^2$ weights for an image of the size $n$. A small image of the size 256x256 would need 65536 weights for the first layer alone. Ideally we would also like the output of the network to be invariant to translation. This means that a pattern found in the corner should produce the same response as a pattern found in the center of the image.
+Furthermore, the computational requirements for such an approach would grow rapidly. A fully connected first layer would need $n^2$ weights for an image of the size $n$. A small image of the size $ 256 \cdot 256$ would need $65,536$ weights for the first layer alone. Ideally we would also like the output of the network to be invariant to translation. This means that a pattern found in the corner should produce the same response as a pattern found in the center of the image.
 
 To achieve this we can utilize convolution. In general terms a "convolution is an integral that expresses the amount of overlap of one function $g$ as it is shifted over another function $f$." \cite{weisstein_convolution_nodate}
 
 $$
-    f * g(x) = \int_{-\infty}^{\infty} f(t)g(x - t) dt
+    (f * )g(x) = \int_{-\infty}^{\infty} f(t)g(x - t) dt
 $$
 
 This might seem very abstract but firstly, only the discrete case is relevant to us and secondly, only the finite case. This boils down the convolution to filtering $F$, which also comes up in image processing:
@@ -449,7 +450,7 @@ $$
     F(u, v) = \sum_{x} \sum_{y} I(u+x, v+y)H(x, y)
 $$
 
-For a given coordinate $u,v$ each value in the Kernel $H$ is multiplied by the  corresponding value of the image returned by function $I$. The figure \ref{convolution} illustrates how a convolution would look on a black and white image. In image processing for example, we might use a Laplacian filter to extract certain features like edges. By using convolutions in a neural network we move away from these hand-crafted features by letting the parameters of the kernels be trained to fit the desired outcome. By combining multiple layers of convolutions the network can extract higher level abstractions of the image. \cite{ilin_abstraction_2017}
+For a given coordinate $u,v$ each value in the kernel $H$ is multiplied by the  corresponding value of the image returned by function $I$. The figure \ref{convolution} illustrates how a convolution would look on a black and white image. In image processing for example, we might use a Laplacian filter to extract certain features like edges. By using convolutions in a neural network we move away from these hand-crafted features by letting the parameters of the kernels be trained to fit the desired outcome. By combining multiple layers of convolutions the network can extract higher level abstractions of the image. \cite{ilin_abstraction_2017}
 
 \begin{figure}
     \centering
@@ -482,17 +483,17 @@ To mitigate this issue one could either use different activation functions like 
 This section on neural networks has only touched the raw fundamentals of neural networks very swiftly. Nevertheless it shows that the core ideas are quite simple (in hindsight of course), especially compared to the very comprehensive methods of classical AI. The theoretic foundations to these methods are actually quite old. With the unlocking of more and more computational power and data researchers discovered the "unreasonable effectiveness of data \cite{halevy_unreasonable_2009} and the combination of neural networks and gradient descent. To dive deeper the book "Artificial Intelligence: A Modern Approach" \cite{russell_artificial_2021} offers a very good first impression.
 
 \subsection{AlphaGo}
-Now we have reached the culmination of our theoretical analysis. All the components we introduced so far constitute the knowledge necessary to understand AlphaGo and AlphaZero. Just like Abalone Go is a perfect information zero-sum board game. It already popped up in the complexity comparison \ref{complexity_table}, which clearly shows that Go is more complex in its state space and its search tree. At the time when there was a lot of success in other games with minimax many people saw Go as the most challenging board game \cite{muller_computer_2002}. The only successful method at the time was MCTS, for which we already saw two influential papers in the context of Go and MCTS by David Silver.
+All the components we introduced so far constitute the knowledge necessary to understand AlphaGo and AlphaZero. Go was invented 2,500 years ago in China making it likely "the oldest continuously played board game" \cite{noauthor_go_2022}. The complexity of Go's state space and search space surpasses that of chess significantly (cf. table \ref{complexity_table}). At the time when there was a lot of success in other games with minimax many people saw Go as the most challenging board game \cite{muller_computer_2002}. The only successful method at the time was MCTS, for which we already saw two influential papers in the context of Go and MCTS by David Silver.
 
 By combining the reinforcement learning framework with MCTS and neural networks David Silver et al. achieved the milestone of beating Lee Seedol. The program AlphaGo consists of three key components:
 
 \begin{enumerate}
     \item A rollout policy network $p_{\pi}$ and a policy network $p_{\sigma}$ trained by supervised learning
     \item A policy network $p_{\rho}$ trained with reinforcement learning and a value network $v_{\theta}$ derived from $p_{\rho}$
-    \item Lookahead search using (asynchronous) Monte Carlo Tree Search guided by $p_{\sigma}$ and $v_{\theta}$. The rollouts for the search are performed by the rollout network $p_{\pi}$.
+    \item Look-ahead search using (asynchronous) Monte Carlo Tree Search guided by $p_{\sigma}$ and $v_{\theta}$. The rollouts for the search are performed by the rollout network $p_{\pi}$.
 \end{enumerate}
 
-The first step is the supervised training based on the KGS Go Server dataset of 30 million positions. The rollout policy network $p_{\pi}$ is a relatively small network that is supposed to provide quick rollouts (simulations). As we already encountered for Abalone this is necessary because random rollouts for such complex games can produce very weak guidance for low numbers and also very long matches. This is supported by comparisons made between the prediction quality of 100 rollouts with a uniformly random policy versus with the network $p_{\pi}$ in figure \ref{alpha_go_prediction_quality}.
+The first step is the supervised training based on the KGS Go Server dataset of 30 million positions \cite[p. 485]{silver_mastering_2016}. The rollout policy network $p_{\pi}$ is a relatively small network that is supposed to provide quick rollouts (simulations). This is necessary because random rollouts for such complex games can produce very weak guidance for low numbers and also very long matches. This is supported by comparisons made between the prediction quality of 100 rollouts with a uniformly random policy versus with the network $p_{\pi}$ in figure \ref{alpha_go_prediction_quality}.
 
 \begin{figure}
     \centering
@@ -515,14 +516,11 @@ Lastly, $p_{\rho}$ is used to train a neural network with weights $\theta$ for t
 During live play against an opponent AlphaGo uses MCTS to improve the performance versus just using the pure output of the policy network. The edges, or state $s$ action $a$ pairs, of the search tree store an action value $Q(s, a)$, a visit count $N(s, a)$ and a prior probability $P(s, a)$ (cf. figure \ref{alpha_go_mcts}).
 
 \begin{itemize}
-    \item During the \textbf{selection} phase the next child is selected by taking the action with maximum action value. To encourage exploration in the beginning an additional term $u(s,a)$ is added to the action value $Q$. Each step during selection can be described as $t$ yielding:
+    \item During the \textbf{selection} phase the next child is selected by taking the action with maximum action value. To encourage exploration in the beginning an additional term $u(s,a)$ is added to the action value $Q$. Each step during selection can be described as $t$ yielding
           \begin{equation}
               a_t = \operatorname*{argmax}_a (Q(s_t,a) + u(s_t, a))
           \end{equation}
-          with the exploration term:
-          \begin{equation}
-              u(s, a) \propto \frac{P(s,a)}{1 + N(s,a)}
-          \end{equation}
+          with $u(s_t, a)$ being a variant of the PUCT algorithm \cite{rosin_multi-armed_2011}. Just like the UCB1 \ref{eq:UCB1} it encourages exploration in the beginning and then increasingly prefers moves with high action value.
     \item When a leaf node is reached at timestep $T$, the state $s_T$ is \textbf{expanded} by the policy network $p_{\sigma}$ (Note that $p_{\sigma}$ is being used instead of $p_{\rho}$, empirical analysis be the team showed this performs better). The resulting probability distribution over the actions is stored as prior probabilities: $P(s_T, a) = p_{a|s_T}$.
     \item The \textbf{evaluation} of the leaf node $s_L$ is done by combining the evaluation function $v_{\theta}$ and the results of the rollouts $z_L$ played with the rollout network $p_{\pi}$. Both elements are weighted by a mixing parameter $\lambda$:
           \begin{equation}
@@ -532,17 +530,18 @@ During live play against an opponent AlphaGo uses MCTS to improve the performanc
           \begin{equation}
               Q(s,a) = \frac{1}{N(s,a)}\sum_{i=1}^{n}1(s,a,i)V(s_L^i)
           \end{equation}
-          where $n$ is the number of simulations " s L i is the leaf node from the $i$th simulation, and $1(s,a,i)$ indicates whether the edge was traversed during the $i$th simulation" \cite[p. 529]{silver_mastering_2016}.
+          where $n$ is the number of simulations "$s_L^i$ is the leaf node from the $i$th simulation, and $1(s,a,i)$ indicates whether the edge was traversed during the $i$th simulation" \cite[p. 529]{silver_mastering_2016}.
 \end{itemize}
 
 The computational requirements for AlphaGo are significant. During training the team utilized 50 GPUs, the supervised learning stage ran for 3 weeks anyways. During live play they utilized a machine with 48 CPUs and 8 GPUs, a distributed variant with 1,202 CPUs and 176 GPUs was tested as well.
 
-A more detailed entry to the topic is provided by the nature article "Mastering the game of Go with deep neural networks and tree search". \cite{silver_mastering_2016}
+A more detailed introduction to the topic is provided by the nature article "Mastering the game of Go with deep neural networks and tree search". \cite{silver_mastering_2016}
 
 \subsection{AlphaZero}
 A problem with AlphaGo's architecture is its complexity. There are many hyperparameters for the four different neural networks and many other moving parts. AlphaZero is a simplification that conveniently performs even better and is easier to generalize.
 
 AlphaZero learns "tabula rasa", from a blank slate. Essentially, AlphaZero only uses a modified version of the self-play RL mechanism from AlphaGo, all other parts from the training pipeline are scrapped. The two main components of AlphaZero are:
+
 \begin{enumerate}
     \item A single neural network $f_{\theta}$. Compared to AlphaGo, the architecture of the neural network has been simplified by combining the value network and the policy network into one network with two heads. The network is only trained through self-play.
     \item A simplified version of AlphaGo's MCTS, that doesn't use rollouts and only relies on the network $f_{\theta}$ to guide the search. The MCTS variant is not only used for live play but also for self-play.
@@ -590,6 +589,31 @@ The team showed empirically \cite[p. 9]{silver_mastering_2017} that this \textit
     \label{alpha_zero_training}
 \end{figure}
 
-To train the network $f_{\theta}$, it is initialized with random weights. At each turn $i$ during self-play $f_{\theta}$ guides a MCTS, which produces a probability distribution $\pi_t$ over all (legal) moves. The move $a_i$ is selected according to the probabilities $pi$: $a_i ~ \pi_t$. So instead of using the network $f_{\theta}$ directly to decide on the next move, MCTS produces an improved policy through repeated application of $f_{\theta}$. The authors describe MCTS in this context as a \textit{policy improvement} operator. The self-play games are played until a terminal state $s_T$ is reached. The result of the game is $z_T \in \{-1, +1\}$ for either a loss or a win.  For each move during the game he result of the game $z_t$ is recorded together with the board state $s_t$ and the search probabilities $\pi_t$, where $z_t \mp z_T $ depending on the players perspective: $(s_t, \pi_t, z_t)$. The self-play is illustrated in figure \ref{alpha_zero_training} (a).
+To train the network $f_{\theta}$, it is initialized with random weights. At each turn $i$ during self-play $f_{\theta}$ guides a MCTS, which produces a probability distribution $\pi_t$ over all (legal) moves. The move $a_i$ is selected according to the probabilities $\pi$. So instead of using the network $f_{\theta}$ directly to decide on the next move, MCTS produces an improved policy through repeated application of $f_{\theta}$. The authors describe MCTS in this context as a \textit{policy improvement} operator. The self-play games are played until a terminal state $s_T$ is reached. The result of the game is $z_T \in \{-1, +1\}$ recorded for either a loss or a win. For each move during the game he result of the game $z_t$ is recorded together with the board state $s_t$ and the search probabilities $\pi_t$, where $z_t \mp z_T $ depending on the players perspective: $(s_t, \pi_t, z_t)$. The self-play is illustrated in figure \ref{alpha_zero_training} (a).
 
-This tuple is stored in an experience buffer which is used for training the next iteration of the network. The parameters of the networks are fitted to mini-batches from the experience buffer that match the probabilities $\pi_t$ for the policy head and the game result $z_t$ for the value head. In total, $700,000$ mini batches of size $2,048$ from $4.9$ million games were sampled.
+This tuple is stored in an experience buffer which is used for training the next iteration of the network. In each iteration mini-batches sampled from the experience buffer and the network is fitted to match the probabilities $\pi_t$ with the policy head and the game result $z_t$ with the value head. The newly trained network is compared to the current best network in 400 games. If the new network wins more than a threshold 55\% of the games it is accepted and used for the self-play from that point on. In total, $700,000$ mini batches of size $2,048$ from $4.9$ million games were sampled \cite[p. 6]{silver_mastering_2017}.
+
+\begin{figure}
+    \centering
+    \includegraphics[height=4cm, keepaspectratio]{policy_iteration.png}
+    \caption{"Policy iteration consists of two simultaneous, interacting processes, one making the value function consistent with the current policy (policy evaluation), and the other making the policy greedy with respect to the current value function (policy improvement)" \cite[86]{sutton_reinforcement_2018}}
+    \label{policy_iteration}
+\end{figure}
+
+To summarize, the self-play of AlphaZero uses the much stronger search policy generated by MCTS and improves the neural network by fitting the policy head to this search policy. The authors describe this as a projection of the search policy "back into the function space of the neural network" \cite[p. 19]{silver_mastering_2017}. By using the results of the games the search policy is evaluated and the value head is fitted to match that evaluation. This is an approximate variant of the dynamic programming method policy iteration which is depicted in figure \ref{policy_iteration}.
+
+The MCTS is very similar to the previous version in AlphaGo:
+\begin{itemize}
+    \item During the selection phase an action $a_t$ is selected that has maximum action value and CPUCT until a leaf node $s_L$ is reached.
+    \item The network $f_{\theta}$ is evaluated and the the probabilities $P(s_L, a)$ are stored.
+    \item Only the evaluation $v$ is backed up. No rollouts are performed. The action values of the parent nodes are updated to the mean value of all $v$ for that node.
+\end{itemize}
+
+To select the move to play the visit count $N(s_0, a)$ in relation to the sum of all visits to other nodes is used. The more a move was selected from the root node $s_0$ the better the network deemed the move and the following positions. A temperature parameter $\tau$ is considered to further incentivise exploration during the first moves of the self-play games:
+
+\begin{equation}
+    \pi(a|s_0) = \frac{N(s_0, a)^{\frac{1}{\tau}}}{\sum_b N(s_0, b)^{\frac{1}{\tau}}}
+\end{equation}
+
+As $\tau$ approaches $0$ the move with the maximum number is selected deterministically and if $\tau = 1$ other moves are selected proportional to their probability. For self-play $\tau$ was set to $1$ for the first 30 moves and to $\tau \rightarrow 0$ for the rest of a game, as well as during the face-off of the new network and the current best network.
+
