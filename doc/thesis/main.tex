@@ -15,6 +15,9 @@
 
 \usepackage{algorithm}
 \usepackage{algpseudocode}
+\usepackage{tabularx}
+\usepackage[utf8]{inputenc}
+\usepackage{fancyvrb}
 
 \algnewcommand\algorithmicforeach{\textbf{for each}}
 \algdef{S}[FOR]{ForEach}[1]{\algorithmicforeach\ #1\ \algorithmicdo}
@@ -47,15 +50,15 @@
 \includegraphics[width=0.2\textwidth]{../lib/Wortmarke_WI_schwarz}
 
 {  ~ \sffamily
-  \vfill
-  {\Huge\bfseries Mastering the game of Abalone using deep reinforcement-learning and self-play}
-  \bigskip
+    \vfill
+    {\Huge\bfseries Mastering the game of Abalone using deep reinforcement-learning and self-play}
+    \bigskip
 
-  {\Large
-    Ture Claußen \\[2ex]
-    Bachelor thesis in "Applied computer science"
-    \\[5ex]
-    \today }
+    {\Large
+        Ture Claußen \\[2ex]
+        Bachelor thesis in "Applied computer science"
+        \\[5ex]
+        \today }
 }
 \vfill
 
@@ -66,17 +69,17 @@
 
 \newpage \thispagestyle{empty}
 \begin{tabular}{ll}
-  {\bfseries\sffamily Author}           & Ture Claußen                      \\
-                                        & Matriculation number: 1531067     \\
-                                        & tu.cl@pm.me                       \\[5ex]
-  {\bfseries\sffamily First examiner:}  & Prof. Dr. Adrian Pigors           \\
-                                        & Abteilung Informatik, Fakultät IV \\
-                                        & Hochschule Hannover               \\
-                                        & adrian.pigors@hs-hannover.de      \\[5ex]
-  {\bfseries\sffamily Second examiner:} & Prof. Dr. Vorname Name            \\
-                                        & Abteilung Informatik, Fakultät IV \\
-                                        & Hochschule Hannover               \\
-                                        & email-Adresse
+    {\bfseries\sffamily Author}           & Ture Claußen                      \\
+                                          & Matriculation number: 1531067     \\
+                                          & tu.cl@pm.me                       \\[5ex]
+    {\bfseries\sffamily First examiner:}  & Prof. Dr. Adrian Pigors           \\
+                                          & Abteilung Informatik, Fakultät IV \\
+                                          & Hochschule Hannover               \\
+                                          & adrian.pigors@hs-hannover.de      \\[5ex]
+    {\bfseries\sffamily Second examiner:} & Prof. Dr. Vorname Name            \\
+                                          & Abteilung Informatik, Fakultät IV \\
+                                          & Hochschule Hannover               \\
+                                          & email-Adresse
 \end{tabular}
 
 \vfill
@@ -91,7 +94,7 @@ Hannover, \today \hfill Signature
 \tableofcontents
 
 \begin{abstract}
-  Explanation
+    Explanation
 \end{abstract}
 
 \include{chapters/introduction}
