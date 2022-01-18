@@ -113,38 +113,34 @@ As both implementation have a differing move notation an intermediary string-bas
 This means that inline moves have the structure of "{MarbleCoordinate}{Direction}" and broadside moves the structure of "{MarbleCoordinate}{MarbleCoordinate}{Direction}". Additionally, the marble coordinates are ordered for broadside moves. The marble coordinates outlined in figure . The directions are always seen from the white players starting positon, north pointing straight in the direction of the black player (default position).
 
 \section{Neural network}
-The neural network architecture of the
+In order to adapt the neural network architecture proposed by AlphaZero (cf. figure \ref{alpha_zero_neural_network}) two elements need to be adapted:
+\begin{enumerate}
+    \item The input matrix of size $19 \cdot 19 \cdot 17$ needs to be adjusted to fit the dimensions of the hexagonal board. The hexagonal board is transformed into an ortogonal base as proposed in \cite{towzeur_towzeurgym-abalone_2021} such that it can represented as an $9 \cdot 9$ matrix as depicted in figure \ref{input_matrix}. The adjacency of the marbles is maintained.
+          \begin{figure}
+              \centering
+              \includegraphics[height=6cm, keepaspectratio]{input_matrix.png}
+              \caption{The matrix representation of the hexagonal field}
+              \label{input_matrix}
+          \end{figure}
+          The third dimension of size $17$ can be reduced to 1 by removing the move history and only passing the current state. Moreover, the players marbles are represented as $1$ for white and $-1$ for black (0 for an empty space) in a single plane instead of separating them. Lastly, the neural network is always fed with the canonical representation of the board, as proposed by \cite{thakoor_learning_nodate}. This means that the board states are always seen from white's perspective. If it's the white players turn the board remains unchanged, if it's black's turn the colors of the board are switched.
 
-\begin{figure}
-    \centering
-    \begin{BVerbatim}
-        0 1 2 3 4 5 6 7 8
-        0          o o o o o
-        1        o o o o o o
-        2      · · o o o · ·
-        3    · · · · · · · ·
-        4  · · · · · · · · ·
-        5  · · · · · · · ·
-        6  · · @ @ @ · ·
-        7  @ @ @ @ @ @
-        8  @ @ @ @ @
-    \end{BVerbatim}
-    \caption{The matrix representation of the hexagonal field}
-\end{figure}
+    \item The output vector $\pi$ of size 381
 
-\begin{figure}
-    \centering
-    \includegraphics[width=13cm, keepaspectratio]{possible_move_generation_inline.png}
-    \caption{}
-    \label{possible_move_generation_inline}
-\end{figure}
 
-\begin{figure}
-    \centering
-    \includegraphics[width=13cm, keepaspectratio]{possible_move_generation_broadside.png}
-    \caption{}
-    \label{possible_move_generation_broadside}
-\end{figure}
+          \begin{figure}
+              \centering
+              \includegraphics[width=13cm, keepaspectratio]{possible_move_generation_inline.png}
+              \caption{}
+              \label{possible_move_generation_inline}
+          \end{figure}
+
+          \begin{figure}
+              \centering
+              \includegraphics[width=13cm, keepaspectratio]{possible_move_generation_broadside.png}
+              \caption{}
+              \label{possible_move_generation_broadside}
+          \end{figure}
+\end{enumerate}
 
 \section{Training pipeline}
 \begin{figure}
