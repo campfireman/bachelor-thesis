@@ -82,12 +82,20 @@ To compare both options a catalogue of criteria is considered. Parallel training
 As shown by table \ref{training_framework_comparison}, the winner by those criteria is AlphaZero General. Core advantages of the library are its simplicity and popularity. Deep MCTS makes use of a lot of abstractions and generics which makes the code more professional and reusable but provided also significant difficulties in understanding. The application of AlphaZero General to multiple other games like Gobang, Santorini, Connect4 etc. have shown its performance. The major drawback is the lack of a parallelized training pipeline.
 
 \subsection{Game library}
-There are multiple implementations of game libraries for Abalone. As the interfacing language for pytorch is Python it makes sense to restrict the libraries to Python.
+There are two relevant implementations of game libraries for Abalone. As the interfacing language for pytorch is Python it makes sense to restrict the libraries to Python.
+
 \begin{itemize}
     \item Abalone-BoAI is a game library that is specifically designed for interfacing with computational agents. It is very simple and has been used for the precursor project of this thesis \cite{scriptim_scriptimabalone-boai_2021}.
     \item Gym-abalone is tightly integrated with OpenAI's gym allowing agents to potentially play other games as well. The API is more designed for the reinforcement learning setting \cite{towzeur_towzeurgym-abalone_2021}.
 \end{itemize}
 
+Two arguments lead to the decision of choosing Abalone-BOAI:
+\begin{enumerate}
+    \item It was already optimized in the previous project as the generation of legal moves is computationally expensive.
+    \item The API of the engine needs to be adapted to fit the interface of the training framework, wherefore intricate knowledge of the engine is of advantage.
+\end{enumerate}
+
+As mentioned in the section \ref{existing_game_playing_agents}, Verloop's reimplementation \cite{verloop_abaloneai_nodate} offers the simplest solution for interfacing with (one of) the strongest Abalone algorithms. In a small tournament personal implementations of minimax in Python \cite{claussen_abalone_2021} were inferior. This creates the necessity of interfacing between Java and Python. As the Java implementation is tightly coupled with with the internal game-engine it was decided to implement a proxy player for each game-engine. The proxy players communicate through a named pipe as depicted in figure \ref{python_java_ipc}. The downside of this solution is the need of synchronizing two separate game states.
 
 \begin{figure}
     \centering
@@ -96,7 +104,16 @@ There are multiple implementations of game libraries for Abalone. As the interfa
     \label{python_java_ipc}
 \end{figure}
 
+As both implementation have a differing move notation an intermediary string-based format was introduced to serialize the moves more easily. The regex for the format is the following:
+
+\begin{BVerbatim}
+    [A-I][1-9]){1}([A-I][1-9]){0,1}((NE)|(E)|(SE)|(SE)|(SW)|(W)|(NW)){1}
+\end{BVerbatim}
+
+This means that inline moves have the structure of "{MarbleCoordinate}{Direction}" and broadside moves the structure of "{MarbleCoordinate}{MarbleCoordinate}{Direction}". Additionally, the marble coordinates are ordered for broadside moves. The marble coordinates outlined in figure . The directions are always seen from the white players starting positon, north pointing straight in the direction of the black player (default position).
+
 \section{Neural network}
+The neural network architecture of the
 
 \begin{figure}
     \centering
@@ -134,7 +151,7 @@ There are multiple implementations of game libraries for Abalone. As the interfa
     \centering
     \includegraphics[height=10cm, keepaspectratio]{parallel-training.png}
     \caption{The different processes during the parallel training}
-    \label{python_java_ipc}
+    \label{parallel_training_pipeline}
 \end{figure}
 
 \begin{figure}[!h]
