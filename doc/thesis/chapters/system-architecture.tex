@@ -2,7 +2,7 @@
 Well equipped with all the basic theoretical tools that we need, we can move on to implementing them for the game of Abalone. A first logical step would be to look at the existing software landscape to decide if we can utilize existing tools to speed up development.
 
 \section{Software}
-\subsection{Machine learning libray}
+\subsection{Machine learning library}
 Machine learning projects share many components. Most commonly that is the declaration of the computational graph and the training of the graph. The libraries not only provide those components but also bring significant optimizations and specialized code for hardware acceleration. Therefore, it is imperative to decide on a suitable library to speed up development by several orders of magnitude.
 
 \begin{figure}
@@ -12,9 +12,9 @@ Machine learning projects share many components. Most commonly that is the decla
     \label{ml_framework_popularity}
 \end{figure}
 
-A first indicator to go by is the popularity of the frameworks. Currently, the most relevant frameworks are Facebook's pytorch and Google's tensorflow. The Keras API has been introduced to tensorflow, therefore it is not considered further. In research pytorch seems to have quickly taken the dominance as depicted in figure \ref{ml_framework_popularity}. Aside from all differences between both libraries, the choice was guided by two practical reasons. Initially, tensorflow was selected due to the included support for TPUs as this project was granted free access to Google's Reseach Cloud \cite{noauthor_tpu_nodate}. At a later stage it became clear that Google was unwilling to increase the CPU quota for the account limiting the server to 8 cores which posed a significant problem for parallel execution.
+A first indicator to go by is the popularity of the frameworks. Currently, the most relevant frameworks are Facebook's pytorch and Google's tensorflow. The Keras API has been introduced to tensorflow, therefore it is not considered further. In research pytorch seems to have quickly taken the dominance as depicted in figure \ref{ml_framework_popularity}. Aside from all differences between both libraries, the choice was guided by two practical reasons. Initially, tensorflow was selected due to the included support for TPUs as this project was granted free access to Google's Research Cloud \cite{noauthor_tpu_nodate}. At a later stage it became clear that Google was unwilling to increase the CPU quota for the account, limiting the server to 8 cores which posed a significant problem for parallel execution.
 
-As depicted in table \ref{pytorch_vs_tensorflow_performance} there is also a significant performance difference in the inference step of the MCTS. There are two ways in tensorflow to perform inference, either through the \texttt{predict} function or by calling the \texttt{\_\_call\_\_} method of the $model$ itself. As in the implementation the inference is not batched but done for individual board states, the usage of the latter option is faster \cite{noauthor_tfkerasmodel_nodate}. Nevertheless, pytorch is about five times faster. As discussed later, this is the reason to pivot to pytorch as framework.
+As depicted in table \ref{pytorch_vs_tensorflow_performance} there is also a significant performance difference in the inference step of the MCTS. There are two ways in tensorflow to perform inference, either through the \texttt{predict} function or by calling the \texttt{\_\_call\_\_} method of the $model$ itself. As in the implementation the inference is not batched but done for individual board states, the usage of the latter option is faster \cite{noauthor_tfkerasmodel_nodate}. Nevertheless, pytorch is about five times faster. As discussed later, this is the reason to pivot to pytorch as a framework.
 
 \begin{table*}
     \begin{center}
@@ -53,11 +53,11 @@ As depicted in table \ref{pytorch_vs_tensorflow_performance} there is also a sig
 \subsection{Training Framework}
 As there are existing frameworks that have implemented the system described in the AlphaZero paper in a more general and adaptable fashion, it has to be considered building on their foundation:
 \begin{itemize}
-    \item AlphaZero General is a framework developed as a university project at Standford originnally for the game of Hex and Othello. \cite{thakoor_learning_nodate,thakoor_suragnairalpha-zero-general_nodate}.
+    \item AlphaZero General is a framework developed as a university project at Stanford originally for the game of Hex and Othello. \cite{thakoor_learning_nodate,thakoor_suragnairalpha-zero-general_nodate}.
     \item Deep MCTS is a framework developed in the context of a Master's thesis \cite{bruasdal_deep_2020,henribru_deep_2021}.
 \end{itemize}
 
-To compare both options a catalogue of criteria is considered. Parallel training and parallel search measure whether the software implements the parallel training pipeline and MCTS-APV proposed by the AlphaZero paper. Moreover, it is checked whether the libraries are agnostic to the game and ML library that is being used. Lastly, it is relevant to investigate whether the performance could be verified by other users.
+To compare both options a catalog of criteria is considered. Parallel training and parallel search measure whether the software implements the parallel training pipeline and MCTS-APV proposed by the AlphaZero paper. Moreover, it is checked whether the libraries are agnostic to the game and ML library that is being used. Lastly, it is relevant to investigate whether the performance could be verified by other users.
 
 \begin{table*}
     \begin{center}
@@ -79,7 +79,7 @@ To compare both options a catalogue of criteria is considered. Parallel training
     \caption{A comparison of existing AlphaZero frameworks}\label{training_framework_comparison}
 \end{table*}
 
-As shown by table \ref{training_framework_comparison}, the winner by those criteria is AlphaZero General. Core advantages of the library are its simplicity and popularity. Deep MCTS makes use of a lot of abstractions and generics which makes the code more professional and reusable but provided also significant difficulties in understanding. The application of AlphaZero General to multiple other games like Gobang, Santorini, Connect4 etc. have shown its performance. The major drawback is the lack of a parallelized training pipeline.
+As shown by table \ref{training_framework_comparison}, the winner by those criteria is AlphaZero General. Core advantages of the library are its simplicity and popularity. Deep MCTS makes use of a lot of abstractions and generics which makes the code more professional and reusable but also significant difficulties in understanding. The application of AlphaZero General to multiple other games like Gobang, Santorini, Connect4 etc. have shown its performance. The major drawback is the lack of a parallelized training pipeline.
 
 \subsection{Game Library}
 There are two relevant implementations of game libraries for Abalone. As the interfacing language for pytorch is Python it makes sense to restrict the libraries to Python.
@@ -95,7 +95,7 @@ Two arguments lead to the decision of choosing Abalone-BOAI:
     \item The API of the engine needs to be adapted to fit the interface of the training framework, wherefore intricate knowledge of the engine is of advantage.
 \end{enumerate}
 
-As mentioned in the section \ref{existing_game_playing_agents}, Verloop's reimplementation \cite{verloop_abaloneai_nodate} offers the simplest solution for interfacing with (one of) the strongest Abalone algorithms. In a small tournament personal implementations of minimax in Python \cite{claussen_abalone_2021} were inferior. This creates the necessity of interfacing between Java and Python. As the Java implementation is tightly coupled with with the internal game-engine it was decided to implement a proxy player for each game-engine. The proxy players communicate through a named pipe as depicted in figure \ref{python_java_ipc}. The downside of this solution is the need of synchronizing two separate game states.
+As mentioned in the section \ref{existing_game_playing_agents}, Verloop's reimplementation \cite{verloop_abaloneai_nodate} offers the simplest solution for interfacing with (one of) the strongest Abalone algorithms. In a small tournament personal implementations of minimax in Python \cite{claussen_abalone_2021} were inferior. This creates the necessity of interfacing between Java and Python. As the Java implementation is tightly coupled with the internal game-engine it was decided to implement a proxy player for each game-engine. The proxy players communicate through a named pipe as depicted in figure \ref{python_java_ipc}. The downside of this solution is the need of synchronizing two separate game states.
 
 \begin{figure}
     \centering
@@ -104,19 +104,19 @@ As mentioned in the section \ref{existing_game_playing_agents}, Verloop's reimpl
     \label{python_java_ipc}
 \end{figure}
 
-As both implementation have a differing move notation an intermediary string-based format was introduced to serialize the moves more easily. The regex for the format is the following:
+As both implementations have a differing move notation an intermediary string-based format was introduced to serialize the moves more easily. The regex for the format is the following:
 
 \begin{BVerbatim}
     ([A-I][1-9]){1}([A-I][1-9]){0,1}((NE)|(E)|(SE)|(SE)|(SW)|(W)|(NW)){1}
 \end{BVerbatim}
 
-This means that inline moves have the structure of "\{MarbleCoordinate\}\{Direction\}" and broadside moves the structure of "\{MarbleCoordinate\}\{MarbleCoordinate\}\{Direction\}". Additionally, the marble coordinates are ordered for broadside moves. The marble coordinates outlined in figure . The directions are always seen from the white players starting positon, north pointing straight in the direction of the black player (default position).
+This means that inline moves have the structure of "\{MarbleCoordinate\}\{Direction\}" and broadside moves the structure of "\{MarbleCoordinate\}\{MarbleCoordinate\}\{Direction\}". Additionally, the marble coordinates are ordered for broadside moves. The marble coordinates outlined in figure . The directions are always seen from the white player's starting position, north pointing straight in the direction of the black player (default position).
 
 \section{Neural Network}
 \subsection{Dimensions}
 In order to apply the neural network architecture proposed by AlphaZero (cf. figure \ref{alpha_zero_neural_network}) two dimensions need to be changed:
 \begin{enumerate}
-    \item The input matrix of size $19 \cdot 19 \cdot 17$ needs to be adjusted to fit the dimensions of the hexagonal board. The hexagonal board is transformed into an ortogonal base as proposed in \cite{towzeur_towzeurgym-abalone_2021} such that it can represented as an $9 \cdot 9$ matrix as depicted in figure \ref{input_matrix}. The adjacency of the marbles is maintained.
+    \item The input matrix of size $19 \cdot 19 \cdot 17$ needs to be adjusted to fit the dimensions of the hexagonal board. The hexagonal board is transformed into an orthogonal base as proposed in \cite{towzeur_towzeurgym-abalone_2021} such that it can represented as an $9 \cdot 9$ matrix as depicted in figure \ref{input_matrix}. The adjacency of the marbles is maintained.
           \begin{figure}[!h]
               \centering
               \subfloat[If white's turn]{
@@ -129,9 +129,9 @@ In order to apply the neural network architecture proposed by AlphaZero (cf. fig
               \caption{The canonical board representation (the $0$ values for the corners of the matrix are ignored, but present in the implementation)}
               \label{input_matrix}
           \end{figure}
-          The third dimension of size $17$ can be reduced to 1 by removing the move history and only passing the current state. Moreover, the players marbles are represented as $1$ for white and $-1$ for black (0 for an empty space) in a single plane instead of separating them. Lastly, the neural network is always fed with the canonical representation of the board, as proposed by \cite{thakoor_learning_nodate}. This means that the board states are always seen from white's perspective. If it's the white players turn the board remains unchanged, if it's black's turn the colors of the board are switched.
+          The third dimension of size $17$ can be reduced to 1 by removing the move history and only passing the current state. Moreover, the players' marbles are represented as $1$ for white and $-1$ for black (0 for an empty space) in a single plane instead of separating them. Lastly, the neural network is always fed with the canonical representation of the board, as proposed by \cite{thakoor_learning_nodate}. This means that the board states are always seen from white's perspective. If it's the white players turn the board remains unchanged, if it's black's turn the colors of the board are switched.
 
-    \item AlphaZero's output vector $\pi$ of size 381 represents all possible positions a piece can be placed on the board. As Abalone has a much more complex move system, the size of this vector needs to be match the number of all possible moves. The number of all possible moves was found by generating all moves programatically. The generated moves were stored in a bijective map. Each move is assigned an index in $\pi$ and represented as string in the proposed notation above. Therefore, using the bijective map a move index can be found by its string representation and vice versa.
+    \item AlphaZero's output vector $\pi$ of size 381 represents all possible positions a piece can be placed on the board. As Abalone has a much more complex move system, the size of this vector needs to match the number of all possible moves. The number of all possible moves was found by generating all moves programmatically. The generated moves were stored in a bijective map. Each move is assigned an index in $\pi$ and represented as a string in the proposed notation above. Therefore, using the bijective map a move index can be found by its string representation and vice versa.
 
           As depicted in figure \ref{possible_move_generation_inline} the inline moves are generated by iterating over all fields of the board. For each field all directions are tested for being a valid move. If that is the case the move is added to the bijective map. In case the move is already in the map, the move is skipped.
 
@@ -142,7 +142,7 @@ In order to apply the neural network architecture proposed by AlphaZero (cf. fig
               \label{possible_move_generation_inline}
           \end{figure}
 
-          Figure \ref{possible_move_generation_broadside} shows the generation of the broadside moves. The algorithm iterates each field. For each field marble lines of length two and three in all (possible) directions are generated. For each line broadside in all directions are moves are checked for their validity. The move direction of the marble line direction is ingnored.
+          Figure \ref{possible_move_generation_broadside} shows the generation of the broadside moves. The algorithm iterates each field. For each field marble lines of length two and three in all (possible) directions are generated. For each line broadside in all directions, moves are checked for their validity. The move direction of the marble line direction is ignored.
 
           \begin{figure}
               \centering
