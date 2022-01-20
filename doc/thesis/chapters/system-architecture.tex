@@ -1,4 +1,4 @@
-\chapter{System architecture}
+\chapter{System Architecture}
 Well equipped with all the basic theoretical tools that we need, we can move on to implementing them for the game of Abalone. A first logical step would be to look at the existing software landscape to decide if we can utilize existing tools to speed up development.
 
 \section{Software}
@@ -50,7 +50,7 @@ As depicted in table \ref{pytorch_vs_tensorflow_performance} there is also a sig
     \caption{The average time ($n = 3,000$) taken to perform the feed-forward through the network for state $s$ ($\texttt{predict}(s)$) and one iteration of MCTS ($\texttt{search}(s)$)}\label{pytorch_vs_tensorflow_performance}
 \end{table*}
 
-\subsection{Training framework}
+\subsection{Training Framework}
 As there are existing frameworks that have implemented the system described in the AlphaZero paper in a more general and adaptable fashion, it has to be considered building on their foundation:
 \begin{itemize}
     \item AlphaZero General is a framework developed as a university project at Standford originnally for the game of Hex and Othello. \cite{thakoor_learning_nodate,thakoor_suragnairalpha-zero-general_nodate}.
@@ -81,7 +81,7 @@ To compare both options a catalogue of criteria is considered. Parallel training
 
 As shown by table \ref{training_framework_comparison}, the winner by those criteria is AlphaZero General. Core advantages of the library are its simplicity and popularity. Deep MCTS makes use of a lot of abstractions and generics which makes the code more professional and reusable but provided also significant difficulties in understanding. The application of AlphaZero General to multiple other games like Gobang, Santorini, Connect4 etc. have shown its performance. The major drawback is the lack of a parallelized training pipeline.
 
-\subsection{Game library}
+\subsection{Game Library}
 There are two relevant implementations of game libraries for Abalone. As the interfacing language for pytorch is Python it makes sense to restrict the libraries to Python.
 
 \begin{itemize}
@@ -112,7 +112,7 @@ As both implementation have a differing move notation an intermediary string-bas
 
 This means that inline moves have the structure of "\{MarbleCoordinate\}\{Direction\}" and broadside moves the structure of "\{MarbleCoordinate\}\{MarbleCoordinate\}\{Direction\}". Additionally, the marble coordinates are ordered for broadside moves. The marble coordinates outlined in figure . The directions are always seen from the white players starting positon, north pointing straight in the direction of the black player (default position).
 
-\section{Neural network}
+\section{Neural Network}
 \subsection{Dimensions}
 In order to apply the neural network architecture proposed by AlphaZero (cf. figure \ref{alpha_zero_neural_network}) two dimensions need to be changed:
 \begin{enumerate}
@@ -156,7 +156,7 @@ In order to apply the neural network architecture proposed by AlphaZero (cf. fig
 
 \subsection{Architecture}
 
-\section{Training pipeline}
+\section{Training Pipeline}
 \begin{figure}
     \centering
     \includegraphics[height=10cm, keepaspectratio]{parallel-training.png}
