@@ -2,7 +2,7 @@
 Well equipped with all the basic theoretical tools that we need, we can move on to implementing them for the game of Abalone. A first logical step would be to look at the existing software landscape to decide if we can utilize existing tools to speed up development.
 
 \section{Software}
-\subsection{Machine learning library}
+\subsection{Machine Learning Library}
 Machine learning projects share many components. Most commonly that is the declaration of the computational graph and the training of the graph. The libraries not only provide those components but also bring significant optimizations and specialized code for hardware acceleration. Therefore, it is imperative to decide on a suitable library to speed up development by several orders of magnitude.
 
 \begin{figure}
@@ -51,6 +51,7 @@ As depicted in table \ref{pytorch_vs_tensorflow_performance} there is also a sig
 \end{table*}
 
 \subsection{Training Framework}
+\label{training_framework}
 As there are existing frameworks that have implemented the system described in the AlphaZero paper in a more general and adaptable fashion, it has to be considered building on their foundation:
 \begin{itemize}
     \item AlphaZero General is a framework developed as a university project at Stanford originally for the game of Hex and Othello. \cite{thakoor_learning_nodate,thakoor_suragnairalpha-zero-general_nodate}.
@@ -157,12 +158,10 @@ In order to apply the neural network architecture proposed by AlphaZero (cf. fig
 \subsection{Architecture}
 
 \section{Training Pipeline}
-\begin{figure}
-    \centering
-    \includegraphics[height=10cm, keepaspectratio]{parallel-training.png}
-    \caption{The different processes during the parallel training}
-    \label{parallel_training_pipeline}
-\end{figure}
+\subsection{Components}
+\label{components}
+\subsection{Algorithm}
+
 
 \begin{figure}[!h]
     \centering
@@ -176,3 +175,54 @@ In order to apply the neural network architecture proposed by AlphaZero (cf. fig
     \caption{The self-play training pipeline}
     \label{training_algorithm}
 \end{figure}
+
+\subsection{Parallelization}
+The given training pipeline in the selected framework does not offer parallel training. By comparing the time taken to execute one episode for the game of Othello and Abalone it showed that a game of Abalone takes on average $40$ times (n=100) longer to finish. Investigating potential improvements, it showed that there is two major factors that determine the runtime of an episode:
+
+1. Length of the game. A game of Abalone takes significantly more turns, caused by rules not forbidding loops etc. such that games can be infinite or defensive play styles. The issue can be alleviated by limiting the length of a game to a certain amount of turns $m$ and evaluating the state of the game at that step. In this case the length was limited to $m=200$.
+
+2. The MCTS being compututionally expensive: A closer inspection of the execution time, holding all variables constant demonstrates the culprit. The simulation step of MCTS using the neural network. The time taken by this function is one order of magnitude larger than the second most expensive operation, which is the generation of legal moves. For example when running 15 MCTS iterations with the original tensorflow implementation, one turn takes
+
+\begin{itemize}
+    \item Total time: 0.44s
+    \item One MCTS iteration: 0.03s
+    \item Neural network : 0.025s
+    \item Valid move generation: 0.05s
+\end{itemize}
+
+Looking at the main variables that control the length of the nested loops, it becomes clear that reducing the time on MCTS iteration takes, is essential. Assuming function $f$ is the operation to perform one Monte Carlo simulation:
+
+$$
+    k := \text{number of games}
+$$
+$$
+    m := \text{number of turns per game}
+$$
+$$
+    n := \text{number of MCTS simulations}
+$$
+$$
+    f \in O(kmn)
+$$
+
+Abalone requires a larger number of MCTS simulations. The other projects \cite{bruasdal_deep_2020,thakoor_learning_nodate} used only 30 iterations for Othello and Hex, but the search space of Abalone is larger. AlphaZero performs $1,600$ iterations \cite[p. 11]{silver_mastering_2017} for each move. In order for the network to improve, the MCTS needs to recommend a better move than the pure network. It is the policy improvement operator. This was the reason to decide to use pytorch, as it brings an $5$-times improvement for that step as shown in \ref{pytorch_vs_tensorflow_performance}. Nevertheless, this only brings down execution time for one episode by a factor of $5$, still being $8$-times slower than the reference implementation for Othello. AlphaZero uses two ways to alleviate this problem:
+
+\begin{itemize}
+    \item Parallelization of the self-play training
+    \item Parallelization of the MCTS (APV-MCTS)
+\end{itemize}
+
+As python's global interpreter lock \cite{noauthor_globalinterpreterlock_nodate} doesn't allow for true multithreading, parallelizing the MCTS poses significant complexity and difficulty. However, allowing for simultaneous self-play and training of the neural network is more feasible. As already mentioned in the decision between the two different AlphaZero frameworks in section \ref{training_framework}, the implementation by Bruåsdal \cite{bruasdal_deep_2020} provides this feature, wherefore its archtitecture is used as a blueprint for migrating the chosen framework into a parallel architecture. The figure \ref{parallel_training_pipeline} depicts how the components mentioned interact in a parallel fashion.
+
+\begin{figure}
+    \centering
+    \includegraphics[height=10cm, keepaspectratio]{parallel-training.png}
+    \caption{The different processes during the parallel training}
+    \label{parallel_training_pipeline}
+\end{figure}
+
+There are multiple self-play workers that use the current best neural network $f_{\theta}$ to generate experience. The experience is put into a queue that is being read by the Coach and loaded into the experience buffer.
+
+\subsection{Warm-Up}
+
+\subsection{Data Augmentation}
