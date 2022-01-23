@@ -213,17 +213,21 @@ Abalone requires a larger number of MCTS simulations. The other projects \cite{b
     \item Parallelization of the MCTS (APV-MCTS)
 \end{itemize}
 
-As python's global interpreter lock \cite{noauthor_globalinterpreterlock_nodate} doesn't allow for true multithreading, parallelizing the MCTS poses significant complexity and difficulty. However, allowing for simultaneous self-play and training of the neural network is more feasible. As already mentioned in the decision between the two different AlphaZero frameworks in section \ref{training_framework}, the implementation by Bruåsdal \cite{bruasdal_deep_2020} provides this feature, wherefore its archtitecture is used as a blueprint for migrating the chosen framework into a parallel architecture. The figure \ref{parallel_training_pipeline} depicts how the components mentioned interact in a parallel fashion.
+As python's global interpreter lock \cite{noauthor_globalinterpreterlock_nodate} doesn't allow for true multithreading, parallelizing the MCTS poses significant complexity and difficulty. However, allowing for simultaneous self-play and training of the neural network is more feasible. As already mentioned in section \ref{training_framework}, the implementation by Bruåsdal \cite{bruasdal_deep_2020} provides this feature. For that reason its archtitecture is used as a blueprint for migrating the chosen framework AlphaZero General into a parallel architecture. The figure \ref{parallel_training_pipeline} depicts how the components mentioned interact in a parallel fashion.
 
-\begin{figure}
+\begin{figure}[H]
     \centering
     \includegraphics[height=10cm, keepaspectratio]{parallel-training.png}
-    \caption{The different processes during the parallel training}
+    \caption{The different processes during the parallel training \cite[cf. p. 45]{bruasdal_deep_2020}}
     \label{parallel_training_pipeline}
 \end{figure}
 
-There are multiple self-play workers that use the current best neural network $f_{\theta}$ to generate experience. The experience is put into a queue that is being read by the Coach and loaded into the experience buffer.
+There are multiple self-play workers that use the current best neural network $f_{\theta}$ to generate experience. The experience is put into a queue to allow for asynchronous communication between the worker processes and the Coach. For each training iteration of the neural network, the queue is emptied and loaded into the replay buffer. If the experience buffer exceeds the maximum size, the oldest experience is dropped. The number of training batches is defined by the batch size and buffer size (buffer size divided by batch size). The training batches are created by randomly sampling tuples ($s, \pi, z$) from the buffer. No tuple is used twice, so that the entire buffer is utilized.
 
-\subsection{Warm-Up}
+After training the neural network with the batches, the newly created network is pitted against the old version in the Arena. As both variants are pitted against each other multiple times, the Arena is parallelized as well. If the new network is stronger, it is saved on disk and a version counter is incremented. The version counter is a shared variable between the workers and the Coach. After each completed self-play game the worker checks if the version counter is larger than its stored version. If that is the case, the new network is loaded from disk.
+
+An important factor is to balance the amount of workers against the time it takes to train the neural network. If the buffer grows large training takes long. In the meantime a lot of new experience is potentially generated. This then overrides all previous experience, such that all experience is only generated from one network. This might make the training process less robust.
 
 \subsection{Data Augmentation}
+
+\subsection{Warm-Up}
