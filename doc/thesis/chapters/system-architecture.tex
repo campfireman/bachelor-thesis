@@ -161,23 +161,37 @@ In order to apply the neural network architecture proposed by AlphaZero (cf. fig
 \section{Training Pipeline}
 \subsection{Components}
 \label{components}
-\subsection{Algorithm}
 
+The training pipeline of AlphaZero General has 5 main components:
+\begin{enumerate}
+    \item \textbf{Coach}: The main module that orchestrates the training process.
+    \item \textbf{Game}: Provides an abstract interface that generalizes to many types of board games. Functions like the generation of legal moves, creating a unique string representation of the board, etc. need to be implemented.
+    \item \textbf{Neural Net}: Is a wrapper for any type of neural network. It needs to be implemented for the specific framework used.
+    \item \textbf{MCTS}: Encapsules the logic to perform Monte Carlo Tree Search on the game tree with the help of the neural network.
+    \item \textbf{Arena}: Has the task to perform the faceoff between different agents.
+\end{enumerate}
+
+Aside from the modifications made to parallelize the framework in section \ref{parallelization}, the Arena was modified to use the abalone-engine and game-playing agents implemented for that engine. This way not only the neural nets can be faced off, but also the proxy player for Verloop's minimax algorithms. Moreover, the MCTS implementation was not able to deal with games that have board states appear multiple times in the search tree. The implementation uses hash maps to retrieve the action-values and counts for a board state. If the board state exists multiple times in the search tree the values are skewed. To solve the problem each hash of a state is extended by a hash of the parent node and the current depth of the node.
+
+Additionally, a CLI entrpoint was added to pass arguments to the training process. All relevant hyperparameters of a training run are persisted as JSON file, performance data (time per iteration, etc.) and results of the Arena are logged as CSV tables.
+
+\subsection{Algorithm}
 
 \begin{figure}[H]
     \centering
     \subfloat[The main loop of the training algorithm]{
-        \includegraphics[width=6cm, keepaspectratio]{training_main_loop.png}
+        \includegraphics[height=19cm, keepaspectratio]{training_main_loop.png}
     }
     % \hfill
     \subfloat[The episode loop]{
-        \includegraphics[width=4cm, keepaspectratio]{training_episode.png}
+        \includegraphics[height=19cm, keepaspectratio]{training_episode.png}
     }
     \caption{The self-play training pipeline}
     \label{training_algorithm}
 \end{figure}
 
 \subsection{Parallelization}
+\label{parallelization}
 The given training pipeline in the selected framework does not offer parallel training. By comparing the time taken to execute one episode for the game of Othello and Abalone it showed that a game of Abalone takes on average $40$ times (n=100) longer to finish. Investigating potential improvements, it showed that there is two major factors that determine the runtime of an episode:
 
 1. Length of the game. A game of Abalone takes significantly more turns, caused by rules not forbidding loops etc. such that games can be infinite or defensive play styles. The issue can be alleviated by limiting the length of a game to a certain amount of turns $m$ and evaluating the state of the game at that step. In this case the length was limited to $m=200$.
