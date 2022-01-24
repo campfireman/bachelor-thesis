@@ -15,7 +15,7 @@ Machine learning projects share many components. Most commonly that is the decla
 
 A first indicator to go by is the popularity of the frameworks. Currently, the most relevant frameworks are Facebook's pytorch and Google's tensorflow. The Keras API has been introduced to tensorflow, therefore it is not considered further. In research pytorch seems to have quickly taken the dominance as depicted in figure \ref{ml_framework_popularity}. Aside from all differences between both libraries, the choice was guided by two practical reasons. Initially, tensorflow was selected due to the included support for TPUs as this project was granted free access to Google's Research Cloud \cite{noauthor_tpu_nodate}. At a later stage it became clear that Google was unwilling to increase the CPU quota for the account, limiting the server to 8 cores which posed a significant problem for parallel execution.
 
-As depicted in table \ref{pytorch_vs_tensorflow_performance} there is also a significant performance difference in the inference step of the MCTS. There are two ways in tensorflow to perform inference, either through the \texttt{predict} function or by calling the \texttt{\_\_call\_\_} method of the $model$ itself. As in the implementation the inference is not batched but done for individual board states, the usage of the latter option is faster \cite{noauthor_tfkerasmodel_nodate}. Nevertheless, pytorch is about five times faster. As discussed later, this is the reason to pivot to pytorch as a framework.
+In table \ref{pytorch_vs_tensorflow_performance} there is also a significant performance difference in the inference step of the MCTS. There are two ways in tensorflow to perform inference, either through the \texttt{predict} function or by calling the \texttt{\_\_call\_\_} method of the $model$ itself. As in the implementation the inference is not batched but done for individual board states, the usage of the latter option is faster \cite{noauthor_tfkerasmodel_nodate}. Nevertheless, pytorch is about five times faster. As discussed later, this is the reason to pivot to pytorch as a framework.
 
 \begin{table*}
     \begin{center}
@@ -171,9 +171,9 @@ The training pipeline of AlphaZero General has 5 main components:
     \item \textbf{Arena}: Has the task to perform the faceoff between different agents.
 \end{enumerate}
 
-Aside from the modifications made to parallelize the framework in section \ref{parallelization}, the Arena was modified to use the abalone-engine and game-playing agents implemented for that engine. This way not only the neural nets can be faced off, but also the proxy player for Verloop's minimax algorithms. Moreover, the MCTS implementation was not able to deal with games that have board states appear multiple times in the search tree. The implementation uses hash maps to retrieve the action-values and counts for a board state. If the board state exists multiple times in the search tree the values are skewed. To solve the problem each hash of a state is extended by a hash of the parent node and the current depth of the node.
+Aside from the modifications made to parallelize the framework in section \ref{parallelization}, the Arena was modified to use the abalone-engine and game-playing agents implemented for that engine. This way not only the neural nets can be faced off, but also the proxy player for Verloop's minimax and other algorithms. Moreover, the MCTS implementation was not able to deal with games that have board states appear multiple times in the search tree. The implementation uses hash maps to retrieve the action-values and counts for a board state. If the board state exists multiple times in the search tree the values are skewed. To solve the problem each hash of a state is extended by a hash of the parent node's hash and the current depth of the node.
 
-Additionally, a CLI entrpoint was added to pass arguments to the training process. All relevant hyperparameters of a training run are persisted as JSON file, performance data (time per iteration, etc.) and results of the Arena are logged as CSV tables.
+Additionally, a CLI entry point was added to pass arguments to the training process. All relevant hyperparameters of a training run are persisted in a JSON file. Performance data (time per iteration, etc.) and results of the Arena are logged as CSV tables.
 
 \subsection{Algorithm}
 
@@ -192,11 +192,11 @@ Additionally, a CLI entrpoint was added to pass arguments to the training proces
 
 \subsection{Parallelization}
 \label{parallelization}
-The given training pipeline in the selected framework does not offer parallel training. By comparing the time taken to execute one episode for the game of Othello and Abalone it showed that a game of Abalone takes on average $40$ times (n=100) longer to finish. Investigating potential improvements, it showed that there is two major factors that determine the runtime of an episode:
+AlphaZero General's training pipeline does not offer parallel training. By comparing the time taken to execute one episode for the game of Othello and Abalone it showed that a game of Abalone takes on average $40$ times (n=100) longer to finish: 1s for Othello and 40s for Abalone. Investigating potential improvements, it became clear that there is two major factors which determine the runtime of an episode:
 
-1. Length of the game. A game of Abalone takes significantly more turns, caused by rules not forbidding loops etc. such that games can be infinite or defensive play styles. The issue can be alleviated by limiting the length of a game to a certain amount of turns $m$ and evaluating the state of the game at that step. In this case the length was limited to $m=200$.
+1. Length of the game. A game of Abalone takes significantly more turns, caused by rules not forbidding loops etc. such that games can be infinite. Moreover defensive play styles can draw out games significantly. The issue can be alleviated by limiting the length of a game to a certain amount of turns $m$ and evaluating the state of the game at that step. In this case the length was limited to $m=200$.
 
-2. The MCTS being compututionally expensive: A closer inspection of the execution time, holding all variables constant demonstrates the culprit. The simulation step of MCTS using the neural network. The time taken by this function is one order of magnitude larger than the second most expensive operation, which is the generation of legal moves. For example when running 15 MCTS iterations with the original tensorflow implementation, one turn takes
+2. The MCTS being computationally expensive: A closer inspection of the execution time, holding all variables constant demonstrates the culprit. The simulation step of MCTS using the neural network. The time taken by this function is one order of magnitude larger than the second most expensive operation, which is the generation of legal moves. For example when running 15 MCTS iterations with the original tensorflow implementation, one turn takes
 
 \begin{itemize}
     \item Total time: 0.44s
@@ -220,14 +220,14 @@ $$
     f \in O(kmn)
 $$
 
-Abalone requires a larger number of MCTS simulations. The other projects \cite{bruasdal_deep_2020,thakoor_learning_nodate} used only 30 iterations for Othello and Hex, but the search space of Abalone is larger. AlphaZero performs $1,600$ iterations \cite[p. 11]{silver_mastering_2017} for each move. In order for the network to improve, the MCTS needs to recommend a better move than the pure network. It is the policy improvement operator. This was the reason to decide to use pytorch, as it brings an $5$-times improvement for that step as shown in \ref{pytorch_vs_tensorflow_performance}. Nevertheless, this only brings down execution time for one episode by a factor of $5$, still being $8$-times slower than the reference implementation for Othello. AlphaZero uses two ways to alleviate this problem:
+Abalone requires a larger number of MCTS simulations. The other projects \cite{bruasdal_deep_2020,thakoor_learning_nodate} used only 30 iterations for Othello and Hex, but the search space of Abalone is larger. AlphaZero performs $1,600$ iterations \cite[p. 11]{silver_mastering_2017} for each move. In order for the network to improve, the MCTS needs to recommend a better move than the pure network. It is the policy improvement operator. This was the reason to decide to use PyTorch, as it brings an $5$-times improvement for that step as shown in \ref{pytorch_vs_tensorflow_performance}. Nevertheless, this only brings down execution time for one episode by a factor of $5$, still being $8$-times slower than the reference implementation for Othello. AlphaZero uses two ways to alleviate this problem:
 
 \begin{itemize}
     \item Parallelization of the self-play training
     \item Parallelization of the MCTS (APV-MCTS)
 \end{itemize}
 
-As python's global interpreter lock \cite{noauthor_globalinterpreterlock_nodate} doesn't allow for true multithreading, parallelizing the MCTS poses significant complexity and difficulty. However, allowing for simultaneous self-play and training of the neural network is more feasible. As already mentioned in section \ref{training_framework}, the implementation by Bruåsdal \cite{bruasdal_deep_2020} provides this feature. For that reason its archtitecture is used as a blueprint for migrating the chosen framework AlphaZero General into a parallel architecture. The figure \ref{parallel_training_pipeline} depicts how the components mentioned interact in a parallel fashion.
+As Python's global interpreter lock \cite{noauthor_globalinterpreterlock_nodate} doesn't allow for true multithreading, parallelizing the MCTS poses significant complexity and difficulty. However, allowing for simultaneous self-play and training of the neural network is feasible. As already mentioned in section \ref{training_framework}, the implementation by Bruåsdal \cite{bruasdal_deep_2020} provides this feature. For that reason its architecture is used as a blueprint for migrating AlphaZero General into a parallel architecture. The figure \ref{parallel_training_pipeline} depicts how the components mentioned interact in a parallel fashion.
 
 \begin{figure}[H]
     \centering
@@ -240,10 +240,10 @@ There are multiple self-play workers that use the current best neural network $f
 
 After training the neural network with the batches, the newly created network is pitted against the old version in the Arena. As both variants are pitted against each other multiple times, the Arena is parallelized as well. If the new network is stronger, it is saved on disk and a version counter is incremented. The version counter is a shared variable between the workers and the Coach. After each completed self-play game the worker checks if the version counter is larger than its stored version. If that is the case, the new network is loaded from disk.
 
-An important factor is to balance the amount of workers against the time it takes to train the neural network. If the buffer grows large training takes long. In the meantime a lot of new experience is potentially generated. This then overrides all previous experience, such that all experience is only generated from one network. This might make the training process less robust.
+An important factor is to balance the amount of workers against the time it takes to train the neural network. If the buffer grows large, training takes long. In the meantime a lot of new experience is potentially generated. This then overrides all previous experience, such that all experience is only generated from one network. This might make the training process less robust.
 
 \subsection{Data Augmentation}
-As the Abalone board has six rotational symmetries and six mirror axes, as mentioned in \ref{state_space_complexity}. That means $\pi$ and $v$ are equivalent for up to 12 symmetrical board states. By generating the symmetrical board states for each tuple ($s, \pi, z)$, the data can be augmented by a factor of twelve. There are some board configurations in which there is less symmetrical boards as some are identical, for instance default starting position. In general, the factor of 12 does hold for most board states.
+Abalone's board has six rotational symmetries and six mirror axes, as mentioned in \ref{state_space_complexity}. That means $\pi$ and $v$ are equivalent for up to 12 symmetrical board states. By generating the symmetrical board states for each tuple ($s, \pi, z)$, the data can be augmented by a factor of twelve. There are some board configurations in which there are less symmetrical boards as some are identical, for instance the default starting position. In general, the factor of 12 does hold for most board states.
 
 \begin{figure}
     \centering
@@ -252,9 +252,9 @@ As the Abalone board has six rotational symmetries and six mirror axes, as menti
     \label{cube_coordinate_grid}
 \end{figure}
 
-To create the addtional experience the positions of the marbles are turned into Cube coordinates. Cube coordinates (cf. figure \ref{cube_coordinate_grid}) as proposed by Patel \cite{noauthor_red_nodate} are a convenient way to represent hexagonal boards as they allow for simpler application of a wide variety of formulas and algorithms like Manhattan distance, accessing neighbors, finding paths etc. . For cube coordinates there is also a simple way to mirror coordinates and also to rotate coordinates. A mapping function transforms marble coordinates form their matrix coordinates of the form $(x, y)$ to the form of $(q, r, s)$. The origin of the cube coordinate system is laid into the center of the Abalone board, such that e.g. $E5 = (0, 0, 0)$ or $A1 = (-4, 4, 0)$.
+To create the additional experience the positions of the marbles are turned into cube coordinates. cube coordinates (cf. figure \ref{cube_coordinate_grid}) as proposed by Patel \cite{noauthor_red_nodate} are a convenient way to represent hexagonal boards as they allow for simpler application of a wide variety of formulas and algorithms like Manhattan distance, accessing neighbors, finding paths etc. . For cube coordinates there is also a simple way to mirror coordinates and also to rotate coordinates. A mapping function transforms marble coordinates from their matrix coordinates of the form $(x, y)$ to the form of $(q, r, s)$. The origin of the cube coordinate system is laid into the center of the Abalone board, such that e.g. $E5 = (0, 0, 0)$ or $A1 = (-4, 4, 0)$.
 
-The with the transformed coodinates the rotated coordinates can be rotated around the origin by 60° clockwise by shifting the values to the values to the right and inverting the sign:
+The transformed coordinates can be rotated around the origin by 60° clockwise by shifting the values to the values to the right and inverting the sign:
 
 \begin{BVerbatim}
     [ q,  r,  s]
@@ -262,7 +262,7 @@ The with the transformed coodinates the rotated coordinates can be rotated aroun
     to     [  s,  q,  r]
 \end{BVerbatim}
 
-To mirror a cube coordinate along one of the three main coordinate axes $q, r$ or $s$ the two coordinates that don't correspond to the axis are swapped:
+To mirror a cube coordinate along one of the three main coordinate axes $q, r$ or $s$ the two coordinates that don't belong to the axis are swapped:
 
 \begin{BVerbatim}
     function reflect_q(h) { return Cube(h.q, h.s, h.r); }
@@ -270,7 +270,7 @@ To mirror a cube coordinate along one of the three main coordinate axes $q, r$ o
     function reflect_s(h) { return Cube(h.r, h.q, h.s); }
 \end{BVerbatim}
 
-To mirror along the axis that is orthogonal to the main axis, the coordinates need to be negated first. After applying the transformation too all marbles, all moves in $\pi$, whose probability is not $0$ have to be transformed as well. First, the move corresponding to the index in $\pi$ is looked up. As a move consists of one or two marble coordinates, those are transformed by the same scheme. The directions can be transformed into cube coordinates as well:
+To mirror along the axis that is orthogonal to the main axis, the coordinates need to be negated first. After applying the transformation to all marbles, all moves in $\pi$, whose probability is not $0$ , have to be transformed as well. First, the move corresponding to the index in $\pi$ is looked up. As a move consists of one or two marble coordinates, those are transformed by the same scheme. The directions can be transformed into cube coordinates as well:
 
 \begin{BVerbatim}
     (+1, -1, 0): NORTH_EAST
