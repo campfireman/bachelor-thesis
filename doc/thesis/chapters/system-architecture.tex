@@ -157,14 +157,14 @@ In order to apply the neural network architecture proposed by AlphaZero (cf. fig
 \end{enumerate}
 
 \subsection{Architecture}
-
+% explain pi and v
 \section{Training Pipeline}
 \subsection{Components}
 \label{components}
 \subsection{Algorithm}
 
 
-\begin{figure}[!h]
+\begin{figure}[H]
     \centering
     \subfloat[The main loop of the training algorithm]{
         \includegraphics[width=6cm, keepaspectratio]{training_main_loop.png}
@@ -229,5 +229,44 @@ After training the neural network with the batches, the newly created network is
 An important factor is to balance the amount of workers against the time it takes to train the neural network. If the buffer grows large training takes long. In the meantime a lot of new experience is potentially generated. This then overrides all previous experience, such that all experience is only generated from one network. This might make the training process less robust.
 
 \subsection{Data Augmentation}
+As the Abalone board has six rotational symmetries and six mirror axes, as mentioned in \ref{state_space_complexity}. That means $\pi$ and $v$ are equivalent for up to 12 symmetrical board states. By generating the symmetrical board states for each tuple ($s, \pi, z)$, the data can be augmented by a factor of twelve. There are some board configurations in which there is less symmetrical boards as some are identical, for instance default starting position. In general, the factor of 12 does hold for most board states.
+
+\begin{figure}
+    \centering
+    \includegraphics[height=8cm, keepaspectratio]{hex_cube_grid.png}
+    \caption{The cube coordinate system \cite{noauthor_red_nodate}}
+    \label{cube_coordinate_grid}
+\end{figure}
+
+To create the addtional experience the positions of the marbles are turned into Cube coordinates. Cube coordinates (cf. figure \ref{cube_coordinate_grid}) as proposed by Patel \cite{noauthor_red_nodate} are a convenient way to represent hexagonal boards as they allow for simpler application of a wide variety of formulas and algorithms like Manhattan distance, accessing neighbors, finding paths etc. . For cube coordinates there is also a simple way to mirror coordinates and also to rotate coordinates. A mapping function transforms marble coordinates form their matrix coordinates of the form $(x, y)$ to the form of $(q, r, s)$. The origin of the cube coordinate system is laid into the center of the Abalone board, such that e.g. $E5 = (0, 0, 0)$ or $A1 = (-4, 4, 0)$.
+
+The with the transformed coodinates the rotated coordinates can be rotated around the origin by 60° clockwise by shifting the values to the values to the right and inverting the sign:
+
+\begin{BVerbatim}
+    [ q,  r,  s]
+    to  [-r, -s, -q]
+    to     [  s,  q,  r]
+\end{BVerbatim}
+
+To mirror a cube coordinate along one of the three main coordinate axes $q, r$ or $s$ the two coordinates that don't correspond to the axis are swapped:
+
+\begin{BVerbatim}
+    function reflect_q(h) { return Cube(h.q, h.s, h.r); }
+    function reflect_r(h) { return Cube(h.s, h.r, h.q); }
+    function reflect_s(h) { return Cube(h.r, h.q, h.s); }
+\end{BVerbatim}
+
+To mirror along the axis that is orthogonal to the main axis, the coordinates need to be negated first. After applying the transformation too all marbles, all moves in $\pi$, whose probability is not $0$ have to be transformed as well. First, the move corresponding to the index in $\pi$ is looked up. As a move consists of one or two marble coordinates, those are transformed by the same scheme. The directions can be transformed into cube coordinates as well:
+
+\begin{BVerbatim}
+    (+1, -1, 0): NORTH_EAST
+    (+1, 0, -1): EAST
+    (0, +1, -1): SOUTH_EAST
+    (-1, +1, 0): SOUTH_WEST
+    (-1, 0, +1): WEST
+    (0, -1, +1): NORTH_WEST
+\end{BVerbatim}
+
+This way the same functions can be applied to the directions. After all operations are applied the cube coordinates are converted back to marble coordinates and moves.
 
 \subsection{Warm-Up}

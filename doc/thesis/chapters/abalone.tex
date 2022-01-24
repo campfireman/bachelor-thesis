@@ -77,6 +77,8 @@ Using the environment properties learned in \ref{environment} we can classify Ab
 As Abalone has a finite amount of discrete states, we can make precise statements about its complexity, which can be described in two relevant dimensions.
 
 \paragraph{State space complexity}
+\label{state_space_complexity}
+
 The state space is the set of all possible states "the environment can be in".\cite[p. 150]{russell_artificial_2021} For Abalone this means we have to consider all possible board configurations with different numbers of marbles present. Additionally, we would have to remove duplicates that arise from the symmetries of the board. In the case of abalone we have 6 rotations and 6 axes we can mirror the board on. The following formula gives us a good upper bound:
 
 \begin{equation}
