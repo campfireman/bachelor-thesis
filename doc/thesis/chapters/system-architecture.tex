@@ -106,31 +106,13 @@ As mentioned in the section \ref{existing_game_playing_agents}, Verloop's reimpl
     \label{python_java_ipc}
 \end{figure}
 
-As both implementations have a differing move notation an intermediary string-based format was introduced to serialize the moves more easily. The regex for the format is the following:
-
-\begin{BVerbatim}
-    ([A-I][1-9]){1}([A-I][1-9]){0,1}((NE)|(E)|(SE)|(SE)|(SW)|(W)|(NW)){1}
-\end{BVerbatim}
-
-This means that inline moves have the structure of "\{MarbleCoordinate\}\{Direction\}" and broadside moves the structure of "\{MarbleCoordinate\}\{MarbleCoordinate\}\{Direction\}". Additionally, the marble coordinates are ordered for broadside moves. The marble coordinates outlined in figure . The directions are always seen from the white player's starting position, north pointing straight in the direction of the black player (default position).
+As both implementations have a differing move notation an
 
 \section{Neural Network}
 \subsection{Dimensions}
 In order to apply the neural network architecture proposed by AlphaZero (cf. figure \ref{alpha_zero_neural_network}) two dimensions need to be changed:
 \begin{enumerate}
     \item The input matrix of size $19 \cdot 19 \cdot 17$ needs to be adjusted to fit the dimensions of the hexagonal board. The hexagonal board is transformed into an orthogonal base as proposed in \cite{towzeur_towzeurgym-abalone_2021} such that it can represented as an $9 \cdot 9$ matrix as depicted in figure \ref{input_matrix}. The adjacency of the marbles is maintained.
-          \begin{figure}[!h]
-              \centering
-              \subfloat[If white's turn]{
-                  \includegraphics[height=6cm, keepaspectratio]{matrix_representation_white_turn.png}
-              }
-              \hfill
-              \subfloat[If it is black's turn]{
-                  \includegraphics[height=6cm, keepaspectratio]{matrix_representation_black_turn.png}
-              }
-              \caption{The canonical board representation (the $0$ values for the corners of the matrix are ignored, but present in the implementation)}
-              \label{input_matrix}
-          \end{figure}
           The third dimension of size $17$ can be reduced to 1 by removing the move history and only passing the current state. Moreover, the players' marbles are represented as $1$ for white and $-1$ for black (0 for an empty space) in a single plane instead of separating them. Lastly, the neural network is always fed with the canonical representation of the board, as proposed by \cite{thakoor_learning_nodate}. This means that the board states are always seen from white's perspective. If it's the white players turn the board remains unchanged, if it's black's turn the colors of the board are switched.
 
     \item AlphaZero's output vector $\pi$ of size 381 represents all possible positions a piece can be placed on the board. As Abalone has a much more complex move system, the size of this vector needs to match the number of all possible moves. The number of all possible moves was found by generating all moves programmatically. The generated moves were stored in a bijective map. Each move is assigned an index in $\pi$ and represented as a string in the proposed notation above. Therefore, using the bijective map a move index can be found by its string representation and vice versa.
@@ -242,24 +224,17 @@ After training the neural network with the batches, the newly created network is
 
 An important factor is to balance the amount of workers against the time it takes to train the neural network. If the buffer grows large, training takes long. In the meantime a lot of new experience is potentially generated. This then overrides all previous experience, such that all experience is only generated from one network. This might make the training process less robust.
 
-\subsection{Data Augmentation}
+\subsection{Symmetrical board generation}
 Abalone's board has six rotational symmetries and six mirror axes, as mentioned in \ref{state_space_complexity}. That means $\pi$ and $v$ are equivalent for up to 12 symmetrical board states. By generating the symmetrical board states for each tuple ($s, \pi, z)$, the data can be augmented by a factor of twelve. There are some board configurations in which there are less symmetrical boards as some are identical, for instance the default starting position. In general, the factor of 12 does hold for most board states.
 
-\begin{figure}
-    \centering
-    \includegraphics[height=8cm, keepaspectratio]{hex_cube_grid.png}
-    \caption{The cube coordinate system \cite{noauthor_red_nodate}}
-    \label{cube_coordinate_grid}
-\end{figure}
-
-To create the additional experience the positions of the marbles are turned into cube coordinates. cube coordinates (cf. figure \ref{cube_coordinate_grid}) as proposed by Patel \cite{noauthor_red_nodate} are a convenient way to represent hexagonal boards as they allow for simpler application of a wide variety of formulas and algorithms like Manhattan distance, accessing neighbors, finding paths etc. . For cube coordinates there is also a simple way to mirror coordinates and also to rotate coordinates. A mapping function transforms marble coordinates from their matrix coordinates of the form $(x, y)$ to the form of $(q, r, s)$. The origin of the cube coordinate system is laid into the center of the Abalone board, such that e.g. $E5 = (0, 0, 0)$ or $A1 = (-4, 4, 0)$.
+To create the additional experience the positions of the marbles are turned into cube coordinates. For cube coordinates there is also a simple way to mirror coordinates and also to rotate coordinates. A mapping function transforms marble coordinates from their matrix coordinates of the form $(x, y)$ to the form of $(q, r, s)$. The origin of the cube coordinate system is laid into the center of the Abalone board, such that e.g. $E5 = (0, 0, 0)$ or $A1 = (-4, 4, 0)$.
 
 The transformed coordinates can be rotated around the origin by 60° clockwise by shifting the values to the values to the right and inverting the sign:
 
 \begin{BVerbatim}
-    [ q,  r,  s]
-    to  [-r, -s, -q]
-    to     [  s,  q,  r]
+    [ q,  r,  s ]
+    to  [-r, -s, -q ]
+    to     [  s,  q,  r ]
 \end{BVerbatim}
 
 To mirror a cube coordinate along one of the three main coordinate axes $q, r$ or $s$ the two coordinates that don't belong to the axis are swapped:

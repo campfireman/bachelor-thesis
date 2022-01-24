@@ -73,6 +73,57 @@ Based on the PEAS framework we can specify Abalone as a task environment and sho
 
 Using the environment properties learned in \ref{environment} we can classify Abalone as \textbf{a fully observable, deterministic, two-agent, competitive, sequential, static and discrete environment}. Another popular term for this type of environment is a \textit{deterministic two-player  turn-based perfect information zero-sum game}.
 
+\section{Board and move representations}
+Cube coordinates (cf. figure \ref{abalone_coordinate_systems} (b)) as proposed by Patel \cite{noauthor_red_nodate} are a convenient way to represent hexagonal boards as they allow for simpler application of a wide variety of formulas and algorithms like Manhattan distance, accessing neighbors, finding paths etc.
+\begin{figure}[!h]
+    \centering
+    \subfloat[The most common coordinate system for Abalone]{
+        \includegraphics[height=6cm, keepaspectratio]{abalone_board_coordinates.png}
+    }
+    % \hfill
+    \subfloat[The cube coordinate system \cite{noauthor_red_nodate}]{
+        \includegraphics[height=6cm, keepaspectratio]{hex_cube_grid.png}
+    }
+    \caption{Different possibilities for adressing the fields of Abalone}
+    \label{abalone_coordinate_systems}
+\end{figure}
+
+\begin{figure}[!h]
+    \centering
+    \subfloat[If white's turn]{
+        \includegraphics[height=6cm, keepaspectratio]{matrix_representation_white_turn.png}
+    }
+    % \hfill
+    \subfloat[If it is black's turn]{
+        \includegraphics[height=6cm, keepaspectratio]{matrix_representation_black_turn.png}
+    }
+    \caption{The canonical board representation (the $0$ values for the corners of the matrix are ignored, but present in the implementation)}
+    \label{input_matrix}
+\end{figure}
+A string-based format was introduced to serialize the moves more easily. The regex for the format is the following:
+
+\begin{BVerbatim}
+    ([A-I][1-9]){1}([A-I][1-9]){0,1}((NE)|(E)|(SE)|(SE)|(SW)|(W)|(NW)){1}
+\end{BVerbatim}
+
+This means that inline moves have the structure of "\{MarbleCoordinate\}\{Direction\}" and broadside moves the structure of "\{MarbleCoordinate\}\{MarbleCoordinate\}\{Direction\}". Additionally, the marble coordinates are ordered for broadside moves. The marble coordinates outlined in figure . The directions are always seen from the white player's starting position, north pointing straight in the direction of the black player (default position).
+
+\section{Symmetries}
+
+\begin{figure}[!h]
+    \centering
+    \subfloat[Mirror axes]{
+        \includegraphics[height=6cm, keepaspectratio]{abalone_board_mirror_axes.png}
+    }
+    % \hfill
+    \subfloat[Rotations]{
+        \includegraphics[height=7cm, keepaspectratio]{abalone_board_rotations.png}
+    }
+    \caption{The symmetries of the Abalone board}
+    \label{abalone_symmetries}
+\end{figure}
+
+
 \section{Complexity}
 As Abalone has a finite amount of discrete states, we can make precise statements about its complexity, which can be described in two relevant dimensions.
 
@@ -131,8 +182,11 @@ For all the previously discussed methods, game-playing agents based on minimax h
     \item Number of marbles, formation break, single and double marble capturing danger, ... \cite[p. 64]{papadopoulos_exploring_2012}
 \end{itemize}
 
+\subsection{Minimax}
 There are multiple implementations of minimax for Abalone \cite{chorus_implementing_2009,lemmens_constructing_2005,ozcan_simple_2004-1,aichholzer_algorithmic_2002}, but software is only openly available for ABA-PRO by Tino Werner from 2002 \cite{aichholzer_oswin_2006}. There are a few mentions of (commercial) Abalone programs like RandomAba (Random Soft), AliAba, AbaloneNet mentioned by Lemmens \cite[p. 7]{lemmens_constructing_2005} but those have not been attainable through the internet. Even though ABA-PRO was not the strongest algorithm at the time, it's availability has made it a frequent benchmark for other papers. Aside from previously mentioned optimizations for minimax like alpha-beta pruning these programs use more advanced techniques like quiescence search, aspiration windows and combined move ordering. A more recent publication from 2012 by Papadopoulos et. al. claimed to have devised a more successful player. \cite{papadopoulos_exploring_2012}  Those claims could not be confirmed entirely in a recent reimplementation thesis by Michiel Verloop as Papadopoulos' does not describe the weights for the heuristic \cite{verloop_critical_nodate}. This reimplementation in Java \cite{verloop_abaloneai_nodate} is also the reference for later benchmarks as it is open source \cite{verloop_abaloneai_nodate} and thus allows programmatic interaction.
 
+\subsection{MCTS}
 The investigations into MCTS in the context of Abalone are quite limited so far. Pascal Chorus has undertaken a comparison of the vanilla implementation against a heuristic agent, showing the dominance of the heuristic agent. \cite{chorus_implementing_2009} While in games like Go we don't have loops in Abalone, random players can get stuck in very long games making the results of simulations very weak signals. Without any more sophisticated rollout-policy this approach does not work very well.
 
+\subsection{Reinforcement learning}
 "Abalearn" was the first learning-based approach to playing Abalone. \cite{campos_abalearn_2003} It was created in 2003 based on temporal difference learning (TD-learning), which is a reinforcement learning method. In the years before TD-learning had been very successful for backgammon ("TD-Gammon") \cite{tesauro_td-gammon_1994} and for Abalone the authors achieved to draw ABA-PRO up to a search depth of five. An interesting feature of their approach is the fact that they exclusively used self-play for training the algorithm. Moreover, they introduced a tunable mechanism for making the risk sensitivity of the algorithm dealing with the problem of the agent playing very passively or getting stuck in loops. Modern reinforcement learning methods like Q-learning have only been considered in a smaller project that achieved better than random performance. \cite{mizrachi_introduction_2017}
