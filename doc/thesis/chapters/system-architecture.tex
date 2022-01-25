@@ -9,13 +9,13 @@ Machine learning projects share many components. Most commonly that is the decla
 \begin{figure}
     \centering
     \includegraphics[height=7cm, keepaspectratio]{ml_framework_popularity.png}
-    \caption{The mentions of pytorch and tensorflow in research papers in different publications \cite{noauthor_state_2019}}
+    \caption{The mentions of PyTorch and tensorflow in research papers in different publications \cite{noauthor_state_2019}}
     \label{ml_framework_popularity}
 \end{figure}
 
-A first indicator to go by is the popularity of the frameworks. Currently, the most relevant frameworks are Facebook's pytorch and Google's tensorflow. The Keras API has been introduced to tensorflow, therefore it is not considered further. In research pytorch seems to have quickly taken the dominance as depicted in figure \ref{ml_framework_popularity}. Aside from all differences between both libraries, the choice was guided by two practical reasons. Initially, tensorflow was selected due to the included support for TPUs as this project was granted free access to Google's Research Cloud \cite{noauthor_tpu_nodate}. At a later stage it became clear that Google was unwilling to increase the CPU quota for the account, limiting the server to 8 cores which posed a significant problem for parallel execution.
+A first indicator to go by is the popularity of the frameworks. Currently, the most relevant frameworks are Facebook's PyTorch and Google's tensorflow. The Keras API has been introduced to tensorflow, therefore it is not considered further. In research PyTorch seems to have quickly taken the dominance as depicted in figure \ref{ml_framework_popularity}. Aside from all differences between both libraries, the choice was guided by two practical reasons. Initially, tensorflow was selected due to the included support for TPUs as this project was granted free access to Google's Research Cloud \cite{noauthor_tpu_nodate}. At a later stage it became clear that Google was unwilling to increase the CPU quota for the account, limiting the server to 8 cores which posed a significant problem for parallel execution.
 
-In table \ref{pytorch_vs_tensorflow_performance} there is also a significant performance difference in the inference step of the MCTS. There are two ways in tensorflow to perform inference, either through the \texttt{predict} function or by calling the \texttt{\_\_call\_\_} method of the $model$ itself. As in the implementation the inference is not batched but done for individual board states, the usage of the latter option is faster \cite{noauthor_tfkerasmodel_nodate}. Nevertheless, pytorch is about five times faster. As discussed later, this is the reason to pivot to pytorch as a framework.
+In table \ref{PyTorch_vs_tensorflow_performance} there is also a significant performance difference in the inference step of the MCTS. There are two ways in tensorflow to perform inference, either through the \texttt{predict} function or by calling the \texttt{\_\_call\_\_} method of the $model$ itself. As in the implementation the inference is not batched but done for individual board states, the usage of the latter option is faster \cite{noauthor_tfkerasmodel_nodate}. Nevertheless, pytorch is about five times faster. As discussed later, this is the reason to pivot to PyTorch as a framework.
 
 \begin{table*}
     \begin{center}
@@ -42,10 +42,10 @@ In table \ref{pytorch_vs_tensorflow_performance} there is also a significant per
             GPU & tf        & small           & ~0.005s               & ~0.011s              \\
             CPU & tf        & large           & ~0.014s               & ~0.02s               \\
             GPU & tf        & large           & ~0.011s               & ~0.017s              \\
-            CPU & pytorch   & small           & ~0.005s               & ~0.011s              \\
-            GPU & pytorch   & small           & ~0.001s               & ~0.007s              \\
-            CPU & pytorch   & large           & ~0.005s               & ~0.011s              \\
-            GPU & pytorch   & large           & ~0.002s               & ~0.008s              \\
+            CPU & PyTorch   & small           & ~0.005s               & ~0.011s              \\
+            GPU & PyTorch   & small           & ~0.001s               & ~0.007s              \\
+            CPU & PyTorch   & large           & ~0.005s               & ~0.011s              \\
+            GPU & PyTorch   & large           & ~0.002s               & ~0.008s              \\
         \end{tabular}
     \end{center}
     \caption{The average time ($n = 3,000$) taken to perform the feed-forward through the network for state $s$ ($\texttt{predict}(s)$) and one iteration of MCTS ($\texttt{search}(s)$)}\label{pytorch_vs_tensorflow_performance}
@@ -83,19 +83,21 @@ To compare both options a catalog of criteria is considered. Parallel training a
 
 As shown by table \ref{training_framework_comparison}, the winner by those criteria is AlphaZero General. Core advantages of the library are its simplicity and popularity. Deep MCTS makes use of a lot of abstractions and generics which makes the code more professional and reusable but also significant difficulties in understanding. The application of AlphaZero General to multiple other games like Gobang, Santorini, Connect4 etc. have shown its performance. The major drawback is the lack of a parallelized training pipeline.
 
-\subsection{Game Library}
-There are two relevant implementations of game libraries for Abalone. As the interfacing language for pytorch is Python it makes sense to restrict the libraries to Python.
+\subsection{Game Engine}
+There are multiple relevant implementations of game engines for Abalone. As the interfacing language for PyTorch is Python it makes sense to restrict the engines to Python:
 
 \begin{itemize}
-    \item Abalone-BoAI is a game library that is specifically designed for interfacing with computational agents. It is very simple and has been used for the precursor project of this thesis \cite{scriptim_scriptimabalone-boai_2021}.
+    \item Abalone-BoAI is a game engine that is specifically designed for interfacing with computational agents. It is very simple and has been used for the precursor project of this thesis \cite{scriptim_scriptimabalone-boai_2021}.
     \item Gym-abalone is tightly integrated with OpenAI's gym allowing agents to potentially play other games as well. The API is more designed for the reinforcement learning setting \cite{towzeur_towzeurgym-abalone_2021}.
 \end{itemize}
 
 Two arguments lead to the decision of choosing Abalone-BOAI:
 \begin{enumerate}
     \item It was already optimized in the previous project as the generation of legal moves is computationally expensive.
-    \item The API of the engine needs to be adapted to fit the interface of the training framework, wherefore intricate knowledge of the engine is of advantage.
+    \item The API of the engine needs to be adapted to fit the interface of the training framework. Both engines are stateful, meaning that they rely on the class instance context to perform moves, check for legal moves and other operations. AlphaZero General expects the game engine to be designed in a functional way. For instance, the operations are supposed to be applied to the input matrix and the modified matrix is then returned. Therefore, intricate knowledge of the engine is of advantage.
 \end{enumerate}
+
+Due to those necessary modifications the original game engine was forked to allow for easier packaging \cite{campfireman_campfiremanabalone-boai_2021}.
 
 As mentioned in the section \ref{existing_game_playing_agents}, Verloop's reimplementation \cite{verloop_abaloneai_nodate} offers the simplest solution for interfacing with (one of) the strongest Abalone algorithms. In a small tournament personal implementations of minimax in Python \cite{claussen_abalone_2021} were inferior. This creates the necessity of interfacing between Java and Python. As the Java implementation is tightly coupled with the internal game-engine it was decided to implement a proxy player for each game-engine. The proxy players communicate through a named pipe as depicted in figure \ref{python_java_ipc}. The downside of this solution is the need of synchronizing two separate game states.
 
