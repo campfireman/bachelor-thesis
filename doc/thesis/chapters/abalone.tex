@@ -102,7 +102,7 @@ To store the board state in a program or to feed it to a neural network, a diffe
     \label{abalone_matrix_representation}
 \end{figure}
 
-\subsection{Move notation}
+\section{Move notation}
 There is no officially standardized notation for the moves of Abalone. The notation described by Aichholzer \cite{aichholzer_abalone_2006} has quite wide adoption in the papers investigated. To contribute to the proliferation of standards \cite{xkcd_standards_nodate} a different notation for the moves was used that stems from the Abalone engine Abalone-BoAI \cite{scriptim_scriptimabalone-boai_2021}.
 
 Inline moves have the structure of "\{MarbleCoordinate\}\{Direction\}" and broadside moves the structure of "\{MarbleCoordinate\}\{MarbleCoordinate\}\{Direction\}". Additionally, the marble coordinates are ordered for broadside moves. The marble coordinates have the form outlined in figure \ref{abalone_coordinate_systems} (a). The directions are always seen from the black player's starting position, north pointing straight in the direction of the white player (default position). This is the main difference to the notation described by Aichholzer who uses a destination coordinate instead of a direction. The direction improves readability and understandability of moves. As follows, the regex for the notation:
