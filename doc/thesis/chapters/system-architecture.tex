@@ -150,11 +150,11 @@ The training pipeline of AlphaZero General has 5 main components:
     \item \textbf{Coach}: The main module that orchestrates the training process.
     \item \textbf{Game}: Provides an abstract interface that generalizes to many types of board games. Functions like the generation of legal moves, creating a unique string representation of the board, etc. need to be implemented.
     \item \textbf{Neural Net}: Is a wrapper for any type of neural network. It needs to be implemented for the specific framework used.
-    \item \textbf{MCTS}: Encapsules the logic to perform Monte Carlo Tree Search on the game tree with the help of the neural network.
+    \item \textbf{MCTS}: Encapsules the logic to perform Monte Carlo Tree Search on the game tree with the help of the neural network and the Game module.
     \item \textbf{Arena}: Has the task to perform the faceoff between different agents.
 \end{enumerate}
 
-Aside from the modifications made to parallelize the framework in section \ref{parallelization}, the Arena was modified to use the abalone-engine and game-playing agents implemented for that engine. This way not only the neural nets can be faced off, but also the proxy player for Verloop's minimax and other algorithms. Moreover, the MCTS implementation was not able to deal with games that have board states appear multiple times in the search tree. The implementation uses hash maps to retrieve the action-values and counts for a board state. If the board state exists multiple times in the search tree the values are skewed. To solve the problem each hash of a state is extended by a hash of the parent node's hash and the current depth of the node.
+Aside from the modifications made to parallelize the framework in section \ref{parallelization}, the Arena was modified to use the Abalone engine \cite{claussen_abalone_2021} and game-playing agents implemented for that engine. This way not only the neural nets can be faced off, but also the proxy player for Verloop's minimax and other algorithms. Moreover, the MCTS implementation was not able to deal with games that have board states appear multiple times in the search tree. The implementation uses hash maps to retrieve the action-values and counts for a board state. If the board state exists multiple times in the search tree the values are skewed. To solve the problem each hash of a state is extended by a hash of the parent node's hash and the current depth of the node. Lastly, the Arena was parallelized because the face-off with a random agent, a previous version, etc. requires a larger number of games to get a statistically relevant result. This is necessary to deal with the significant game length as discussed in section \ref{parallelization}.
 
 Additionally, a CLI entry point was added to pass arguments to the training process. All relevant hyperparameters of a training run are persisted in a JSON file. Performance data (time per iteration, etc.) and results of the Arena are logged as CSV tables.
 
@@ -225,12 +225,12 @@ After training the neural network with the batches, the newly created network is
 
 An important factor is to balance the amount of workers against the time it takes to train the neural network. If the buffer grows large, training takes a long time. In the meantime a lot of new experience is potentially generated. This then overrides all previous experience, such that all experience is only generated from one network. This might make the training process less robust.
 
-\subsection{Symmetrical board generation}
-Abalone's board has six rotational symmetries and six mirror axes, as mentioned in \ref{state_space_complexity}. That means $\pi$ and $v$ are equivalent for up to 12 symmetrical board states. By generating the symmetrical board states for each tuple ($s, \pi, z)$, the data can be augmented by a factor of twelve. There are some board configurations in which there are less symmetrical boards as some are identical, for instance the default starting position. In general, the factor of 12 does hold for most board states.
+\subsection{Symmetrical Board Generation}
+Abalone's board has six rotational symmetries and six mirror axes, as mentioned in \ref{state_space_complexity}. That means $\pi$ and $v$ are equivalent for up to 12 symmetrical board states. By generating the symmetrical board states for each tuple ($s, \pi, z)$, the data can be augmented by a factor of twelve. There are some board configurations in which there are less symmetrical boards as some are identical. For example, rotating the default starting position by 120° produces the same board as mirroring it by the $s$ axis. In general, the factor of 12 does hold for almost all board states.
 
-To create the additional experience the positions of the marbles are turned into cube coordinates. For cube coordinates there is also a simple way to mirror coordinates and also to rotate coordinates. A mapping function transforms marble coordinates from their matrix coordinates of the form $(x, y)$ to the form of $(q, r, s)$. The origin of the cube coordinate system is laid into the center of the Abalone board, such that e.g. $E5 = (0, 0, 0)$ or $A1 = (-4, 4, 0)$.
+To create the additional experience the positions of the marbles are turned into cube coordinates. For cube coordinates there is a simple way to mirror coordinates and also to rotate coordinates. A mapping function transforms marble coordinates from their matrix coordinates of the form $(x, y)$ to the form of $(q, r, s)$. The origin of the cube coordinate system is laid into the center of the Abalone board, such that e.g. $E5 = (0, 0, 0)$ or $A1 = (-4, 4, 0)$.
 
-The transformed coordinates can be rotated around the origin by 60° clockwise by shifting the values to the values to the right and inverting the sign:
+The transformed coordinates can be rotated around the origin by 60° clockwise by shifting the values to the right and negating the values:
 
 \begin{BVerbatim}
     [ q,  r,  s ]
@@ -246,7 +246,7 @@ To mirror a cube coordinate along one of the three main coordinate axes $q, r$ o
     function reflect_s(h) { return Cube(h.r, h.q, h.s); }
 \end{BVerbatim}
 
-To mirror along the axis that is orthogonal to the main axis, the coordinates need to be negated first. After applying the transformation to all marbles, all moves in $\pi$, whose probability is not $0$ , have to be transformed as well. First, the move corresponding to the index in $\pi$ is looked up. As a move consists of one or two marble coordinates, those are transformed by the same scheme. The directions can be transformed into cube coordinates as well:
+For mirroring along the axis that is orthogonal to the main axis, the coordinates need to be negated first. Besides all marbles, all moves in $\pi$, whose probability is not $0$, have to be transformed as well. First, the move corresponding to the index in $\pi$ is looked up. As a move consists of one or two marble coordinates, those are transformed by the same scheme. The directions can be transformed into cube coordinates as well:
 
 \begin{BVerbatim}
     (+1, -1, 0): NORTH_EAST
@@ -257,7 +257,7 @@ To mirror along the axis that is orthogonal to the main axis, the coordinates ne
     (0, -1, +1): NORTH_WEST
 \end{BVerbatim}
 
-This way the same functions can be applied to the directions. After all operations are applied the cube coordinates are converted back to marble coordinates and moves.
+This way the same functions can be applied to the directions. After all operations are applied the cube coordinates are converted back to marble coordinates and moves. In case of the moves, the probabilities from the original $\pi$ are written to the new index position.
 
 \subsection{Warm-Up}
 AlphaZero starts learning from scratch, there is no information about what constitutes a good move or strategy. This creates a cold-start problem, the self-play learning might not improve performance or even harm performance for an extended period of time. Equipped with ample computational resources like DeepMind, this poses no problem and is even desirable: The network is not nudged into a specific direction and can produce more novel insights.
@@ -265,4 +265,3 @@ AlphaZero starts learning from scratch, there is no information about what const
 Investigations into the application of AlphaZero's training principle showed possible ways to warm-start the training of the network \cite{wang_adaptive_2021}. Wang proposes an adaptive rollout based warm-start. This reintroduces rollouts into the MCTS that are performed at the beginning of the training process and are slowly phased out over the course of training.
 
 Another possibility would be to essentially reintroduce components of AlphaGo. Either by using a database of moves or alternatively by letting the agent train against a heuristic agent. For Abalone we propose a similar method. By letting a heuristic agent play against a random agent, an initial experience buffer is created. Thus, the first iteration of the training of $f_{\theta}$ produces a function that approximates the heuristic player. It is hypothesized that the self-play then further improves this warmed up agent. This is akin to the RL step in AlphaGo.
-
