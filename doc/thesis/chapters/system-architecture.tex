@@ -159,6 +159,13 @@ Aside from the modifications made to parallelize the framework in section \ref{p
 Additionally, a CLI entry point was added to pass arguments to the training process. All relevant hyperparameters of a training run are persisted in a JSON file. Performance data (time per iteration, etc.) and results of the Arena are logged as CSV tables.
 
 \subsection{Algorithm}
+Even though the main training routine is altered at a later stage to be executed in parallel, the logic remains quite similar to the original algorithm devised in AlphaZero General. Therefore, it makes sense to describe the coarse structure that is also outlined in figure \ref{training_algorithm}.
+
+The outer loop defines how many iterations of self-play and subsequent training of the neural network should be performed. At the beginning of each iteration a predefined number of episodes, or rather self-play games, is supposed to be played.
+
+In each episode a MCTS is performed with the defined number of simulations. Depending on the temperature setting, either a move is selected with a probability proportional to the number of visits, or the move with the highest count is selected. The move is applied to the board state. After switching the sides, it is checked whether a terminal state was reached. If not the game is continued, otherwise the reward $r$ is calculated. With $r$ the list of experiences $(s, \pi, z)$ is generated, with $z$ being the reward $r$ from the perspective of the player in turn.
+
+After the desired number of games has been played, the new experience is appended to the experience buffer and the buffer is stored as a checkpoint. If the buffer exceeds a defined length, the oldest experience is removed. Then a new version of the network $f_{\theta}$ is trained and played against the previous version in the Arena. If the new network performs better it is stored on disk for checkpointing, otherwise the network is discarded. The training is then continued until the desired number of iterations is reached or the training is aborted.
 
 \begin{figure}[H]
     \centering
