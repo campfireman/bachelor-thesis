@@ -14,7 +14,7 @@ The agent exists in an environment which it perceives through sensors and it tak
 
 Internally the agent might have some built-in knowledge about the world, such as rules on how the environment works. The \textit{agent function} takes the entire history of percepts observed and this built-in knowledge and maps it to an action. A concrete implementation of this abstract function is called \textit{agent program}. The agent program might just be a simple tabular mapping from percepts to actions or could use a complex algorithm with an additional model.
 
-This abstract definition on an agent encompasses a simple program, that plays Tic-Tac-Toe, but also very complex scenarios like a humanoid robot that is tasked to help in the household.
+This abstract definition of an agent encompasses a simple program that plays Tic-Tac-Toe, but also very complex scenarios like a humanoid robot that is tasked to help in the household.
 
 \subsection{(Task) Environment}
 \label{environment}
@@ -37,7 +37,7 @@ To specify the task environment there are four key components illustrated by for
     \item Sensors: Possibly a camera, infrared sensors, etc.
 \end{enumerate}
 
-The initial letters form the acronym PEAS (framework). Aside from the specification of the task environment, there is also a few categorizations of the properties of task environments that are extremely helpful for narrowing down potential applicability of different classes of algorithms.
+The initial letters form the acronym PEAS (framework). Aside from the specification of the task environment, there are also a few categorizations of the properties of task environments that are extremely helpful for narrowing down potential applicability of different classes of algorithms.
 
 A key property is the observability of the environment. If the environment is \textit{fully observable}, the sensors detect all the information that is in any way relevant for taking an action. Conversely if not all information can be observed we call it \textit{partial observability}. For example in poker the other players' cards and the upcoming cards cannot be seen but are highly relevant to the agent's actions. As the current board state of chess fully comprises all information necessary to make a move, we can classify it as fully observable.
 
@@ -55,7 +55,7 @@ Lastly, an additional dimension to consider is the number of agents involved. Th
 With an intricate understanding of the environment of agents the choice of algorithms one can employ can be narrowed down. In general, perfect information games can be solved by adversarial search algorithms. That means in theory one can find the optimal solution by considering all legal moves and the resulting game states up until terminal states (game ending states). This is the \textit{game tree}. It contains all possible transitions between board positions (nodes) through moves (edges). The root of the tree is the default start position. The \textit{search tree} is potentially a subset of the game tree, if not all paths are visited or the search is not started at the starting position. The theory behind this type of algorithm was already laid out as early as 1945 by Konrad Zuse's program generating legal chess moves \cite{knuth_early_1980}, but was described most comprehensively by Claude Shannon in 1950 in "Programming a Computer for Playing Chess". \cite{shannon_xxii_1950}
 
 \subsection{Minimax Algorithm}
-Minimax assumes two roles: The minimizer ($min$) and the maximizer ($max$). The search starts from the current board state as the role of the maximizer and then alternates between the two. The result of the minimax search gives is the maximum utility for the given state, assuming both players behave optimally. Let us define the functions \cite[p. 303f.]{russell_artificial_2021}
+Minimax assumes two roles: The minimizer ($min$) and the maximizer ($max$). The search starts from the current board state as the role of the maximizer and then alternates between the two. The result of the minimax search gives the maximum utility for the given state, assuming both players behave optimally. Let us define the functions \cite[p. 303f.]{russell_artificial_2021}
 \begin{itemize}
     \item $\texttt{utility}(s, p)$ returns the utility or the payoff for the terminal state $s$ seen from the perspective of player $p$. In the case of chess this might be $-1, 0$ and $1$ for a loss, draw and a win.
     \item $\texttt{is-terminal}(s)$ returns whether the given state $s$ is a terminal state or not.
@@ -102,9 +102,9 @@ With functions $ f_i $ calculating different values such as
     \item Etc.
 \end{itemize}
 
-By applying different weights $ \omega_i $ to the functions $ f_i $ the the agent essentially is given an incentive to prioritize certain behavior. If the win or loss function returns a value of either $-1$ or $+1$, one might combine it with a weight of 10,000 to make sure we choose winning states and avoid losing states above all. Armed with this heuristic function one can find good moves with minimax search even in highly complex state spaces.
+By applying different weights $ \omega_i $ to the functions $ f_i $ the agent essentially is given an incentive to prioritize certain behavior. If the win or loss function returns a value of either $-1$ or $+1$, one might combine it with a weight of 10,000 to make sure we choose winning states and avoid losing states above all. Armed with this heuristic function one can find good moves with minimax search even in highly complex state spaces.
 
-However, the problem with heuristic functions it requires expert knowledge and a lot of empirical testing to find a suitable heuristic. In some cases like Go, such a heuristic function might not be competitive with even moderate human players. In other cases such as chess this strategy is very powerful. As mentioned in the introduction, IBM's Deep Blue could beat the world's best player Gary Kasparov with heuristic based adversarial search.
+However, the problem with heuristic functions is that they require expert knowledge and a lot of empirical testing to find a suitable heuristic. In some cases like Go, such a heuristic function might not be competitive with even moderate human players. In other cases such as chess this strategy is very powerful. As mentioned in the introduction, IBM's Deep Blue could beat the world's best player Gary Kasparov with heuristic based adversarial search.
 
 \subsection{Alpha-beta Pruning}
 The minimax search can be improved markedly by using Alpha-beta-pruning. This method tries to eliminate unnecessary traversals down the search tree. In the best case, this leads to a reduction of nodes from $ O(b^d) $ to $ O(\sqrt{b^d}) $.
@@ -117,7 +117,7 @@ The minimax search can be improved markedly by using Alpha-beta-pruning. This me
     \label{alpha_beta_pruning}
 \end{figure}
 
-The order in which the nodes are visited in minimax is similar to a graph traversal with depth first search, meaning the algorithm descends down until ti finds a leaf node. This gives information about the utility of that node and, consequently, part of the tree. Going up the tree an alpha value is kept for the minimum value the maximizer will receive and a beta value for the maximum value the minimizer will achieve. For instance this lets one know if the minimizer already can choose a move worse than what can be achieved with another move. The algorithm does not descend further $ (\alpha > \beta) $.
+The order in which the nodes are visited in minimax is similar to a graph traversal with depth first search, meaning the algorithm descends down until it finds a leaf node. This gives information about the utility of that node and, consequently, part of the tree. Going up the tree an alpha value is kept for the minimum value the maximizer will receive and a beta value for the maximum value the minimizer will achieve. For instance this lets one know if the minimizer already can choose a move worse than what can be achieved with another move. The algorithm does not descend further $ (\alpha > \beta) $.
 
 Looking at the example in figure \ref{alpha_beta_pruning} will help illustrate this principle. The search revealed that choosing move $ a_1 $ will yield a utility of at least $0$. Traversing down move $ a_2 $ the first leaf has a utility of $-1$. Hence, the minimizer will choose a move that is at most $-1$ which is already worse than the utility of $0$. One need not look further at this part of the tree.
 
@@ -145,7 +145,7 @@ The algorithm iteratively expands the search tree. For each iteration it runs th
 
     \item \textbf{Simulation} is as described before the step in which a a simulation is performed with a rollout policy starting from the state of the newly generated child node.We take t
 
-    \item \textbf{Back-propagation} is the last step. The result of the simulation (utility) is taken and written to the node and parent nodes above until until the root node is reached. Each node updates its cumulative utility $U(n)$ and the number of times it was visited $N(n)$. It is important to note, that this to be differentiated from backpropagation in the context of neural networks (c.f. \ref{neural_networks}).
+    \item \textbf{Back-propagation} is the last step. The result of the simulation (utility) is taken and written to the node and parent nodes above until the root node is reached. Each node updates its cumulative utility $U(n)$ and the number of times it was visited $N(n)$. It is important to note, that this to be differentiated from backpropagation in the context of neural networks (c.f. \ref{neural_networks}).
 \end{itemize}
 
 The more this cycle is repeated, the more certainty is gained about the best move to take.
@@ -160,7 +160,7 @@ The more this cycle is repeated, the more certainty is gained about the best mov
 
 The development of MCTS led to significant improvements in performance of game-playing agents in the game of Go. The algorithm "Crazy Stone" from Coulom won the 10th KGS computer-Go tournament against competitors such as Indigo \cite{bouzy_associating_2006}. In the selection phase Crazy Stone estimates the probability of that move being better than the current best move and selects them according to that probability. The probability distribution over the moves is similar to the Gaussian distribution and the Boltzman equations. \cite[p. 4]{coulom_efficient_2007}
 
-Another idea for selection is the upper confidence bound formula (\textit{UCB1}) \cite{auer_finite-time_nodate}, that weights a node $n$ is visited and how promising it is. Let us define \cite[cf. p. 328]{russell_artificial_2021}:
+Another idea for selection is the upper confidence bound formula (\textit{UCB1}) \cite{auer_finite-time_nodate}, that weighs a node $n$ is visited and how promising it is. Let us define \cite[cf. p. 328]{russell_artificial_2021}:
 
 \begin{enumerate}
     \item $\texttt{Parent}(n)$ returns the parent node of node $n$.
@@ -504,7 +504,7 @@ The first step is the supervised training based on the KGS Go Server dataset of 
 
 The policy network $p_{\sigma}$ is trained in the same fashion except it is larger in size and thus is computationally more expensive. The policy network $p_{\sigma}$ is used for the next step. The goal is to adjust "the policy towards the correct goal of winning games, rather than maximizing predictive accuracy" \cite[p.484]{silver_mastering_2016} by using policy gradient RL and self-play. Initially, the network $p_{\rho}$ is initialized with structure and weights equivalent to $p_{\sigma}$. Then games with the current version of the policy network $p_{p}$ are played against random previous versions of the network. At timestep $t$, for a mini-batch of $n$ games, the results of the games are taken and the REINFORCE algorithm is used to fit the weights of the networks to the outcome of the game $z_t$. The newly trained policy network $p_{\rho}$ wins 80\% of the games against $p_{\sigma}$.
 
-Lastly, $p_{\rho}$ is used to train a neural network with weights $\theta$ for the evaluation function $v_{\theta}(s)$. This evaluation function approaches the state-value function $v_{p_{\rho}}(s)$, so the expected outcome of the game given the policy $p_{\rho}$: $v_{\theta}(s) \approx v_{p_{\rho}}(s)$. Figure \ref{alpha_go_prediction_quality} shows how $v_{\theta}$ appraches the same prediction accuracy as doing 15,000 rollouts with policy $p_{\rho}$.
+Lastly, $p_{\rho}$ is used to train a neural network with weights $\theta$ for the evaluation function $v_{\theta}(s)$. This evaluation function approaches the state-value function $v_{p_{\rho}}(s)$, so the expected outcome of the game given the policy $p_{\rho}$: $v_{\theta}(s) \approx v_{p_{\rho}}(s)$. Figure \ref{alpha_go_prediction_quality} shows how $v_{\theta}$ approaches the same prediction accuracy as doing 15,000 rollouts with policy $p_{\rho}$.
 
 \begin{figure}
     \centering
@@ -547,7 +547,7 @@ AlphaZero learns "tabula rasa", from a blank slate. Essentially, AlphaZero only 
     \item A simplified version of AlphaGo's MCTS, that doesn't use rollouts and only relies on the network $f_{\theta}$ to guide the search. The MCTS variant is not only used for live play but also for self-play.
 \end{enumerate}
 
-The network $f_{\theta}$ takes the current board state and the last seven boards as input. The position of the players marbles is split into seperate planes, $1$ for a placed stone and $0$ if there is none. Additionally, there is one feature plane to indicate the player in turn which is set to $1$ for black's turn and $0$ for white's turn. This makes a total of 17 planes forming an input stack of the size $19 \cdot 19 \cdot 17$.
+The network $f_{\theta}$ takes the current board state and the last seven boards as input. The position of the player's marbles is split into seperate planes, $1$ for a placed stone and $0$ if there is none. Additionally, there is one feature plane to indicate the player in turn which is set to $1$ for black's turn and $0$ for white's turn. This makes a total of 17 planes forming an input stack of the size $19 \cdot 19 \cdot 17$.
 
 \begin{figure}
     \centering
@@ -596,9 +596,9 @@ The team showed empirically \cite[p. 9]{silver_mastering_2017} that this \textit
     \label{alpha_zero_training}
 \end{figure}
 
-To train the network $f_{\theta}$, it is initialized with random weights. At each turn $i$ during self-play $f_{\theta}$ guides a MCTS, which produces a probability distribution $\pi_t$ over all (legal) moves. The move $a_i$ is selected according to the probabilities $\pi$. So instead of using the network $f_{\theta}$ directly to decide on the next move, MCTS produces an improved policy through repeated application of $f_{\theta}$. The authors describe MCTS in this context as a \textit{policy improvement} operator. The self-play games are played until a terminal state $s_T$ is reached. The result of the game is $z_T \in \{-1, +1\}$ recorded for either a loss or a win. For each move during the game he result of the game $z_t$ is recorded together with the board state $s_t$ and the search probabilities $\pi_t$, where $z_t \mp z_T $ depending on the players perspective: $(s_t, \pi_t, z_t)$. The self-play is illustrated in figure \ref{alpha_zero_training} (a).
+To train the network $f_{\theta}$, it is initialized with random weights. At each turn $i$ during self-play $f_{\theta}$ guides a MCTS, which produces a probability distribution $\pi_t$ over all (legal) moves. The move $a_i$ is selected according to the probabilities $\pi$. So instead of using the network $f_{\theta}$ directly to decide on the next move, MCTS produces an improved policy through repeated application of $f_{\theta}$. The authors describe MCTS in this context as a \textit{policy improvement} operator. The self-play games are played until a terminal state $s_T$ is reached. The result of the game $z_T \in \{-1, +1\}$ is recorded for either a loss or a win. For each move during the game the result of the game $z_t$ is recorded together with the board state $s_t$ and the search probabilities $\pi_t$, where $z_t \mp z_T $ depending on the players perspective: $(s_t, \pi_t, z_t)$. The self-play is illustrated in figure \ref{alpha_zero_training} (a).
 
-This tuple is stored in an experience buffer which is used for training the next iteration of the network. In each iteration mini-batches sampled from the experience buffer and the network is fitted to match the probabilities $\pi_t$ with the policy head and the game result $z_t$ with the value head. The newly trained network is compared to the current best network in 400 games. If the new network wins more than a threshold 55\% of the games it is accepted and used for the self-play from that point on. In total, $700,000$ mini batches of size $2,048$ from $4.9$ million games were sampled \cite[p. 6]{silver_mastering_2017}.
+This tuple is stored in an experience buffer which is used for training the next iteration of the network. In each iteration mini-batches are sampled  from the experience buffer. The network is fitted to match the probabilities $\pi_t$ with the policy head and the game result $z_t$ with the value head. The newly trained network is compared to the current best network in 400 games. If the new network wins more than a threshold of 55\% of the games it is accepted and used for the self-play from that point on. In total, $700,000$ mini batches of size $2,048$ from $4.9$ million games were sampled \cite[p. 6]{silver_mastering_2017}.
 
 \begin{figure}
     \centering
@@ -607,12 +607,12 @@ This tuple is stored in an experience buffer which is used for training the next
     \label{policy_iteration}
 \end{figure}
 
-To summarize, the self-play of AlphaZero uses the much stronger search policy generated by MCTS and improves the neural network by fitting the policy head to this search policy. The authors describe this as a projection of the search policy "back into the function space of the neural network" \cite[p. 19]{silver_mastering_2017}. By using the results of the games the search policy is evaluated and the value head is fitted to match that evaluation. This is an approximate variant of the dynamic programming method policy iteration which is depicted in figure \ref{policy_iteration}.
+To summarize, the self-play of AlphaZero uses the much stronger search policy generated by MCTS and improves the neural network by fitting the policy head to this search policy. The authors describe this as a projection of the search policy "back into the function space of the neural network" \cite[p. 19]{silver_mastering_2017}. By using the results of the games the search policy is evaluated and the value head is fitted to match that evaluation. This is an approximate variant of the dynamic programming method \textit{policy iteration} which is depicted in figure \ref{policy_iteration}.
 
 The MCTS is very similar to the previous version in AlphaGo:
 \begin{itemize}
     \item During the selection phase an action $a_t$ is selected that has maximum action value and CPUCT until a leaf node $s_L$ is reached.
-    \item The network $f_{\theta}$ is evaluated and the the probabilities $P(s_L, a)$ are stored.
+    \item The network $f_{\theta}$ is evaluated and the probabilities $P(s_L, a)$ are stored.
     \item Only the evaluation $v$ is backed up. No rollouts are performed. The action values of the parent nodes are updated to the mean value of all $v$ for that node.
 \end{itemize}
 
@@ -623,4 +623,3 @@ To select the move to play the visit count $N(s_0, a)$ in relation to the sum of
 \end{equation}
 
 As $\tau$ approaches $0$ the move with the maximum number is selected deterministically and if $\tau = 1$ other moves are selected proportional to their probability. For self-play $\tau$ was set to $1$ for the first 30 moves and to $\tau \rightarrow 0$ for the rest of a game, as well as during the face-off of the new network and the current best network.
-
