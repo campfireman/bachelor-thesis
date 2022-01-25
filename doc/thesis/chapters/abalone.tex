@@ -76,7 +76,7 @@ Using the environment properties learned in \ref{environment} we can classify Ab
 \section{Board Representations}
 \label{board_representations}
 
-To address the marble positions in a universal way, there are mulitple possible coordinate systems for the hexagonal boards. In Abalone the most common way is to label the rows alphabetically from A-I starting at the bottom row. The "colomns" are labelled numerically from 1-9 as depicted in figure \ref{abalone_coordinate_systems} (a).
+To address the marble positions in a universal way, there are multiple possible coordinate systems for the hexagonal boards. In Abalone the most common way is to label the rows alphabetically from A-I starting at the bottom row. The "columns" are labeled numerically from 1-9 as depicted in figure \ref{abalone_coordinate_systems} (a).
 
 Cube coordinates  as proposed by Patel \cite{noauthor_red_nodate} are a convenient way to represent hexagonal boards. The idea is to imagine a cube with a cartesian coordinate system originating from its center. At $x + y + z = 0$ a diagonal plane is sliced out resulting in the coordinate system represented in figure \ref{abalone_coordinate_systems} (b). As it is based on the cartesian coordinate system, it allows for simpler application of a wide variety of formulas and algorithms like Manhattan distance, accessing neighbors, finding paths etc. to the hexagonal board.
 
@@ -89,11 +89,11 @@ Cube coordinates  as proposed by Patel \cite{noauthor_red_nodate} are a convenie
     \subfloat[The cube coordinate system \cite{noauthor_red_nodate}]{
         \includegraphics[height=6cm, keepaspectratio]{hex_cube_grid.png}
     }
-    \caption{Different possibilities for adressing the fields of Abalone}
+    \caption{Different possibilities for addressing the fields of Abalone}
     \label{abalone_coordinate_systems}
 \end{figure}
 
-To store the board state in a program or to feed it to a neural network, a different representation is of advantage: Transforming the board into a two-dimensional-array of integers. The players' marbles are represented as $1$ for black, $-1$ for white and 0 for an empty space. As suggested by "towzeur" \cite{towzeur_towzeurgym-abalone_2021}, shifting the upper part of the board to the right, creates an orthogonal basis. Therefore, the adjacency of the orginial hexagonal board is maintained.
+To store the board state in a program or to feed it to a neural network, a different representation is of advantage: Transforming the board into a two-dimensional-array of integers. The players' marbles are represented as $1$ for black, $-1$ for white and 0 for an empty space. As suggested by "towzeur" \cite{towzeur_towzeurgym-abalone_2021}, shifting the upper part of the board to the right, creates an orthogonal basis. Therefore, the adjacency of the original hexagonal board is maintained.
 
 \begin{figure}[!h]
     \centering
@@ -143,7 +143,7 @@ The state space is the set of all possible states "the environment can be in".\c
     \sum_{k=8}^{14}\sum_{m=9}^{14}\frac{61!}{k!(61-k)!}\cdot\frac{(61-k)!}{m!((61-k)-m)!}
 \end{equation}
 
-Due to the boards symmetries,the results has to be divied by 12 which results in a total of $ 6 \cdot 10^{23} $ possible board configurations. \cite[p. 4]{lemmens_constructing_2005}
+Due to the board's symmetries,the results have to be divided by 12 which results in a total of $ 6 \cdot 10^{23} $ possible board configurations. \cite[p. 4]{lemmens_constructing_2005}
 
 \paragraph{Game tree complexity} In the case of Abalone the game tree is unbound and has an infinite height as actions might be taken repeatedly forming loops. Therefore, Abalone's complexity can only be approximated by an average search tree not the game tree. First we consider the branching factor $ b $, or the number of possible moves for any given state. This number greatly varies between different states. On average Abalone has $ b = 60 $ possible moves per state as measured in figure \ref{branching_factor}. The depth $ d $ of the tree depends on the number of turns per game. Looking at the average again a game takes in the region of $ d = 87 $ turns. To get a measure of the complexity the number of nodes in a tree is given by
 
