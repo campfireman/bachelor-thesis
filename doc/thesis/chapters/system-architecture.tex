@@ -258,3 +258,9 @@ To mirror along the axis that is orthogonal to the main axis, the coordinates ne
 This way the same functions can be applied to the directions. After all operations are applied the cube coordinates are converted back to marble coordinates and moves.
 
 \subsection{Warm-Up}
+AlphaZero starts learning from scratch, there is no information about what constitutes a good move or strategy. This creates a cold-start problem, the self-play learning might not improve performance or even harm performance for an extended period of time. Equipped with ample computational resources like DeepMind, this poses no problem and is even desirable: The network is not nudged into a specific direction and can produce more novel insights.
+
+Investigations into the application of AlphaZero's training principle showed possible ways to warm-start the training of the network \cite{wang_adaptive_2021}. Wang proposes an adaptive rollout based warm-start. This reintroduces rollouts into the MCTS that are performed at the beginning of the training process and are slowly phased out over the course of training.
+
+Another possibility would be to essentially reintroduce components of AlphaGo. Either by using a database of moves or alternatively by letting the agent train against a heuristic agent. For Abalone we propose a similar method. By letting a heuristic agent play against a random agent, an initial experience buffer is created. Thus, the first iteration of the training of $f_{\theta}$ produces a function that approximates the heuristic player. It is hypothesized that the self-play then further improves this warmed up agent. This is akin to the RL step in AlphaGo.
+
