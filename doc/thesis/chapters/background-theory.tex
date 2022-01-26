@@ -139,7 +139,7 @@ In its purest form the simulations are performed randomly.This means for a state
 
 The algorithm iteratively expands the search tree. For each iteration it runs through four steps:
 \begin{itemize}
-    \item \textbf{Selection} is the process of deciding which node to consider next. Starting at the root node a node is selected until a leaf node is reached. This is the selected Node. The selection of the nodes could be based on some probability distribution or use the knowledge gained over time.
+    \item \textbf{Selection} is the process of deciding which node to consider next. Starting at the root node a node is selected until a leaf node is reached. This is the selected node. The selection of the nodes could be based on some probability distribution or use the knowledge gained over time.
 
     \item \textbf{Expansion} is the step in which the selected node is expanded by appending a fresh child node.
 
@@ -513,7 +513,7 @@ Lastly, $p_{\rho}$ is used to train a neural network with weights $\theta$ for t
     \label{alpha_go_mcts}
 \end{figure}
 
-During live play against an opponent AlphaGo uses MCTS to improve the performance versus just using the pure output of the policy network. The edges, or state $s$ action $a$ pairs, of the search tree store an action value $Q(s, a)$, a visit count $N(s, a)$ and a prior probability $P(s, a)$ (cf. figure \ref{alpha_go_mcts}).
+During live play against an opponent, AlphaGo uses MCTS to improve the performance versus just using the pure output of the policy network. The edges, or state $s$ action $a$ pairs, of the search tree store an action value $Q(s, a)$, a visit count $N(s, a)$ and a prior probability $P(s, a)$ (cf. figure \ref{alpha_go_mcts}).
 
 \begin{itemize}
     \item During the \textbf{selection} phase the next child is selected by taking the action with maximum action value. To encourage exploration in the beginning an additional term $u(s,a)$ is added to the action value $Q$. Each step during selection can be described as $t$ yielding
@@ -533,21 +533,21 @@ During live play against an opponent AlphaGo uses MCTS to improve the performanc
           where $n$ is the number of simulations "$s_L^i$ is the leaf node from the $i$th simulation, and $1(s,a,i)$ indicates whether the edge was traversed during the $i$th simulation" \cite[p. 529]{silver_mastering_2016}.
 \end{itemize}
 
-The computational requirements for AlphaGo are significant. During training the team utilized 50 GPUs, the supervised learning stage ran for 3 weeks anyways. During live play they utilized a machine with 48 CPUs and 8 GPUs, a distributed variant with 1,202 CPUs and 176 GPUs was tested as well.
+The computational requirements for AlphaGo are significant. During training, the team utilized 50 GPUs. The supervised learning stage ran for three weeks regardless. During live play, they utilized a machine with 48 CPUs and 8 GPUs. A distributed variant with 1,202 CPUs and 176 GPUs was tested as well.
 
 A more detailed introduction to the topic is provided by the nature article "Mastering the game of Go with deep neural networks and tree search". \cite{silver_mastering_2016}
 
 \subsection{AlphaZero}
 A problem with AlphaGo's architecture is its complexity. There are many hyperparameters for the four different neural networks and many other moving parts. AlphaZero is a simplification that conveniently performs even better and is easier to generalize.
 
-AlphaZero learns "tabula rasa", from a blank slate. Essentially, AlphaZero only uses a modified version of the self-play RL mechanism from AlphaGo, all other parts from the training pipeline are scrapped. The two main components of AlphaZero are:
+AlphaZero learns "tabula rasa" from a blank slate. Essentially, AlphaZero only uses a modified version of the self-play RL mechanism from AlphaGo. All other parts from the training pipeline are scrapped. The two main components of AlphaZero are:
 
 \begin{enumerate}
-    \item A single neural network $f_{\theta}$. Compared to AlphaGo, the architecture of the neural network has been simplified by combining the value network and the policy network into one network with two heads. The network is only trained through self-play.
-    \item A simplified version of AlphaGo's MCTS, that doesn't use rollouts and only relies on the network $f_{\theta}$ to guide the search. The MCTS variant is not only used for live play but also for self-play.
+    \item A single neural network $f_{\theta}$. Compared to AlphaGo, the neural network's architecture has been simplified by combining the value network and the policy network into one network with two heads. The network is only trained through self-play.
+    \item A simplified version of AlphaGo's MCTS, that does not use rollouts and only relies on the network $f_{\theta}$ to guide the search. The MCTS variant is not only used for live play but also self-play.
 \end{enumerate}
 
-The network $f_{\theta}$ takes the current board state and the last seven boards as input. The position of the player's marbles is split into seperate planes, $1$ for a placed stone and $0$ if there is none. Additionally, there is one feature plane to indicate the player in turn which is set to $1$ for black's turn and $0$ for white's turn. This makes a total of 17 planes forming an input stack of the size $19 \cdot 19 \cdot 17$.
+The network $f_{\theta}$ takes the current board state and the last seven boards as input. The position of the player's marbles is split into separate planes, $1$ for a placed stone and $0$ if there is none. Additionally, one feature plane indicates the player in turn, which is set to $1$ for black's turn and $0$ for white's turn. A total of 17 planes forms an input stack of the size $19 \cdot 19 \cdot 17$.
 
 \begin{figure}
     \centering
@@ -573,7 +573,7 @@ The network $f_{\theta}$ takes the current board state and the last seven boards
     \label{alpha_zero_blocks}
 \end{figure}
 
-As shown by figure \ref{alpha_zero_neural_network} (a) the network is divided into four types of blocks:
+As shown by figure \ref{alpha_zero_neural_network} (a), the network is divided into four types of blocks:
 
 \begin{itemize}
     \item The convolutional block and residual tower hold their main chunk of trainable parameters.
@@ -596,9 +596,9 @@ The team showed empirically \cite[p. 9]{silver_mastering_2017} that this \textit
     \label{alpha_zero_training}
 \end{figure}
 
-To train the network $f_{\theta}$, it is initialized with random weights. At each turn $i$ during self-play $f_{\theta}$ guides a MCTS, which produces a probability distribution $\pi_t$ over all (legal) moves. The move $a_i$ is selected according to the probabilities $\pi$. So instead of using the network $f_{\theta}$ directly to decide on the next move, MCTS produces an improved policy through repeated application of $f_{\theta}$. The authors describe MCTS in this context as a \textit{policy improvement} operator. The self-play games are played until a terminal state $s_T$ is reached. The result of the game $z_T \in \{-1, +1\}$ is recorded for either a loss or a win. For each move during the game the result of the game $z_t$ is recorded together with the board state $s_t$ and the search probabilities $\pi_t$, where $z_t \mp z_T $ depending on the players perspective: $(s_t, \pi_t, z_t)$. The self-play is illustrated in figure \ref{alpha_zero_training} (a).
+At the start of training, the network is initialized with random weights. Each turn $i$ during self-play, $f_{\theta}$ guides a MCTS, which produces a probability distribution $\pi_t$ over all (legal) moves. The move $a_i$ is selected according to the probabilities $\pi$. So instead of using the network $f_{\theta}$ directly to decide on the next move, MCTS produces an improved policy through repeated application of $f_{\theta}$. The authors describe MCTS in this context as a \textit{policy improvement} operator. The self-play games are played until a terminal state $s_T$ is reached. The result of the game $z_T \in \{-1, +1\}$ is recorded for either a loss or a win. For each move during the game, the game's result $z_t$ is recorded. Together with the board state $s_t$ and the search probabilities $\pi_t$ a tuple for one piece of experience is formed: $(s_t, \pi_t, z_t)$. $z_t \mp z_T $ depends on the player's perspective who is in turn. The self-play is illustrated in figure \ref{alpha_zero_training} (a).
 
-This tuple is stored in an experience buffer which is used for training the next iteration of the network. In each iteration mini-batches are sampled  from the experience buffer. The network is fitted to match the probabilities $\pi_t$ with the policy head and the game result $z_t$ with the value head. The newly trained network is compared to the current best network in 400 games. If the new network wins more than a threshold of 55\% of the games it is accepted and used for the self-play from that point on. In total, $700,000$ mini batches of size $2,048$ from $4.9$ million games were sampled \cite[p. 6]{silver_mastering_2017}.
+This tuple is stored in an experience buffer used for training the next iteration of the network. In each iteration, mini-batches are sampled from the experience buffer. The network is fitted to match the probabilities $\pi_t$ with the policy head and the game result $z_t$ with the value head. The newly trained network is compared to the current best network in 400 games. If the new network wins more than a threshold of 55\% of games, it is accepted. Self-play is performed with the new network from that point on. In total, $700,000$ mini-batches of size $2,048$ from $4.9$ million games were sampled \cite[p. 6]{silver_mastering_2017}.
 
 \begin{figure}
     \centering
@@ -607,19 +607,19 @@ This tuple is stored in an experience buffer which is used for training the next
     \label{policy_iteration}
 \end{figure}
 
-To summarize, the self-play of AlphaZero uses the much stronger search policy generated by MCTS and improves the neural network by fitting the policy head to this search policy. The authors describe this as a projection of the search policy "back into the function space of the neural network" \cite[p. 19]{silver_mastering_2017}. By using the results of the games the search policy is evaluated and the value head is fitted to match that evaluation. This is an approximate variant of the dynamic programming method \textit{policy iteration} which is depicted in figure \ref{policy_iteration}.
+To summarize, the self-play of AlphaZero uses the much stronger search policy generated by MCTS and improves the neural network by fitting the policy head to this search policy. The authors describe this as a projection of the search policy "back into the function space of the neural network" \cite[p. 19]{silver_mastering_2017}. Using the games' results, the search policy is evaluated, and the value head is fitted to match that evaluation. This procedure is an approximate variant of the dynamic programming method \textit{policy iteration} which is depicted in figure \ref{policy_iteration}.
 
 The MCTS is very similar to the previous version in AlphaGo:
 \begin{itemize}
-    \item During the selection phase an action $a_t$ is selected that has maximum action value and CPUCT until a leaf node $s_L$ is reached.
-    \item The network $f_{\theta}$ is evaluated and the probabilities $P(s_L, a)$ are stored.
+    \item During the selection phase, an action $a_t$ is selected that has maximum action value and CPUCT until a leaf node $s_L$ is reached.
+    \item The network $f_{\theta}$ is evaluated, and the probabilities $P(s_L, a)$ are stored.
     \item Only the evaluation $v$ is backed up. No rollouts are performed. The action values of the parent nodes are updated to the mean value of all $v$ for that node.
 \end{itemize}
 
-To select the move to play the visit count $N(s_0, a)$ in relation to the sum of all visits to other nodes is used. The more a move was selected from the root node $s_0$ the better the network deemed the move and the following positions. A temperature parameter $\tau$ is considered to further incentivise exploration during the first moves of the self-play games:
+The visit counts $N(s_0, a)$ in relation to the sum of all visits to other nodes is used to select the next move. The more a move was selected from the root node $s_0$, the better the network deemed the move and the following positions. A temperature parameter $\tau$ is considered to further incentivize exploration during the first moves of the self-play games:
 
 \begin{equation}
     \pi(a|s_0) = \frac{N(s_0, a)^{\frac{1}{\tau}}}{\sum_b N(s_0, b)^{\frac{1}{\tau}}}
 \end{equation}
 
-As $\tau$ approaches $0$ the move with the maximum number is selected deterministically and if $\tau = 1$ other moves are selected proportional to their probability. For self-play $\tau$ was set to $1$ for the first 30 moves and to $\tau \rightarrow 0$ for the rest of a game, as well as during the face-off of the new network and the current best network.
+As $\tau$ approaches $0$, the move with the maximum number is selected deterministically, and if $\tau = 1$, other moves are selected proportional to their probability. For self-play, $\tau$ was set to $1$ for the first 30 moves and $\tau \rightarrow 0$ for the rest of a game and during the face-off of the new and the current best network.
