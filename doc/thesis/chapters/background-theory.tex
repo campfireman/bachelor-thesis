@@ -1,25 +1,25 @@
 \chapter{Background Theory}
 \label{background-theory}
-Before we move to the nuts and bolts of AlphaZero and the concrete implementation for Abalone, we should establish a general understanding of the problem. That includes building the necessary theoretical background in artificial intelligence in general, as well as insight into the specialized knowledge such as deep reinforcement learning in particular.
+Before we move to the nuts and bolts of AlphaZero and the concrete implementation for Abalone, we should establish a general understanding of the problem. That includes building the necessary theoretical background in artificial intelligence in general, as well as insight into specialized knowledge such as deep reinforcement learning in particular.
 
 \section{Artificial Intelligence}
-The introduction has already foreshadowed how the field of artificial intelligence has undergone a shift in their methodology. In the 1950s and 1960s figures like Alan Turing and von Neumann laid the foundations for modern computers. This sparked the idea one could create programs for these new machines that have similar abilities like humans and other organisms. Researchers at that time assumed there is no "universal principle" behind intelligence and focused on reason and symbol manipulation. Therefore these methods were considered "strong techniques", methods that relied on general principles like learning were labeled "weak techniques". Nowadays, the consensus in the field has reversed. \cite[cf. p. 8f.]{sutton_reinforcement_2018}
+The introduction has already foreshadowed how artificial intelligence has undergone a shift in its methodology. In the 1950s and 1960s, figures like Alan Turing and von Neumann laid the foundations for modern computers. These new machines sparked the idea that one could create programs with similar abilities to humans and other organisms. Researchers at that time assumed there was no "universal principle" behind intelligence and focused on reason and symbol manipulation. Therefore these methods were considered "strong techniques," methods that relied on general principles like learning were labeled "weak techniques ." Nowadays, the consensus in the field has reversed. \cite[cf. p. 8f.]{sutton_reinforcement_2018}
 
 % definition of artificial intelligence
 
 \subsection{Rational Agent}
-Stemming from the Latin word \textit{agere} meaning "to act", an agent is something that acts. As one expects an agent to take sensible or intelligent actions the definition has to be further qualified by calling the agent rational. This means that it acts so as "to achieve the best outcome or, when there is uncertainty, the best expected outcome". \cite[p. 36]{russell_artificial_2021}
+Stemming from the Latin word \textit{agere} meaning "to act," an agent is something that acts. As one expects an agent to take sensible or intelligent actions, the definition must be further qualified by calling the agent rational. A rational agent acts "to achieve the best outcome or, when there is uncertainty, the best expected outcome." \cite[p. 36]{russell_artificial_2021}
 
-The agent exists in an environment which it perceives through sensors and it takes actions through its actuators. The content of the sensor's output for one observation is referred to as \textit{percept}. A cat uses eyes, ears and other organs to perceive the world and its legs, claws and so on to interact with the world. An autonomous car might use radar and cameras for acquiring information and steering and motors for navigation.
+The agent exists in an environment that it perceives through sensors and takes actions through its actuators. The content of the sensor's output for one observation is referred to as \textit{percept}: A cat uses eyes, ears and other organs to perceive the world and its legs, claws, and so on to interact with the world. An autonomous car might use radar and cameras for acquiring information and steering and motors for navigation.
 
-Internally the agent might have some built-in knowledge about the world, such as rules on how the environment works. The \textit{agent function} takes the entire history of percepts observed and this built-in knowledge and maps it to an action. A concrete implementation of this abstract function is called \textit{agent program}. The agent program might just be a simple tabular mapping from percepts to actions or could use a complex algorithm with an additional model.
+Internally the agent might have some built-in knowledge about the world, such as rules on how the environment works. The \textit{agent function} takes the entire history of percepts observed and this built-in knowledge and maps it to an action. A concrete implementation of this abstract function is called \textit{agent program}. The agent program might just be a simple tabular mapping from percepts to actions or a complex algorithm with an additional model.
 
-This abstract definition of an agent encompasses a simple program that plays Tic-Tac-Toe, but also very complex scenarios like a humanoid robot that is tasked to help in the household.
+This abstract definition of an agent encompasses a simple program that plays Tic-Tac-Toe, but also very complex scenarios like a humanoid robot tasked to help in the household.
 
 \subsection{(Task) Environment}
 \label{environment}
 
-As we are trying to build an agent that tries to achieve some specified goal, we can consider its environment as a problem or \textit{task} the agent tries to solve. The Tic-Tac-Toe program lives in a game world with simple rules while the humanoid robot has to interact with the physical reality. The environment might change either due to other influences or by the actions of the agent. Putting together both agent and the environment we see a loop of observing, deliberating and finally taking an action as depicted in figure \ref{agent_environment_loop}.
+As we are trying to build an agent that tries to achieve some specified goal, we can consider its environment as a problem or \textit{task} the agent tries to solve. The Tic-Tac-Toe program lives in a game world with simple rules while the humanoid robot has to interact with the physical reality. The environment might change either due to other influences or by the agent's actions. Putting together both agent and the environment, we see a loop of observing, deliberating, and finally taking an action as depicted in figure \ref{agent_environment_loop}.
 
 \begin{figure}
     \centering
@@ -28,22 +28,22 @@ As we are trying to build an agent that tries to achieve some specified goal, we
     \label{agent_environment_loop}
 \end{figure}
 
-To specify the task environment there are four key components illustrated by for a machine classifying defective parts in a production line:
+To specify the task environment, there are four core components illustrated for a machine classifying defective parts in a production line:
 
 \begin{enumerate}
-    \item Performance measure: This might be the percentage of correctly broken parts (true positives) weighted against the number of incorrectly identified parts (false positives).
+    \item Performance measure: This might be the percentage of correctly broken parts (true positives) weighed against the number of incorrectly identified parts (false positives).
     \item Environment: The conveyor belt and the parts
     \item Actuators: An arm to push the parts to a different conveyor belt
     \item Sensors: Possibly a camera, infrared sensors, etc.
 \end{enumerate}
 
-The initial letters form the acronym PEAS (framework). Aside from the specification of the task environment, there are also a few categorizations of the properties of task environments that are extremely helpful for narrowing down potential applicability of different classes of algorithms.
+The initial letters form the acronym PEAS (framework). Aside from the specification of the task environment, there are also a few categorizations of the properties of task environments that are extremely helpful for narrowing down the potential applicability of different classes of algorithms.
 
-A key property is the observability of the environment. If the environment is \textit{fully observable}, the sensors detect all the information that is in any way relevant for taking an action. Conversely if not all information can be observed we call it \textit{partial observability}. For example in poker the other players' cards and the upcoming cards cannot be seen but are highly relevant to the agent's actions. As the current board state of chess fully comprises all information necessary to make a move, we can classify it as fully observable.
+A fundamental property is the observability of the environment. If the environment is \textit{fully observable}, the sensors detect all the information that is in any way relevant for taking an action. Conversely, if not all information can be observed, we call it \textit{partial observability}. For example, in poker, the other player's cards and the upcoming cards cannot be seen but are highly relevant to the agent's actions. As the current board state of chess entirely comprises all information necessary to make a move, we can classify it as fully observable.
 
-The values of the state of the environment and time can be categorized into discrete and continuous. An autonomous vehicle for instance is dealing with continuous time and also continuous states. The speed of the car takes a smooth range of real values and time can be meaningfully split into increasingly small intervals. Board games are entirely discrete. The set of all states is a finite collection of all (legal) configurations of the board and the gaming pieces. Time progresses on the basis of turns.
+The values of the state of the environment and time can be categorized into discrete and continuous. For instance, an autonomous vehicle deals with continuous time and continuous states. The car's speed takes a smooth range of real values, and time can be meaningfully split into increasingly small intervals. Board games are entirely discrete. The set of all states is a finite collection of all (legal) configurations of the board and the gaming pieces. Time progresses on the basis of turns.
 
-An agent's actions might also be \textit{non-deterministic}. When dealing with systems of high complexity the next state might not only depend on the previous state and the action taken. There might be other car drivers taking unexpected actions or a comet hitting the car.
+An agent's actions might also be \textit{non-deterministic}. When dealing with systems of high complexity, the next state might not only depend on the previous state and the action taken. Other car drivers might take unexpected actions, or a comet hit the car.
 
 Further expanding on the passage of time it has to be taken into account if actions have consequences for future states. If each combination of percept and action is independent of each other it is called \textit{episodic} and \textit{sequential} otherwise. If one had to classify a production line of circuit boards as either defective or functional, it would be an episodic environment. The classification of an individual board does not matter for the next one.
 
@@ -240,7 +240,7 @@ From these properties of the MDP we can define the four central components of Re
 
           We denote the policy as the function $\pi $. It defines a probability distribution over all actions $ a \in \mathcal{A}(s)$ for each $ s \in \mathcal{S} $. $ \pi(a|s)$ is probability at a given timestep $t$ for the action to be $ a = A_t $ under the condition that $ s = S_t $.
 
-    \item \textbf{The value function} is an estimation of the reward for the agent to be in a given state $ s $. In other words, it is the expected value $\mathbb{E}$  for the goal $G_t$ given the state $s$.  As the reward for a state depends on what actions we take in the future, the value depends on the policy $ \pi $ defined above. Given that we are at timestep $ t $ and in state $ s = S_t $, the \textit{state-value function $v_{\pi}$}:
+    \item \textbf{The value function} is an estimation of the reward for the agent to be in a given state $ s $. In other words, it is the expected value $\mathbb{E}$  for the goal $G_t$ given the state $s$. As the reward for a state depends on what actions we take in the future, the value depends on the policy $ \pi $ defined above. Given that we are at timestep $ t $ and in state $ s = S_t $, the \textit{state-value function $v_{\pi}$}:
 
           \begin{equation}
               v_{\pi}(s) = \mathbb{E}_{\pi}[G_t | S_t = s] = \mathbb{E}_{\pi}\left[\sum_{k=0}^{\infty} \gamma^kR_{t+k+1} \middle| S_t = s \right]
