@@ -1,10 +1,10 @@
 \chapter{System Architecture}
 \label{system-architecture}
-Well equipped with all the essential theoretical tools that we need, we can move on to implementing them for the game of Abalone. A first logical step would be to look at the existing software landscape to decide if we can utilize existing tools to speed up development.
+Well equipped with all the essential theoretical tools that we need, we can move on to implementing them for the game of Abalone. The first logical step would be to look at the existing software landscape to decide if we can utilize existing tools to speed up development.
 
 \section{Software}
-\subsection{Machine Learning Library}
-Machine learning projects share many components. Most commonly, that is the declaration of the computational graph and the training of the graph. The libraries not only provide those components but also bring significant optimizations and specialized code for hardware acceleration. Therefore, it is imperative to decide on a suitable library to speed up development by several orders of magnitude.
+\subsection{Deep Learning Library}
+Deep learning projects share many components. Most commonly, that is the declaration of the computational graph and the training of the graph. The libraries provide those components and bring significant optimizations and specialized code for hardware acceleration. Therefore, it is imperative to decide on a suitable library to speed up development by several orders of magnitude.
 
 \begin{figure}
     \centering
@@ -94,10 +94,10 @@ There are multiple relevant implementations of game engines for Abalone. As the 
 Two arguments lead to the decision of choosing Abalone-BOAI:
 \begin{enumerate}
     \item We already optimized it in the previous project, like the generation of legal moves.
-    \item The API of the engine needs to be adapted to fit the interface of the training framework. Both engines are stateful, meaning that they rely on the class instance context to perform moves, check for legal moves, and other operations. AlphaZero General expects the game engine to be designed in a functional way. For instance, the operations are supposed to be applied to the input matrix, and the modified matrix is then returned. Therefore, intricate knowledge of the engine is of advantage.
+    \item AlphaZero General expects the game engine to be designed in a functional way. The API of the engine needs to be adapted to fit the interface of the training framework. Both engines are stateful, meaning that they rely on the class instance context to perform moves, check for legal moves, and other operations. For instance, the operations are supposed to be applied to the input matrix, and the modified matrix is then returned. Therefore, intricate knowledge of the engine is of advantage.
 \end{enumerate}
 
-Due to those necessary modifications, the original game engine was forked to allow for more accessible packaging \cite{campfireman_campfiremanabalone-boai_2021}.
+Due to those necessary modifications, we forked the original game engine to allow for more accessible packaging \cite{campfireman_campfiremanabalone-boai_2021}.
 
 \begin{figure}
     \centering
@@ -153,7 +153,7 @@ The training pipeline of AlphaZero General has five main components:
     \item \textbf{Arena}: Has the task to perform the face-off between different agents.
 \end{enumerate}
 
-We not only parallelized the framework  in section \ref{parallelization}, but also made multiple other modifications:
+We not only parallelized the framework  in section \ref{parallelization} but also made multiple other modifications:
 \begin{itemize}
     \item The Arena was modified to use the Abalone engine \cite{claussen_abalone_2021} and game-playing agents implemented for that engine. This way, the neural nets can be faced off against other algorithms like Verloop's minimax.
     \item Moreover, the MCTS implementation could not deal with games with board states appearing multiple times in the search tree. The implementation uses hash maps to retrieve the action-values and counts for a board state. If the board state exists multiple times in the search tree, the values are skewed. We extended the hash of a state by a hash of the parent node's hash and the current depth of the node to solve the problem.
@@ -167,7 +167,7 @@ Even though we alter the main training routine later to be executed in parallel,
 
 The outer loop defines how many iterations of self-play and subsequent neural network training should be performed. At the beginning of each iteration, a predefined number of episodes is supposed to be played.
 
-In each episode, an MCTS is performed with the defined number of simulations. The temperature parameter $\tau$ determines the exploration: Either a move is selected with a probability proportional to the number of visits, or the move with the highest count is selected. The move is applied to the board state. After switching the sides, it is checked whether a terminal state was reached. If not, the game is continued. Otherwise, the reward $r$ is calculated. With $r$, the list of experiences $(s, \pi, z)$ is generated, with $z$ being the reward $r$ from the perspective of the player in turn.
+In each episode, an MCTS is performed with the defined number of simulations. The temperature parameter $\tau$ determines the exploration. Either a move is selected with a probability proportional to the visit count, or the move with the highest count is selected. The move is applied to the board state. After switching the sides, it is checked whether a terminal state was reached. If not, the game is continued. Otherwise, the reward $r$ is calculated. With $r$, the list of experiences $(s, \pi, z)$ is generated, with $z$ being the reward $r$ from the perspective of the player in turn.
 
 After the desired number of games has been played, the new experience is appended to the experience buffer. Moreover, the buffer is stored as a checkpoint. If the buffer exceeds a defined length, the oldest experience is removed. Then a new version of the network $f_{\theta}$ is trained and played against the previous version in the Arena. If the new network performs better than the previous version, it is stored on disk for checkpointing. Otherwise, the network is discarded. The training is then continued until the desired number of iterations is reached, or the training is aborted.
 
@@ -186,9 +186,9 @@ After the desired number of games has been played, the new experience is appende
 
 \subsection{Parallelization}
 \label{parallelization}
-AlphaZero General's training pipeline does not offer parallel training. By comparing the time taken to execute one episode for the game of Othello and Abalone, it showed that a game of Abalone takes on average $40$ times (n=100) longer to finish: 1s for Othello and 40s for Abalone. Investigating potential improvements, it became clear that there are two major factors that determine the runtime of an episode:
+AlphaZero General's training pipeline does not offer parallel training. By comparing the time taken to execute one episode for the game of Othello and Abalone, it showed that a game of Abalone takes on average $40$ times (n=100) longer to finish: 1s for Othello and 40s for Abalone. Investigating potential improvements, it became clear that two major factors determine the runtime of an episode:
 
-1. Length of the game. A game of Abalone takes significantly more turns, caused by rules not forbidding loops such that games can be infinite. Moreover, defensive play styles can draw out games significantly. By limiting number of turns $m$ per game and evaluating the state of the game at that step, the issue can be alleviated. In this case, the length was limited to $m=200$.
+1. Length of the game. A game of Abalone takes significantly more turns, caused by rules not forbidding loops such that games can be infinite. Moreover, defensive play styles can draw out games significantly. In order to alleviate the issue, we limited the number of turns $m$ per game. In this case, the length was limited to $m=200$. The newly created terminal state is scored with a partial score: The scored marbles are subtracted by the opponent's score for each player. We scored win or loss as either $1$ or $-1$. Hence, the partial score is normalized by the number of marbles needed to win. The partial score reflects which player had the upper hand at the artificial terminal state.
 
 2. The MCTS being computationally expensive: A closer inspection of the execution time, holding all variables constant, demonstrates the culprit. The simulation step of MCTS uses the neural network. The time taken by this function is one order of magnitude larger than the second most expensive operation, which is the generation of legal moves. For example, when running 15 MCTS iterations with the original TensorFlow implementation, one turn takes
 
@@ -214,7 +214,7 @@ $$
     f \in O(kmn)
 $$
 
-Abalone requires a larger number of MCTS simulations. The other projects \cite{bruasdal_deep_2020,thakoor_learning_nodate} used only 30 iterations for Othello and Hex, but Abalone has a much more complex game tree. AlphaZero performs $1,600$ iterations \cite[p. 11]{silver_mastering_2017} for each move. The MCTS needs to recommend a better move than the pure network for the network to improve. It is the policy improvement operator. Those properties were the reason to decide to use PyTorch. The library brings a $5$-times improvement for that step as shown in \ref{pytorch_vs_tensorflow_performance}. Nevertheless, this only brings down execution time for one episode by a factor of $5$, still being $8$-times slower than the reference implementation for Othello. AlphaZero uses two ways to alleviate this problem:
+Abalone requires a larger number of MCTS simulations. The other projects \cite{bruasdal_deep_2020,thakoor_learning_nodate} used only 30 iterations for Othello and Hex, but Abalone has a much more complex game tree. AlphaZero performs $1,600$ iterations \cite[p. 11]{silver_mastering_2017} for each move. The MCTS needs to recommend a better move than the pure network to improve. It is the policy improvement operator. Those properties were the reason to decide to use PyTorch. The library brings a $5$-times improvement for that step as shown in \ref{pytorch_vs_tensorflow_performance}. Nevertheless, this only brings down execution time for one episode by a factor of $5$, still being $8$-times slower than the reference implementation for Othello. AlphaZero uses two ways to alleviate this problem:
 
 \begin{itemize}
     \item Parallelization of the self-play training
@@ -230,7 +230,7 @@ As Python's global interpreter lock \cite{noauthor_globalinterpreterlock_nodate}
     \label{parallel_training_pipeline}
 \end{figure}
 
-The self-play workers use the current best neural network $f_{\theta}$ to generate experience. The experience is put into a queue to allow for asynchronous communication between the worker processes and the Coach. For each neural network training iteration, the queue is emptied and loaded into the replay buffer. If the experience buffer exceeds the maximum size, the oldest experience is dropped. The number of training batches is defined by the batch size and buffer size (buffer size divided by batch size). The training batches are created by randomly sampling tuples ($s, \pi, z$) from the buffer. No tuple is used twice so that the entire buffer is utilized.
+The self-play workers use the current best neural network $f_{\theta}$ to generate experience. The experience is put into a queue to allow for asynchronous communication between the worker processes and the Coach. The queue is emptied and loaded into the replay buffer for each neural network training iteration. If the experience buffer exceeds the maximum size, the oldest experience is dropped. The number of training batches is defined by the batch size and buffer size (buffer size divided by batch size). The training batches are created by randomly sampling tuples ($s, \pi, z$) from the buffer. No tuple is used twice so that the entire buffer is utilized.
 
 After training the neural network with the batches, the newly created network is pitted against the old version in the Arena. As both variants have to be pitted against each other multiple times, we parallelized the Arena. If the new network is stronger than the previous version, it is saved on disk. Then the version counter is incremented. The version counter is a shared variable between the workers and the Coach. After each completed self-play game, the worker checks if the version counter is larger than its stored version. If that is the case, the new network is loaded from disk.
 
@@ -239,7 +239,7 @@ An important factor is to balance the number of workers against the time it take
 \subsection{Symmetrical Board Generation}
 Abalone's board has six rotational symmetries and six mirror axes, as mentioned in \ref{state_space_complexity}. By generating the symmetrical board states for each tuple ($s, \pi, z)$, the data can be augmented by a factor of twelve. That means $\pi$ and $v$ are equivalent for up to 12 symmetrical board states. Some board configurations have less symmetrical boards, as some are identical. For example, rotating the default starting position by 120° produces the same board as mirroring it by the $s$ axis. In general, the factor of 12 does hold for almost all board states.
 
-The first step in generating the symmetrical boards is to turn the marble positions into cube coordinates. There is a simple way for cube coordinates to mirror coordinates and rotate coordinates. A mapping function transforms marble coordinates from their matrix coordinates of the form $(x, y)$ to $(q, r, s)$. The origin of the cube coordinate system is laid into the center of the Abalone board, such that e.g. $E5 = (0, 0, 0)$ or $A1 = (-4, 4, 0)$.
+The first step in generating the symmetrical boards is to turn the marble positions into cube coordinates. There is a simple way for cube coordinates to mirror and rotate coordinates. A mapping function transforms marble coordinates from their matrix coordinates of the form $(x, y)$ to $(q, r, s)$. The origin of the cube coordinate system is laid into the center of the Abalone board, such that e.g. $E5 = (0, 0, 0)$ or $A1 = (-4, 4, 0)$.
 
 The transformed coordinates can be rotated around the origin by 60° clockwise by shifting the values to the right and negating the values:
 
@@ -257,7 +257,7 @@ To mirror a cube coordinate along one of the three main coordinate axes $q, r$ o
     function reflect_s(h) { return Cube(h.r, h.q, h.s); }
 \end{BVerbatim}
 
-For mirroring along the orthogonal axis to the main axis, the coordinates need to be negated first. Besides all marbles, all moves in $\pi$, whose probability is not $0$, have to be transformed as well. First, the move corresponding to the index in $\pi$ is looked up. As a move consists of one or two marble coordinates, those are transformed by the same scheme. The directions can be transformed into cube coordinates as well:
+The coordinates need to be negated first for mirroring along the orthogonal axis to the main axis. Besides all marbles, all moves in $\pi$, whose probability is not $0$, have to be transformed as well. First, the move corresponding to the index in $\pi$ is looked up. As a move consists of one or two marble coordinates, those are transformed by the same scheme. The directions can be transformed into cube coordinates as well:
 
 \begin{BVerbatim}
     (+1, -1, 0): NORTH_EAST
