@@ -147,7 +147,7 @@ In order to apply the neural network architecture proposed by AlphaZero (cf. fig
 The training pipeline of AlphaZero General has five main components:
 \begin{enumerate}
     \item \textbf{Coach}: The main module that orchestrates the training process.
-    \item \textbf{game}: Provides an abstract interface that generalizes to many types of board games. Functions like the generation of legal moves, creating a unique string representation of the board, and other functions need to be implemented.
+    \item \textbf{Game}: Provides an abstract interface that generalizes to many types of board games. Functions like the generation of legal moves, creating a unique string representation of the board, and other functions need to be implemented.
     \item \textbf{Neural Net}: Is a wrapper for any neural network. It needs to be implemented for the specific framework used.
     \item \textbf{MCTS}: Encapsulates the logic to perform Monte Carlo Tree Search on the game tree with the help of the neural network and the Game module.
     \item \textbf{Arena}: Has the task to perform the face-off between different agents.
