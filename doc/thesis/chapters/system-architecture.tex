@@ -236,6 +236,11 @@ After training the neural network with the batches, the newly created network is
 
 An important factor is to balance the number of workers against the time it takes to train the neural network. If the buffer grows large, training takes a long time. In the meantime, much new experience is potentially generated, overriding all previous experience. As a result, all experience is only generated from one network. The training process might become less robust.
 
+\subsection{Distribution}
+The table \ref{pytorch_vs_tensorflow_performance} shows the usage of a GPU accelerates the inference speed significantly, particularly for PyTorch. Ergo, accelerating the self-play is highly desireable. When multiple processes utilize a GPU, each process requires a portion of the cards memory. PyTorch has the feature to share a model between multiple processes, wherefore a model does not need to be fully loaded for each process \cite{noauthor_module_nodate}. However, in PyTorch "every-time a process holds any pytorch object that is allocated on the GPU, then it allocates an individual copy of all the kernels (cuda functions) that pytorch uses, which is about 1GB" \cite{radim_shark_sharing_2020}. We observed that an unshared model uses 1.2GB of VRAM per process and decided to not to use the memory-sharing feature. The additional overhead to implement it did not justify the saved memory. Each process loads its own instance of the model.
+
+Either way at some point the worker's VRAM needs outgrows the GPU's resources. We implemented the parallelization in such a way, that the user can assign GPU identifiers to each component (arena, training loop and workers). The processes then distribute the processes equally to the given hardware.
+
 \subsection{Symmetrical Board Generation}
 Abalone's board has six rotational symmetries and six mirror axes, as mentioned in \ref{state_space_complexity}. By generating the symmetrical board states for each tuple ($s, \pi, z)$, the data can be augmented by a factor of twelve. That means $\pi$ and $v$ are equivalent for up to 12 symmetrical board states. Some board configurations have less symmetrical boards, as some are identical. For example, rotating the default starting position by 120° produces the same board as mirroring it by the $s$ axis. In general, the factor of 12 does hold for almost all board states.
 
