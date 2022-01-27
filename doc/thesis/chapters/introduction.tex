@@ -18,6 +18,20 @@ The recent success of "AlphaGo" in 2016 against the long-time world-champion Lee
 
 In the case of Go, designing a powerful heuristic function was deemed impossible for humans. The team from DeepMind created AlphaGo using (deep) neural networks to learn an evaluation function based on a large database of expert moves. With the help of \textit{reinforcement learning} (RL) they improved this network even further by letting it play against itself. They used this trained function to then perform lookahead search on the game tree more effectively \cite{silver_mastering_2017}. Building on this success DeepMind further improved the architecture. "AlphaGo Zero" and the generalization "AlphaZero" learn without the help of the database of expert moves. AlphaZero's learning process exclusively relies on deep reinforcement learning and \textit{self-play}. Nevertheless, it surpassed the performance of AlphaGo significantly. Since then the architecture has been applied to Chess, Shogi and Atari games. "MuZero" went even further by removing the last piece of human knowledge in the system: the rules of the game \cite{schrittwieser_mastering_2020}.
 
+\begin{figure}[H]
+    \centering
+    \subfloat[The original physical board of the game]{
+        \includegraphics[height=4.5cm, keepaspectratio]{physical_abalone_board.jpg}
+    }
+    % \hfill
+    \subfloat[Note the hexagonal shape of the board and the fields. A marble can be moved in upto six directions.]{
+        \includegraphics[height=4.5cm, keepaspectratio]{abalone_board_default.png}
+    }
+    \caption{The board of Abalone}
+    \label{abalone_boards}
+\end{figure}
+
+
 At this point our endeavor begins, as the goal of this thesis is to apply the methods of AlphaZero to the game of Abalone. Abalone is a relatively young board game from 1987. The main variant is played by two players on a hexagonal board with 61 fields and 14 marbles for black and white respectively. The goal of the game is to push six of the opponent's marbles off the playing field.
 
 Naturally, the question arises whether this goal is a worthwhile thing to do. Firstly, academic interest in Abalone has remained steady even though the popularity of the game declined. However, so far the application of learning methods to Abalone is less explored, especially regarding the novel techniques introduced by AlphaZero.
