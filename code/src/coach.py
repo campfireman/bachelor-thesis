@@ -222,9 +222,9 @@ class ParallelCoach:
                 log.info(f'Not enough train examples waiting')
                 time.sleep(10.0)
 
-            for i in range(1, self.args.num_iters + 1):
+            for iteration in range(1, self.args.num_iters + 1):
                 iteration_start = time.time()
-                log.info(f'Starting Iter #{i} ...')
+                log.info(f'Starting Iter #{iteration} ...')
 
                 examples_read_from_queue = 0
                 examples_to_load = train_example_queue.qsize()
@@ -249,7 +249,7 @@ class ParallelCoach:
                         self.experience_buffer.popleft()
                 # backup history to a file
                 # NB! the examples were collected using the model from the previous iteration, so (i-1)
-                self.save_experience_buffer(i - 1)
+                self.save_experience_buffer(iteration - 1)
 
                 # training new network, keeping a copy of the old one
                 self.nnet.save_checkpoint(
@@ -283,7 +283,7 @@ class ParallelCoach:
                 log.info('NEW/PREV WINS : %d / %d ; DRAWS : %d' %
                          (nwins, pwins, draws))
                 self_comparison_stats_csv.add_row(
-                    [i, time.time(), pwins, nwins, draws, prewards, nrewards])
+                    [iteration, time.time(), pwins, nwins, draws, prewards, nrewards])
                 if pwins + nwins == 0 or float(nwins) / (pwins + nwins) < self.args.update_treshold:
                     log.info('REJECTING NEW MODEL')
                     self.nnet.load_checkpoint(
@@ -292,11 +292,11 @@ class ParallelCoach:
                     log.info('ACCEPTING NEW MODEL')
                     nnet_id.value += 1
                     self.nnet.save_checkpoint(
-                        folder=self.args.checkpoint, filename=self.get_checkpoint_file(i))
+                        folder=self.args.checkpoint, filename=self.get_checkpoint_file(iteration))
                     self.nnet.save_checkpoint(
                         folder=self.args.checkpoint, filename=self.NNET_NAME_BEST)
 
-                if self.args.agent_comparisons and ((not self.args.first_agent_comparison_skip and i == 1) or i % self.args.agent_comparisons_step_size == 0):
+                if self.args.agent_comparisons and ((not self.args.first_agent_comparison_skip and iteration == 1) or iteration % self.args.agent_comparisons_step_size == 0):
                     log.info('PITTING AGAINST RANDOM PLAYER')
                     arena = Arena(
                         AbaloneNNPlayer,
@@ -312,7 +312,7 @@ class ParallelCoach:
                     nwins, rwins, draws, nrewards, rrewards = arena.play_games(
                         self.args.num_random_agent_comparisons)
                     random_player_game_stats_csv.add_row(
-                        [i, time.time(), nwins, rwins, draws, nrewards, rrewards])
+                        [iteration, time.time(), nwins, rwins, draws, nrewards, rrewards])
                     log.info('NN/RNDM WINS : %d / %d ; DRAWS : %d' %
                              (nwins, rwins, draws))
 
@@ -331,9 +331,9 @@ class ParallelCoach:
                     nwins, hwins, draws, nrewards, hrewards = arena.play_games(
                         self.args.num_heuristic_agent_comparisons)
                     heuristic_player_game_stats_csv.add_row(
-                        [i, time.time(), nwins, hwins, draws, nrewards, hrewards])
+                        [iteration, time.time(), nwins, hwins, draws, nrewards, hrewards])
                     log.info('NN/HRSTC WINS : %d / %d ; DRAWS : %d' %
                              (nwins, hwins, draws))
                 iteration_duration = time.time() - iteration_start
                 performance_stats_csv.add_row(
-                    [i, time.time(), iteration_duration, training_duration, examples_read_from_queue, len(self.experience_buffer)])
+                    [iteration, time.time(), iteration_duration, training_duration, examples_read_from_queue, len(self.experience_buffer)])
