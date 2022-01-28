@@ -128,7 +128,6 @@ class AbaloneGame(Game):
         return 0
 
     def get_game_ended_limited(self, board: npt.NDArray, player: int, turns: int) -> float:
-        step_penalty = turns * -0.001
         if turns > MAX_TURNS:
             score = self.engine.s_score(board)
             marbles_taken_black = (TOTAL_NUM_MARBLES -
@@ -141,8 +140,8 @@ class AbaloneGame(Game):
                 partial_score = 1e-8
             log.info(
                 f'Exceeded max turns of {MAX_TURNS} setting game result to {partial_score}')
-            return partial_score + step_penalty
-        return self.get_game_ended(board, player) + step_penalty
+            return partial_score
+        return self.get_game_ended(board, player)
 
     def get_canonical_form(self, board: npt.NDArray, player: int) -> npt.NDArray:
         """

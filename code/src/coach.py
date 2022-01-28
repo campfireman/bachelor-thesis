@@ -116,7 +116,9 @@ class ParallelCoach:
                 board, cur_player, episode_step)
             if r != 0:
                 end = time.time()
+                step_penalty = episode_step * -0.001
                 if not args.filter_by_reward_threshold or (args.filter_by_reward_threshold and abs(r) > 0.001):
+                    r += step_penalty
                     log.info(
                         f'Finished game with nnet id: {cur_nnet_id} in {(end-start):.2f}s')
                     train_example_queue.put(
