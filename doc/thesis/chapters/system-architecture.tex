@@ -97,7 +97,7 @@ Two arguments lead to the decision of choosing Abalone-BOAI:
     \item AlphaZero General expects the game engine to be designed in a functional way. The API of the engine needs to be adapted to fit the interface of the training framework. Both engines are stateful, meaning that they rely on the class instance context to perform moves, check for legal moves, and other operations. For instance, the operations are supposed to be applied to the input matrix, and the modified matrix is then returned. Therefore, intricate knowledge of the engine is of advantage.
 \end{enumerate}
 
-Due to those necessary modifications, we forked the original game engine to allow for more accessible packaging \cite{campfireman_campfiremanabalone-boai_2021}.
+Due to those necessary modifications, we forked the original game engine to allow for more accessible packaging \cite{claussen_campfiremanabalone-boai_2021}.
 
 \begin{figure}
     \centering
@@ -224,9 +224,9 @@ Abalone requires a larger number of MCTS simulations. The other projects \cite{b
 
 As Python's global interpreter lock \cite{noauthor_globalinterpreterlock_nodate} does not allow for true multithreading. Parallelizing the MCTS poses significant complexity and difficulty. However, allowing for simultaneous self-play and neural network training is feasible. As already mentioned in section \ref{training_framework}, the implementation by Bruåsdal \cite{bruasdal_deep_2020} provides this feature. For that reason, its architecture is used as a blueprint for migrating AlphaZero General into a parallel architecture. The figure \ref{parallel_training_pipeline} depicts how the components mentioned interacting in a parallel fashion.
 
-\begin{figure}[H]
+\begin{figure}
     \centering
-    \includegraphics[height=10cm, keepaspectratio]{parallel-training.png}
+    \includegraphics[width=\textwidth, keepaspectratio]{parallel-training.png}
     \caption{The different processes during the parallel training \cite[cf. p. 45]{bruasdal_deep_2020}}
     \label{parallel_training_pipeline}
 \end{figure}
@@ -250,9 +250,9 @@ The first step in generating the symmetrical boards is to turn the marble positi
 The transformed coordinates can be rotated around the origin by 60° clockwise by shifting the values to the right and negating the values:
 
 \begin{BVerbatim}
-    [ q,  r,  s ]
-    to  [-r, -s, -q ]
-    to     [  s,  q,  r ]
+    ( q,  r,  s )
+    to  (-r, -s, -q )
+    to     (  s,  q,  r )
 \end{BVerbatim}
 
 To mirror a cube coordinate along one of the three main coordinate axes $q, r$ or $s$ the two coordinates that don't belong to the axis are swapped:
