@@ -620,6 +620,7 @@ The visit counts $N(s_0, a)$ in relation to the sum of all visits to other nodes
 
 \begin{equation}
     \pi(a|s_0) = \frac{N(s_0, a)^{\frac{1}{\tau}}}{\sum_b N(s_0, b)^{\frac{1}{\tau}}}
+    \label{eq:move_selection}
 \end{equation}
 
 As $\tau$ approaches $0$, the move with the maximum number is selected deterministically, and if $\tau = 1$, other moves are selected proportional to their probability. For self-play, $\tau$ was set to $1$ for the first 30 moves and $\tau \rightarrow 0$ for the rest of a game and during the face-off of the new and the current best network.

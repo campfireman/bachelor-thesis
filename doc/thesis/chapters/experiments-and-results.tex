@@ -23,6 +23,32 @@ For the purpose of this thesis we had access to two machines. The smaller machin
     \label{hardware}
 \end{table*}
 
+\section{Parameters}
+The behavior of the system is controlled by a multitude of parameters. The most relevant parameters are listed in table \ref{parameters}. If one of the parameters differs from the default values in an experiment, it will be mentioned. For each experiment, all parameters are pesisted by the system.
+
+\begin{table}
+    \begin{center}
+        \begin{tabularx}{\textwidth}{ c|c|X }
+            Name                       & Default & Explanation                                                                                   \\
+            \hline
+            \hline
+            temp\_treshhold            & 60      & The number of moves for which the next move is sampled (cf. equation \ref{eq:move_selection}) \\
+            update\_treshold           & 0.6     & The percentage of matches, that has to be won for a new network to be accepted                \\
+            num\_MCTS\_sims            & 120     & The number of times the search tree is expanded during MCTS                                   \\
+            num\_self\_play\_workers   & 14      & The number of workers used for parallel self-play                                             \\
+            num\_arena\_workers        & 7       & The number of workers used for parallel Arena matches                                         \\
+            load\_model                & true    & Indicates whether to load an existing model                                                   \\
+            maxlen\_experience\_buffer & 1440000 & The maximum number of tuples ($s, \pi, z$) in the buffer                                      \\
+            nnet\_size                 & mini    & The neural net used as introduced in \ref{neural_network_architecture}                        \\
+            lr                         & 0.001   & The learning rate during training of the neural network                                       \\
+            epochs                     & 10      & The number of of epochs during training of the neural network                                 \\
+            batch\_size                & 64      & The size of the batches during training of the neural network                                 \\
+        \end{tabularx}
+    \end{center}
+    \caption{The parameters of the training pipeline}
+    \label{parameters}
+\end{table}
+
 \section{Validation}
 \paragraph{Hypothesis} The modified framework still converges to optimal play for Othello and TicTacToe.
 \paragraph{Test} Run pipeline with modified implemenation of Othello and TicTacToe from \cite{thakoor_suragnairalpha-zero-general_nodate} on Balthazar.
