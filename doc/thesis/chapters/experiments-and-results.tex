@@ -1,2 +1,31 @@
 \chapter{Experiments and Results}
 \label{experiments-and-results}
+
+Each experiment has a hypothesis, a test and a result.
+
+\section{Hardware}
+For the purpose of this thesis we had access to two machines. The smaller machine is a personal machine and a large machine rented at the provider Exoscale \cite{noauthor_exoscale_nodate}. They will be referred to as \textit{Balthazar} and \textit{Melchior} respectively. Their specifications are described in table \ref{hardware}.
+
+\begin{table*}
+    \begin{center}
+        \begin{tabular}{ c|c|c }
+            Component & Balthazar             & Melchior                \\
+            \hline
+            \hline
+            CPU       & 6 Core AMD Ryzen 3600 & 24 Core Intel Broadwell \\
+            RAM       & 32GB                  & 120GB                   \\
+            GPU       & NVIDIA GTX 1660 Super & 3 $\cdot$ NVIDIA P100   \\
+            VRAM      & 6GB                   & 3 $\cdot$ 16GB          \\
+            Storage   & 500GB SSD             & 400GB SSD               \\
+        \end{tabular}
+    \end{center}
+    \caption{Hardware specifications of the utilized machines}
+    \label{hardware}
+\end{table*}
+
+\section{Validation}
+\paragraph{Hypothesis} The modified framework still converges to optimal play for Othello and TicTacToe.
+\paragraph{Test} Run pipeline with modified implemenation of Othello and TicTacToe from \cite{thakoor_suragnairalpha-zero-general_nodate} on Balthazar.
+\paragraph{Result} Convergence to optimal play given for TicTacToe, for Othello it is very likely.
+
+\section{Application}
