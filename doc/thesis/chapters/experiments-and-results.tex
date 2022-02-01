@@ -210,3 +210,21 @@ The behavior of the system is controlled by a multitude of parameters. The most 
     \label{performance_remote_diff_z}
 \end{figure}
 
+\subsection{Runtime of Experiments}
+\paragraph{Hypothesis} The training of the neural network has become a bottlenet.
+\paragraph{Setup} Compare lengths of training iterations on Balthazar and Melchior.
+
+\paragraph{Result} Due to the parallel nature, self-play games are generated continuously. The longer one training iteration takes, the bigger the backlog of new games becomes. One iteration took on average 1h. The training of the network has become the limiting factor not, the generation of self-play games, cf. figure \ref{iteration_duration}.
+
+\begin{figure}[!h]
+    \centering
+    \subfloat[Training run on Balthazar]{
+        \includegraphics[height=5.2cm, keepaspectratio]{performance_local_iteration_duration.png}
+    }
+    \hfill
+    \subfloat[Training run on Melchior]{
+        \includegraphics[height=5.2cm, keepaspectratio]{performance_remote_naive_iteration_duration.png}
+    }
+    \caption{Duration of one training iteration in seconds}
+    \label{iteration_duration}
+\end{figure}
