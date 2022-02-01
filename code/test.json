@@ -3,20 +3,20 @@
     "bucket_name": "balthasar",
     "num_iters": 1000,
     "min_num_games": 10,
-    "temp_treshhold": 60,
+    "temp_treshhold": 15,
     "update_treshold": 0.6,
-    "num_MCTS_sims": 60,
+    "num_MCTS_sims": 30,
     "cpuct": 1,
     "num_self_play_workers": 2,
     "num_arena_workers": 2,
     "filter_by_reward_threshold": false,
     "reward_threshold": 0.001,
-    "num_self_comparisons": 5,
+    "num_self_comparisons": 40,
     "first_agent_comparison_skip": false,
     "agent_comparisons": true,
     "agent_comparisons_step_size": 5,
-    "num_random_agent_comparisons": 5,
-    "num_heuristic_agent_comparisons": 2,
+    "num_random_agent_comparisons": 40,
+    "num_heuristic_agent_comparisons": 10,
     "data_directory_name": "./data",
     "load_model": false,
     "load_folder_file": [
@@ -26,7 +26,9 @@
     "gpus_main_process": [
         "0"
     ],
-    "gpus_self_play": null,
+    "gpus_self_play": [
+        "0"
+    ],
     "gpus_arena": [
         "0"
     ],

@@ -7,18 +7,18 @@
     "update_treshold": 0.6,
     "num_MCTS_sims": 120,
     "cpuct": 1,
-    "num_self_play_workers": 14,
-    "num_arena_workers": 7,
+    "num_self_play_workers": 9,
+    "num_arena_workers": 8,
     "filter_by_reward_threshold": false,
     "reward_threshold": 0.001,
-    "num_self_comparisons": 7,
+    "num_self_comparisons": 8,
     "first_agent_comparison_skip": false,
     "agent_comparisons": false,
     "agent_comparisons_step_size": 5,
-    "num_random_agent_comparisons": 5,
-    "num_heuristic_agent_comparisons": 2,
+    "num_random_agent_comparisons": 8,
+    "num_heuristic_agent_comparisons": 8,
     "data_directory_name": "./data",
-    "load_model": true,
+    "load_model": false,
     "load_folder_file": [
         "/home/ture/projects/bachelor-thesis/code/data/temp",
         "heuristic_warm_up_net.pth.tar"
@@ -33,7 +33,7 @@
     "gpus_arena": [
         "3"
     ],
-    "maxlen_experience_buffer": 1440000,
+    "maxlen_experience_buffer": 1000000,
     "framework": "torch",
     "nnet_size": "mini",
     "lr": 0.001,
