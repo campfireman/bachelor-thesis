@@ -1,5 +1,5 @@
 \chapter{Introduction}
-
+\label{introduction}
 \section{Background and Motivation}
 Board games are and have been a popular environment to test the capabilities of state of the art artificial intelligence against human opponents. Many board games are widely known, making them a tangible measure of performance. The most prominent examples are the games of Chess and Go. For both, machines defeating the current best players has been representative of fundamental progress in computing.
 
@@ -39,7 +39,8 @@ Naturally, the question arises whether this goal is a worthwhile thing to do. Fi
 Secondly, further investigating the applicability of RL is a relevant topic. Aside from (super-) human performance in games \cite{mnih_human-level_2015, berner_dota_2019,vinyals_grandmaster_2019}, RL continues to find more industry application in areas like improving data center cooling at Google \cite{gamble_safety-first_2018} or content recommendation at Spotify \cite{jebara_for_2020} and Netflix \cite{siddiqi_ml_2019}. A very recent example is the floor planning for Google's latest TPU chip, which was aided by a deep RL algorithm \cite{mirhoseini_graph_2021}.
 
 Additionally, RL finds application in robotic control. Through continous trial and error learning robots learned to grasp \cite{pinto_supersizing_2016,zeng_learning_2018}, poke \cite{agrawal_learning_nodate} or to avoid obstacles \cite{kahn_uncertainty-aware_2017}. The learning was either performed in a simulated digital environment or through physical interaction.
-
+% general sentence about reinforcement learning
+% Reinforcement learning is one of three basic machine learning paradigms, alongside supervised learning and unsupervised learning.
 \section{Research Goals}
 First, let us establish the main research questions that will guide us throughout this thesis.
 
@@ -48,6 +49,7 @@ First, let us establish the main research questions that will guide us throughou
 \paragraph{The second goal} is to compare classical search based methods to AlphaZero's deep reinforcement learning based on several criteria such as win/loss ratio, computational requirements, etc.
 
 \section{Structure}
+% how are the goals achieved?
 To provide the theoretical knowledge for understanding AlphaZero, the chapter \ref{background-theory} describes fundamentals in artificial intelligence, game-playing algorithms, (deep) reinforcement learning. The structure also mirrors the historical development of the methods.
 
 The chapter \ref{abalone} uses some of the previously introduced knowledge to analyse Abalone and also provides insight into existing game-playing programs to gauge the state of the art.

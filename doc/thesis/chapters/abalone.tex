@@ -78,7 +78,7 @@ Using the environment properties learned in \ref{environment} we can classify Ab
 
 There are multiple possible coordinate systems for the hexagonal boards to address the marble positions universally. In Abalone, the most common way is to label the rows alphabetically from A-I starting at the bottom row. The "columns" are labeled numerically from 1-9 as depicted in figure \ref{abalone_coordinate_systems} (a).
 
-Cube coordinates, as proposed by Patel \cite{noauthor_red_nodate}, are a convenient way to represent hexagonal boards. The idea is to imagine a cube with a cartesian coordinate system originating from its center. At $x + y + z = 0$ a diagonal plane is sliced out resulting in the coordinate system represented in figure \ref{abalone_coordinate_systems} (b). It is based on the cartesian coordinate system. It allows for the simpler application of a wide variety of formulas and algorithms like Manhattan distance, accessing neighbors, finding paths, etc., to the hexagonal board.
+Cube coordinates, as proposed by Patel \cite{noauthor_red_nodate}, are a convenient way to represent hexagonal boards. The idea is to imagine a cube with a cartesian coordinate system originating from its center. At $x + y + z = 0$ a diagonal plane is sliced out resulting in the coordinate system represented in figure \ref{abalone_coordinate_systems} (b). It allows for the simpler application of a wide variety of formulas and algorithms like Manhattan distance, accessing neighbors, finding paths, etc., to the hexagonal board. Later, the cube coordinates will be utilized to calculate heuristics and to create symmetrical boards.
 
 \begin{figure}[!h]
     \centering
@@ -106,7 +106,7 @@ A different representation is advantageous to store the board state in a program
 \label{abalone_move_notation}
 There is no officially standardized notation for the moves of Abalone. The notation described by Aichholzer \cite{aichholzer_abalone_2006} has wide adoption in the papers investigated. To contribute to the proliferation of standards \cite{xkcd_standards_nodate} we used a different notation that stems from the Abalone engine Abalone-BoAI \cite{scriptim_scriptimabalone-boai_2021}.
 
-Inline moves have the structure of "\{MarbleCoordinate\}\{Direction\}" and broadside moves the structure of "\{MarbleCoordinate\}\{MarbleCoordinate\}\{Direction\}". Additionally, the marble coordinates are ordered for broadside moves. The marble coordinates have the form outlined in figure \ref{abalone_coordinate_systems} (a). The directions are always seen from the black player's starting position, north pointing straight in the direction of the white player (default position). This is the main difference to the notation described by Aichholzer, who uses a destination coordinate instead of a direction. The direction improves the readability and understandability of moves. As follows, the regex for the notation:
+Inline moves have the structure of "\{MarbleCoordinate\}\{Direction\}" and broadside moves the structure of "\{MarbleCoordinate\}\{MarbleCoordinate\}\{Direction\}". Additionally, the marble coordinates are ordered for broadside moves. The marble coordinates have the form outlined in figure \ref{abalone_coordinate_systems} (a). The directions are always seen from the black player's starting position, north pointing straight in the direction of the white player (default position). This is the main difference to the notation described by Aichholzer, who uses a destination coordinate instead of a direction. The direction improves the readability and understandability of moves. The six directions are arranged just as in a compass, N for north, NW for north-west and so on. As follows, the regex for the notation:
 
 \begin{BVerbatim}
     ([A-I][1-9]){1}([A-I][1-9]){0,1}((NE)|(E)|(SE)|(SE)|(SW)|(W)|(NW)){1}
@@ -182,6 +182,7 @@ As those numbers in isolation are hard to grasp, it is helpful to put Abalone's 
 
 \section{Existing game playing agents}
 \label{existing_game_playing_agents}
+\subsection{Minimax}
 For all the previously discussed methods, game-playing agents based on minimax have been the most successful so far. Heuristic functions are quite similar to those mentioned for chess. Some of the more significant game situations optimized for are:
 
 \begin{itemize}
@@ -190,7 +191,6 @@ For all the previously discussed methods, game-playing agents based on minimax h
     \item Number of marbles, formation break, single and double marble capturing danger, ... \cite[p. 64]{papadopoulos_exploring_2012}
 \end{itemize}
 
-\subsection{Minimax}
 There are multiple implementations of minimax for Abalone \cite{chorus_implementing_2009,lemmens_constructing_2005,ozcan_simple_2004-1,aichholzer_algorithmic_2002}, but software is only openly available for ABA-PRO by Tino Werner from 2002 \cite{aichholzer_oswin_2006}. There are a few mentions of (commercial) Abalone programs like RandomAba (Random Soft), AliAba, AbaloneNet mentioned by Lemmens \cite[p. 7]{lemmens_constructing_2005}, but those have not been attainable through the internet. Even though ABA-PRO was not the strongest algorithm at the time, its availability has made it a frequent benchmark for other papers. Aside from previously mentioned optimizations for minimax like alpha-beta pruning, these programs use more advanced techniques like quiescence search, aspiration windows, and combined move ordering. A more recent publication from 2012 by Papadopoulos et al. claimed to have devised a more successful player. \cite{papadopoulos_exploring_2012}  Those claims could not be confirmed entirely in a recent reimplementation thesis by Michiel Verloop as Papadopoulos' does not describe the weights for the heuristic \cite{verloop_critical_nodate}. This reimplementation in Java \cite{verloop_abaloneai_nodate} is also the reference for later benchmarks as it is open source \cite{verloop_abaloneai_nodate} and thus allows programmatic interaction.
 
 \subsection{MCTS}

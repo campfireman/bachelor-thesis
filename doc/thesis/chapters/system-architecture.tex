@@ -6,16 +6,9 @@ Well equipped with all the essential theoretical tools that we need, we can move
 \subsection{Deep Learning Library}
 Deep learning projects share many components. Most commonly, that is the declaration of the computational graph and the training of the graph. The libraries provide those components and bring significant optimizations and specialized code for hardware acceleration. Therefore, it is imperative to decide on a suitable library to speed up development by several orders of magnitude.
 
-\begin{figure}
-    \centering
-    \includegraphics[height=7cm, keepaspectratio]{ml_framework_popularity.png}
-    \caption{The mentions of PyTorch and tensorflow in research papers in different publications \cite{noauthor_state_2019}}
-    \label{ml_framework_popularity}
-\end{figure}
+The most relevant libraries are Facebook's PyTorch and Google's TensorFlow.  Aside from all differences between both libraries, the choice was guided by two practical reasons. Initially, we selected TensorFlow due to the included support for TPUs as Google granted this project free access to their Research Cloud \cite{noauthor_tpu_nodate}. At a later stage, it became clear that Google was unwilling to increase the CPU quota for the account, limiting the server to 8 cores which posed a significant problem for parallel execution.
 
-The first indicator to go by is the popularity of the frameworks. The most relevant frameworks are Facebook's PyTorch and Google's TensorFlow. The Keras API has been introduced to TensorFlow, wherefore it is not considered further. In research, PyTorch seems to have quickly taken the dominance as depicted in figure \ref{ml_framework_popularity}. Aside from all differences between both libraries, the choice was guided by two practical reasons. Initially, we selected TensorFlow due to the included support for TPUs as Google granted this project free access to their Research Cloud \cite{noauthor_tpu_nodate}. At a later stage, it became clear that Google was unwilling to increase the CPU quota for the account, limiting the server to 8 cores which posed a significant problem for parallel execution.
-
-In table \ref{pytorch_vs_tensorflow_performance} there is also a significant performance difference in the inference step of the MCTS. There are two ways in TensorFlow to perform inference, either through the \texttt{predict} function or by calling the \texttt{\_\_call\_\_} method of the $model$ itself. As in the implementation, the inference is not batched but done for individual board states. The usage of the latter option is faster \cite{noauthor_tfkerasmodel_nodate}. Nevertheless, PyTorch is about five times faster. As discussed later, this is the reason to pivot to PyTorch as a framework.
+In table \ref{pytorch_vs_tensorflow_performance} there is also a significant performance difference in the evaluation with the neural network (inference) during the MCTS. There are two ways in TensorFlow to perform inference, either through the \texttt{predict} function or by calling the \texttt{\_\_call\_\_} method of the $model$ itself. In the implementation, the  the states fed to the neural network are not batched. Inference is done for individual board states. The usage of the latter option is faster \cite{noauthor_tfkerasmodel_nodate}. Nevertheless, when using the GPU, PyTorch is about five times faster as shown in table \ref{pytorch_vs_tensorflow_performance}. As discussed later, this is the reason to pivot to PyTorch as a library.
 
 \begin{table*}
     \begin{center}
@@ -53,13 +46,14 @@ In table \ref{pytorch_vs_tensorflow_performance} there is also a significant per
 
 \subsection{Training Framework}
 \label{training_framework}
-As there are existing frameworks that have implemented the system described in the AlphaZero paper in a more general and adaptable fashion, it has to be considered building on their foundation:
+There are existing frameworks that have implemented the system described in the AlphaZero paper in a more general and adaptable fashion. It has to be considered building on their foundation:
+
 \begin{itemize}
     \item AlphaZero General is a framework developed as a university project at Stanford originally for the game of Hex and Othello. \cite{thakoor_learning_nodate,thakoor_suragnairalpha-zero-general_nodate}.
     \item Deep MCTS is a framework developed in the context of a Master's thesis \cite{bruasdal_deep_2020,henribru_deep_2021}.
 \end{itemize}
 
-We considered a catalog of criteria to compare both options. Parallel training and parallel search measure whether the software implements the parallel training pipeline and MCTS-APV proposed by the AlphaZero paper. Moreover, we checked whether the libraries are agnostic to the game and ML library. Lastly, it is relevant to investigate whether other users could verify the performance.
+We considered a catalog of criteria to compare both options. Parallel training and parallel search measure whether the software implements the parallel training pipeline and MCTS-APV proposed by the AlphaZero paper. Moreover, we checked whether the frameworks are agnostic to the game and ML library. Lastly, it is relevant to investigate whether other users could verify the performance.
 
 \begin{table*}
     \begin{center}
@@ -88,12 +82,12 @@ There are multiple relevant implementations of game engines for Abalone. As the 
 
 \begin{itemize}
     \item Abalone-BoAI is a game engine specifically designed for interfacing with computational agents. It is straightforward and has been used for the precursor project of this thesis \cite{scriptim_scriptimabalone-boai_2021}.
-    \item Gym-abalone is tightly integrated with OpenAI's gym, potentially allowing agents to play other games as well. The API is suited for the reinforcement learning setting \cite{towzeur_towzeurgym-abalone_2021}.
+    \item Gym-abalone is tightly integrated with OpenAI's gym \cite{openai_gym_nodate}, potentially allowing agents to play other games as well. The API is suited for the reinforcement learning setting \cite{towzeur_towzeurgym-abalone_2021}.
 \end{itemize}
 
 Two arguments lead to the decision of choosing Abalone-BOAI:
 \begin{enumerate}
-    \item We already optimized it in the previous project, like the generation of legal moves.
+    \item We already optimized it in a previous project \cite{claussen_abalone_2021}, like the generation of legal moves.
     \item AlphaZero General expects the game engine to be designed in a functional way. The API of the engine needs to be adapted to fit the interface of the training framework. Both engines are stateful, meaning that they rely on the class instance context to perform moves, check for legal moves, and other operations. For instance, the operations are supposed to be applied to the input matrix, and the modified matrix is then returned. Therefore, intricate knowledge of the engine is of advantage.
 \end{enumerate}
 
@@ -106,18 +100,19 @@ Due to those necessary modifications, we forked the original game engine to allo
     \label{python_java_ipc}
 \end{figure}
 
-As mentioned in the section \ref{existing_game_playing_agents}, Verloop's reimplementation \cite{verloop_abaloneai_nodate} offers the simplest solution for interfacing with (one of) the strongest Abalone algorithms. In a small tournament, personal implementations of minimax in Python \cite{claussen_abalone_2021} were inferior. As the Java implementation is tightly coupled with the internal game engine, we decided to implement a proxy player for each game engine. Each engine is a separate process, and the proxy players relay the moves between the engines. The proxy players communicate through a named pipe as depicted in figure \ref{python_java_ipc}. The downside of this solution is the need to synchronize two separate game states and translate between the different move notations. We used the notation introduced in section \ref{abalone_move_notation} to serialize the moves.
-
+As mentioned in the section \ref{existing_game_playing_agents}, Verloop's reimplementation \cite{verloop_abaloneai_nodate} offers the simplest solution for interfacing with (one of) the strongest Abalone algorithms. In a small tournament, personal implementations of minimax in Python \cite{claussen_abalone_2021} were inferior. As the Java implementation is tightly coupled with the internal game engine, we decided to implement a proxy player for each game engine. Each engine is a separate process, and the proxy players relay the moves between the engines. The proxy players communicate through a named pipe as depicted in figure \ref{python_java_ipc}. The downside of this solution is the need to synchronize two separate game states and translate between the different move notations. We used the notation introduced in section \ref{abalone_move_notation} to serialize the moves and added a translation function, to convert the intermediary notation to the internal format.
 
 \section{Neural Network}
 \subsection{Dimensions}
 In order to apply the neural network architecture proposed by AlphaZero (cf. figure \ref{alpha_zero_neural_network}), two dimensions need to be changed:
 \begin{enumerate}
-    \item The input matrix of size $19 \cdot 19 \cdot 17$ needs to be adjusted to fit the dimensions of the hexagonal board. The hexagonal board is transformed into an orthogonal base as shown in \ref{abalone_matrix_representation} such that it can be represented as a $9 \cdot 9$ matrix.
-          The third dimension of size $17$ can be reduced to 1 by removing the move history and only passing the current state. By representing the state as proposed in \ref{board_representations}, there are no separate planes necessary. Additionally, the board is always passed in its canonical form to the network. The board states are always seen from black's perspective in the canonical form. If it is the black player's turn, the board remains unchanged. If it is white's turn, the board's colors are switched. From the perspective of the neural network, white ($-1$) is always the opponent. The in-turn player is represented as $1$ and $-1$ for black and white. The matrix values can be multiplied with the in-turn player value to create the canonical form.
-    \item AlphaZero's output vector $\pi$ of size 381 represents all possible positions a piece can be placed on the board. As Abalone has a much more complex move system, the size of this vector needs to match the number of all possible moves. We found the number of all possible moves by generating all moves programmatically. The generated moves were stored in a bijective map. Each move is assigned an index in $\pi$ and represented as a string in the proposed notation above. Therefore, using the bijective map, a move's index can be found by its string representation and vice versa.
+    \item The input tensor of size $19 \cdot 19 \cdot 17$ needs to be adjusted to fit the dimensions of the hexagonal board. The hexagonal board is transformed into an orthogonal base as shown in \ref{abalone_matrix_representation} such that it can be represented as a $9 \cdot 9$ matrix.
+          The third dimension of size $17$ can be reduced to 1 by removing the move history and only passing the current state. As mentioned in section \ref{abalone}, the official rules don't prohibit repitions. Adding logic to checking move sequences against the history would have introduced too much complexity and we would have had to change the function signatures of the framework.
 
-          As depicted in figure \ref{possible_move_generation_inline}, the inline moves are generated by iterating over all fields of the board. For each field, all directions are tested for being a valid move. If that is the case, the move is added to the bijective map. In case the move is already present in the map, the move is skipped.
+          AlphaGo Zero represented the position of the players' pieces on separate planes. By representing the state as proposed in \ref{board_representations}, there are no separate planes necessary. Additionally, the board is always passed in its canonical form to the network. The board states are always seen from black's perspective. If it is the black player's turn, the board remains unchanged. If it is white's turn, the board's colors are switched. From the perspective of the neural network, white ($-1$) is always the opponent. The in-turn player is represented as $1$ and $-1$ for black and white. The matrix values can be multiplied with the in-turn player value to create the canonical form.
+    \item AlphaZero's output vector $\pi$ of size 361 represents all possible positions a piece can be placed on the board. As Abalone has a much more complex move system, the size of this vector needs to match the number of all possible moves. We found the number of all possible moves by generating all moves programmatically. The generated moves were stored in a bijective map. Each move is assigned to exactly one index in $\pi$ and each index is assigned exactly one move. The move represented as a string in the proposed notation above. Therefore, using the bijective map, a move's index can be found by its string representation and vice versa.
+
+          As depicted in figure \ref{possible_move_generation_inline}, the inline moves are generated by iterating over all fields of the board. For each field, all directions are tested for being a valid move. If that is the case, we check if the move is present in the bijective map. If not, the move is assigned the next index in $pi$ and added to the map.
 
           \begin{figure}
               \centering
@@ -126,7 +121,7 @@ In order to apply the neural network architecture proposed by AlphaZero (cf. fig
               \label{possible_move_generation_inline}
           \end{figure}
 
-          Figure \ref{possible_move_generation_broadside} shows the generation of the broadside moves. The algorithm iterates each field. Marble lines of length two and three are generated in all (possible) directions for each field. For each line broadside in all directions, moves are checked for validity. The move direction of the marble line direction is ignored.
+          Figure \ref{possible_move_generation_broadside} shows the generation of the broadside moves. The algorithm iterates each field. Marble lines of length two and three are generated in all (possible) directions for each field. For each line broadside in all directions, moves are checked for validity as the move might be out of bounds. The move direction of the marble line direction is ignored.
 
           \begin{figure}
               \centering
@@ -151,22 +146,22 @@ The training pipeline of AlphaZero General has five main components:
     \item \textbf{Game}: Provides an abstract interface that generalizes to many types of board games. Functions like the generation of legal moves, creating a unique string representation of the board, and other functions need to be implemented.
     \item \textbf{Neural Net}: Is a wrapper for any neural network. It needs to be implemented for the specific framework used.
     \item \textbf{MCTS}: Encapsulates the logic to perform Monte Carlo Tree Search on the game tree with the help of the neural network and the Game module.
-    \item \textbf{Arena}: Has the task to perform the face-off between different agents.
+    \item \textbf{Arena}: Has the task to perform the matches between different agents.
 \end{enumerate}
 
-We not only parallelized the framework  in section \ref{parallelization} but also made multiple other modifications:
+We not only parallelized the framework, as explained in section \ref{parallelization}, but also made multiple other modifications:
 \begin{itemize}
     \item The Arena was modified to use the Abalone engine \cite{claussen_abalone_2021} and game-playing agents implemented for that engine. This way, the neural nets can be faced off against other algorithms like Verloop's minimax.
     \item Moreover, the MCTS implementation could not deal with games with board states appearing multiple times in the search tree. The implementation uses hash maps to retrieve the action-values and counts for a board state. If the board state exists multiple times in the search tree, the values are skewed. We extended the hash of a state by a hash of the parent node's hash and the current depth of the node to solve the problem.
-    \item Lastly, the Arena was parallelized because the face-off with a random agent or a previous version requires a more significant number of games to get a statistically relevant result. As discussed in section \ref{parallelization}, the significant length of a game would slow down the training process too much.
+    \item Lastly, the Arena was parallelized because the matces with a random agent or a previous version requires a more significant number of games to get a statistically relevant result. As discussed in section \ref{parallelization}, the significant length of a game would slow down the training process too much.
 \end{itemize}
 
-Additionally, we added a CLI entry point to pass arguments to the training process. All relevant hyperparameters of a training run are persisted in a JSON file. Performance data (such as time per iteration) and the Arena results are logged as CSV tables.
+Additionally, we added a CLI entry point to pass arguments to the training process. All relevant hyperparameters (cf. section \ref{parameters}) of a training run are persisted in a JSON file. Performance data (such as time per iteration) and the Arena results are logged as CSV tables.
 
-\subsection{Algorithm}
-Even though we alter the main training routine later to be executed in parallel, the logic remains quite similar to the original algorithm devised in AlphaZero General. Therefore, it makes sense to describe the coarse structure that is also outlined in figure \ref{training_algorithm}.
+\subsection{Training Algorithm}
+Even though we will alter the main training routine later to be executed in parallel, the logic remains quite similar to the original algorithm devised in AlphaZero General. Therefore, it makes sense to describe the coarse structure that is also outlined in figure \ref{training_algorithm}.
 
-The outer loop defines how many iterations of self-play and subsequent neural network training should be performed. At the beginning of each iteration, a predefined number of episodes is supposed to be played.
+The outer loop defines how many iterations of self-play and subsequent neural network training should be performed. At the beginning of each iteration, a predefined number of games (episodes) is supposed to be played.
 
 In each episode, an MCTS is performed with the defined number of simulations. The temperature parameter $\tau$ determines the exploration. Either a move is selected with a probability proportional to the visit count, or the move with the highest count is selected. The move is applied to the board state. After switching the sides, it is checked whether a terminal state was reached. If not, the game is continued. Otherwise, the reward $r$ is calculated. With $r$, the list of experiences $(s, \pi, z)$ is generated, with $z$ being the reward $r$ from the perspective of the player in turn.
 
@@ -187,9 +182,9 @@ After the desired number of games has been played, the new experience is appende
 
 \subsection{Parallelization}
 \label{parallelization}
-AlphaZero General's training pipeline does not offer parallel training. By comparing the time taken to execute one episode for the game of Othello and Abalone, it showed that a game of Abalone takes on average $40$ times (n=100) longer to finish: 1s for Othello and 40s for Abalone. Investigating potential improvements, it became clear that two major factors determine the runtime of an episode:
+AlphaZero General's training pipeline does not offer parallel training. By comparing the time taken to execute one episode for the game of Othello and Abalone, it showed that a game of Abalone takes on average $40$ times ( tested for $n=100$) longer to finish: 1s for Othello and 40s for Abalone. Investigating potential improvements, it became clear that two major factors determine the runtime of an episode:
 
-1. Length of the game. A game of Abalone takes significantly more turns, caused by rules not forbidding loops such that games can be infinite. Moreover, defensive play styles can draw out games significantly. In order to alleviate the issue, we limited the number of turns $m$ per game. In this case, the length was limited to $m=200$. The newly created terminal state is scored with a partial score: The scored marbles are subtracted by the opponent's score for each player. We scored win or loss as either $1$ or $-1$. Hence, the partial score is normalized by the number of marbles needed to win. The partial score reflects which player had the upper hand at the artificial terminal state.
+1. Length of the game. A game of Abalone takes significantly more turns, caused by rules not forbidding loops such that games can be infinite. Moreover, defensive play styles can draw out games significantly. In order to alleviate the issue, we limited the number of turns $m$ per game. In this case, the length was limited to $m=200$. The newly created terminal state is scored with a partial score: The scored marbles are subtracted by the opponent's score for each player. We scored win or loss as either $1$ or $-1$. Hence, the partial score is normalized by the number of marbles needed to win. The partial score reflects which player had the upper hand at the artificial terminal state. For instance, the black player pushed three marbles off the board, the white player only one. From black's perspective the partial score is $\frac{3}{6} - \frac{1}{6} = \frac{1}{3}$, for white it is $\frac{1}{6} - \frac{3}{6} = -\frac{1}{3}$.
 
 2. The MCTS being computationally expensive: A closer inspection of the execution time, holding all variables constant, demonstrates the culprit. The simulation step of MCTS uses the neural network. The time taken by this function is one order of magnitude larger than the second most expensive operation, which is the generation of legal moves. For example, when running 15 MCTS iterations with the original TensorFlow implementation, one turn takes
 
@@ -215,14 +210,14 @@ $$
     f \in O(kmn)
 $$
 
-Abalone requires a larger number of MCTS simulations. The other projects \cite{bruasdal_deep_2020,thakoor_learning_nodate} used only 30 iterations for Othello and Hex, but Abalone has a much more complex game tree. AlphaZero performs $1,600$ iterations \cite[p. 11]{silver_mastering_2017} for each move. The MCTS needs to recommend a better move than the pure network to improve. It is the policy improvement operator. Those properties were the reason to decide to use PyTorch. The library brings a $5$-times improvement for that step as shown in \ref{pytorch_vs_tensorflow_performance}. Nevertheless, this only brings down execution time for one episode by a factor of $5$, still being $8$-times slower than the reference implementation for Othello. AlphaZero uses two ways to alleviate this problem:
+Abalone requires a larger number of MCTS simulations. The other projects \cite{bruasdal_deep_2020,thakoor_learning_nodate} used only 30 iterations for Othello and Hex, but Abalone has a much more complex game tree. AlphaZero performs $1,600$ iterations \cite[p. 11]{silver_mastering_2017} for each move. The MCTS needs to recommend a better move than the pure network to improve. It is the policy improvement operator. Those properties were the reason to decide to use PyTorch rather than TensorFlow. The library brings a $5$-times improvement for that step as shown in \ref{pytorch_vs_tensorflow_performance}. Nevertheless, this only brings down execution time for one episode by a factor of $5$, still being $8$-times slower than the reference implementation for Othello. AlphaZero uses two ways to alleviate this problem:
 
 \begin{itemize}
     \item Parallelization of the self-play training
     \item Parallelization of the MCTS (APV-MCTS)
 \end{itemize}
 
-As Python's global interpreter lock \cite{noauthor_globalinterpreterlock_nodate} does not allow for true multithreading. Parallelizing the MCTS poses significant complexity and difficulty. However, allowing for simultaneous self-play and neural network training is feasible. As already mentioned in section \ref{training_framework}, the implementation by Bruåsdal \cite{bruasdal_deep_2020} provides this feature. For that reason, its architecture is used as a blueprint for migrating AlphaZero General into a parallel architecture. The figure \ref{parallel_training_pipeline} depicts how the components mentioned interacting in a parallel fashion.
+As Python's global interpreter lock \cite{noauthor_globalinterpreterlock_nodate} does not allow for true multithreading, parallelizing the MCTS poses significant complexity and difficulty. However, allowing for simultaneous self-play and neural network training is feasible. As already mentioned in section \ref{training_framework}, the implementation by Bruåsdal \cite{bruasdal_deep_2020} provides this feature. For that reason, its architecture is used as a blueprint for migrating AlphaZero General into a parallel architecture. The figure \ref{parallel_training_pipeline} depicts how the components mentioned interact in a parallel fashion.
 
 \begin{figure}
     \centering
@@ -243,7 +238,7 @@ The table \ref{pytorch_vs_tensorflow_performance} shows the usage of a GPU accel
 Either way at some point the worker's VRAM needs outgrows the GPU's resources. We implemented the parallelization in such a way, that the user can assign GPU identifiers to each component (arena, training loop and workers). The processes then distribute the processes equally to the given hardware.
 
 \subsection{Symmetrical Board Generation}
-Abalone's board has six rotational symmetries and six mirror axes, as mentioned in \ref{state_space_complexity}. By generating the symmetrical board states for each tuple ($s, \pi, z)$, the data can be augmented by a factor of twelve. That means $\pi$ and $v$ are equivalent for up to 12 symmetrical board states. Some board configurations have less symmetrical boards, as some are identical. For example, rotating the default starting position by 120° produces the same board as mirroring it by the $s$ axis. In general, the factor of 12 does hold for almost all board states.
+Abalone's board has six rotational symmetries and six mirror axes, as mentioned in section \ref{state_space_complexity}. By generating the symmetrical board states for each tuple ($s, \pi, z)$, the data can be augmented by a factor of twelve. That means $\pi$ and $v$ are equivalent for up to 12 symmetrical board states. Some board configurations have less symmetrical boards, as some are identical. For example, rotating the default starting position by 120° produces the same board as mirroring it by the $s$-axis (cf. figure \ref{abalone_symmetries}). In general, the factor of 12 does hold for almost all board states.
 
 The first step in generating the symmetrical boards is to turn the marble positions into cube coordinates. There is a simple way for cube coordinates to mirror and rotate coordinates. A mapping function transforms marble coordinates from their matrix coordinates of the form $(x, y)$ to $(q, r, s)$. The origin of the cube coordinate system is laid into the center of the Abalone board, such that e.g. $E5 = (0, 0, 0)$ or $A1 = (-4, 4, 0)$.
 
@@ -281,4 +276,4 @@ AlphaZero starts learning from scratch. Thus, there is no information about what
 
 Investigations into the application of AlphaZero's training principle showed possible ways to warm-start the training of the network \cite{wang_adaptive_2021}. Wang proposes an adaptive rollout-based warm-start. The method reintroduces rollouts into the MCTS that are performed at the beginning of the training process and are slowly phased out over the course of training.
 
-Another possibility would be to reintroduce components of AlphaGo. Either by using a database of moves or letting the agent train against a heuristic agent. For Abalone, we propose a similar method. By letting a heuristic agent play against a random agent, an initial experience buffer is created. Thus, the first iteration of the training of $f_{\theta}$ produces a function that approximates the heuristic player. We hypothesized that the self-play further improves this warmed-up agent like it did in the RL step in AlphaGo.
+Another possibility would be to reintroduce components of AlphaGo. Either by using a database of moves or letting the agent train against a heuristic agent. For Abalone, we introduce a similar method. By letting a heuristic agent play against a random agent, an initial experience buffer is created. Thus, the first iteration of the training of $f_{\theta}$ produces a function that approximates the heuristic player. We hypothesized that the self-play further improves this warmed-up agent like it did in the RL step in AlphaGo.

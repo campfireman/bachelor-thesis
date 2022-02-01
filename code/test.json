@@ -32,7 +32,7 @@
     ],
     "maxlen_experience_buffer": 960000,
     "framework": "torch",
-    "nnet_size": "mini",
+    "nnet_size": "large",
     "lr": 0.001,
     "dropout": 0.3,
     "epochs": 10,

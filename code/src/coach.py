@@ -116,7 +116,8 @@ class ParallelCoach:
                 board, cur_player, episode_step)
             if r != 0:
                 end = time.time()
-                step_penalty = episode_step * -0.001
+                # step_penalty = episode_step * -0.001
+                step_penalty = 0
                 if not args.filter_by_reward_threshold or (args.filter_by_reward_threshold and abs(r) > 0.001):
                     r += step_penalty
                     log.info(

@@ -8,7 +8,7 @@ The introduction has already foreshadowed how artificial intelligence has underg
 % definition of artificial intelligence
 
 \subsection{Rational Agent}
-Stemming from the Latin word \textit{agere} meaning "to act," an agent is something that acts. As one expects an agent to take sensible or intelligent actions, the definition must be further qualified by calling the agent rational. A rational agent acts "to achieve the best outcome or, when there is uncertainty, the best expected outcome." \cite[p. 36]{russell_artificial_2021}
+Any setting that involves artificial intelligence has an agent. Stemming from the Latin word \textit{agere} meaning "to act," an agent is something that acts. As one expects an agent to take sensible or intelligent actions, the definition must be further qualified by calling the agent rational. A rational agent acts "to achieve the best outcome or, when there is uncertainty, the best expected outcome." \cite[p. 36]{russell_artificial_2021}
 
 The agent exists in an environment that it perceives through sensors and takes actions through its actuators. The content of the sensor's output for one observation is referred to as \textit{percept}: A cat uses eyes, ears and other organs to perceive the world and its legs, claws, and so on to interact with the world. An autonomous car might use radar and cameras for acquiring information and steering and motors for navigation.
 
@@ -86,21 +86,20 @@ Putting this together we can see in figure \ref{minimax} a graphical representat
 \subsection{Heuristic Functions}
 As the number of nodes of the game tree gets very large, the search on the tree usually does not reach terminal leaves that indicate a clear loss or win. The computational resources will get exhausted first. For example minimax has already visited $ 361 * 360 * 359 * 358 = 16,702,719,120 $ nodes at a depth of $ d = 4 $ in the case of an average Go game.
 
-Therefore, one has to limit the search to a computationally feasible depth and evaluate the intermediary result of a given transposition based on a so-called \textit{heuristic function}. This function replaces our previous $ utility(s) $ for terminal states and is based on human knowledge. The function should give precise feedback on the quality of a state from the perspective of the given player. A sensible function for chess might be a linear combination in the form of:
-
-\begin{equation}
-    h(s) = \omega_0f_0(s) + ... + \omega_nf_n(s)
-\end{equation}
-
-With functions $ f_i $ calculating different values such as
+Therefore, one has to limit the search to a computationally feasible depth and evaluate the intermediary result of a given transposition based on a so-called \textit{heuristic function}. This function replaces our previous $ utility(s) $ for terminal states and is based on human knowledge. The function should give precise feedback on the quality of a state from the perspective of the given player. Most commonly, the heuristic function combines multiple evaluations of a state into a total numerical value \cite[cf. p. 316]{russell_artificial_2021}. For instance in chess, the evaluations $ f_i $ could be be functions calculating different values such as:
 
 \begin{itemize}
     \item Material: First, each piece is assigned an integer that represents the piece's relative value (pawn = 1, bishop/knight = 3, rook = 5, and queen = 9). Then sum the values of the pieces left on the board for each player.
     \item Space: Count the squares controlled by each player.
     \item King safety: Check weaknesses in king's position, count attacking pieces close to the king etc.
     \item Win and loss: As a more definitive measure to indicate whether the current state is a terminal state and hence a winning or losing state.
-    \item Etc.
 \end{itemize}
+
+These evaluation functions can be combined into a linear combination of the form of:
+
+\begin{equation}
+    h(s) = \omega_0f_0(s) + ... + \omega_nf_n(s)
+\end{equation}
 
 By applying different weights $ \omega_i $ to the functions $ f_i $ the agent essentially is given an incentive to prioritize certain behavior. If the win or loss function returns a value of either $-1$ or $+1$, one might combine it with a weight of 10,000 to make sure we choose winning states and avoid losing states above all. Armed with this heuristic function one can find good moves with minimax search even in highly complex state spaces.
 
@@ -198,7 +197,11 @@ By devising a heuristic function, we basically told our agent what to do by indi
 Reinforcement learning is not a specific solution or method, all methods for "goal-directed agents interacting in an uncertain environment" \cite[p. 3]{sutton_reinforcement_2018} are types of reinforcement learning. It is a general formalism that will help us reframe the problem of playing a board game (well) in a new light.
 
 \subsection{Markov Decision Processes}
-Central to reinforcement learning is a formalism for the environment called Markov decision process (MDP). Originally derived as an extension of Markov Chains by Richard Bellman \cite{yang_markov_2019, bellman_markovian_1957}, a (finite) MDP describes sequential decision making where actions have long-term consequences, thus, affecting future rewards. The MDP is an abstraction of "goal directed learning from abstraction" that reduces the problem to three components: Actions, states and rewards that are being exchanged between the agent and the environment. We already introduced the agent-environment interaction loop in figure \ref{agent_environment_loop}. We can reframe this image with the new terminology of the MDP framework in figure \ref{mdp_agent_environment}. For a \textit{finite} MDP the sets of all actions $ \mathcal{A}$ (\textit{action space}), states $\mathcal{S}$ (\textit{state space}) and rewards $ \mathcal{R} $ have a finite amount of elements.
+Central to reinforcement learning is a formalism for the environment called Markov decision process (MDP). The MDP introduces some constraints and specifications that are useful for making precise statements and building further theory on it. If the constraints and properties of a MDP apply to an environment, one can resort to the algorithms and proofs already built on the basis of MDPs. At the same time the constraints are so loose, that many learning problems can be formulated as MDP.
+
+Basis for the MDP is the Markov Chain. Markov Chains are used to describe sequential decision making. Each decision results in a state. The transition between states is stochastic, which means the following state depends on a probability. The transition probability does not depend on the history of previous states, it is independent.
+
+Richard bellman extended Markov Chains by actions and rewards to derive MDPs \cite{yang_markov_2019, bellman_markovian_1957}. Actions cause transitions between states. They have long-term consequences, thus, effect future reward. The passage of time is divided into discrete time steps $ t $ at which the agent senses the state $ S_t \in \mathcal{S} $ and then selects some action $ A_t \in \mathcal{A}(S_t) $. Resulting in that action is some reward $ R_{t+1} \in \mathcal{R} \subset \mathbb{R} $ that is received in the next timestep. This is very similar to the interaction loop previously discussed in figure \ref{agent_environment_loop}. We can reframe this image with the new terminology of the MDP framework in figure \ref{mdp_agent_environment}.
 
 \begin{figure}
     \centering
@@ -207,15 +210,13 @@ Central to reinforcement learning is a formalism for the environment called Mark
     \label{mdp_agent_environment}
 \end{figure}
 
-We divide the passage of time into discrete time steps $ t $ at which the agent senses the state $ S_t \in \mathcal{S} $ and then selects some action $ A_t \in \mathcal{A}(S_t) $. Resulting in that action is some reward $ R_{t+1} \in \mathcal{R} \subset \mathbb{R} $ that is received in the next timestep.
-
-The transition probabilities between the state $ s $ and the next state $ s' $ and its reward $r \in \mathcal{R}$ is given by the function $ p $ which essentially defines the decision process as a whole. A game of chess is deterministic, all transitions have a probability of $1$ and these probabilities are defined by the rules of the game. However, the MDP is formulated to incorporate stochastic environments as well:
+For a \textit{finite} MDP the sets of all actions $ \mathcal{A}$ (\textit{action space}), states $\mathcal{S}$ (\textit{state space}) and rewards $ \mathcal{R} $ have a finite amount of elements. The transition probabilities between the state $ s $ and the next state $ s' $ and its reward $r \in \mathcal{R}$ is given by the function $ p $ which essentially defines the decision process as a whole. A game of chess is deterministic, all transitions have a probability of $1$ and these probabilities are defined by the rules of the game. However, the MDP is formulated to incorporate stochastic environments as well:
 
 \begin{equation}
     p(s', r | s, a) = P\{S_t=s', R_t = r | S_{t-1} = s, A_{t-1}=a\}
 \end{equation}
 
-In a MDP "the state must include information about all aspects of the past agent environment interaction that make a difference for the future. If it does, then the state is said to have the \textit{Markov property}". \cite[p. 48]{sutton_reinforcement_2018} This means the transition probability $p$ is independent of the history of preceding states.
+In a MDP, just as in a Markov Chain, "the state must include information about all aspects of the past agent environment interaction that make a difference for the future. If it does, then the state is said to have the \textit{Markov property}". \cite[p. 48]{sutton_reinforcement_2018} This means the transition probability $p$ is independent of the history of preceding states.
 
 From these properties of the MDP we can define the four central components of Reinforcement learning:
 
@@ -248,8 +249,7 @@ From these properties of the MDP we can define the four central components of Re
 
           The heuristic function encountered previously was essentially a value function being used to guide the game-tree search.
 
-          Furthermore, we define the value of action $a$ while being in state $s$ under the policy $\abstractname{}pi$ as the \textit{action-value function} $q$:
-
+          Furthermore, we define the value of action $a$ while being in state $s$ under the policy $\pi$ as the \textit{action-value function} $q$:
 
           \begin{equation}
               q_{\pi}(s) = \mathbb{E}_{\pi}[G_t | S_t = s, A_t = a] = \mathbb{E}_{\pi}\left[\sum_{k=0}^{\infty} \gamma^kR_{t+k+1} \middle| S_t = s, A_t = a \right]
@@ -273,11 +273,18 @@ The goal of reinforcement learning is to find (or approximate) a policy that max
     v_{*}(s) = \max_{\pi} v_{\pi}(s)
 \end{equation}
 
-for all $s \in mathcal{S}$. For instance, in chess the goal is to find a policy that approximates the utility returned by exhaustive search. Given such a policy one could evaluate the best possible outcome for any state $s$ with the optimal state-value function. For this optimal policy we also have an optimal action-value function $ q_{*} $ for all $ s \in \mathcal{S}$:
+for all $s \in \mathcal{S}$. For instance, in chess the goal is to find a policy that approximates the utility returned by exhaustive search. Given such a policy one could evaluate the best possible outcome for any state $s$ with the optimal state-value function.
 
-\begin{equation}
-    q_{*}(s, a) = \max_{\pi}q_{\pi}(s, a)
-\end{equation}
+An example will help illustrate these abstract specifications. We might view a pick-and-place robot arm through the lens of reinforcement learning. It has the task to place items from a pick-up location into a target area, cf. \cite{noauthor_examples_nodate}.
+
+\begin{itemize}
+    \item The state space $ \mathcal{S} $ is all possible combinations of the joint angles and velocities.
+    \item The action space $ \mathcal{A} $ is the amount of voltage that can be applied to each of the motors.
+    \item The rewards $ \mathcal{R} $ are $+100$ for each sucessfully placed item and a $-1$ reward is occurred each time a unit of energy is spent.
+    \item Lastly, the state transitions $p(s', r | s, a)$ might be stochastic. The motors might have some imprecisions. An applied voltage might not always change the angle of a joint as expected.
+\end{itemize}
+
+In this scenario, the optimal policy $ \pi_* $ is to place the objects successfully with minimal energy expenditure. As mentioned in the introduction \ref{introduction}, researchers have sucessfully used RL methods to let robot arms learn, through interaction, how to pick and place items. The fundamentals described in this chapter are taken from \cite[p. 47ff.]{sutton_reinforcement_2018}, which goes more into detail about the details of MDPs and provides many additional examples.
 
 \subsection{Exploration vs. Exploitation}
 \label{exploration_vs_exploitation}
@@ -302,20 +309,15 @@ $$
     A_t = \operatorname*{argmax}_a Q_t(a)
 $$
 
-Initially, we might choose a random lever and that yields a reward of 0. As all $ Q_t $ are still 0 we choose another random lever giving us a reward of 1. Then ,according to the greedy policy, we just repeatedly pull this lever indefinitely. We just get stuck on exploiting the small knowledge we have gained. To allow for some exploration of other actions we introduce a small probability $\varepsilon $ of choosing a different (random) action:
-$$
-    A_t =
-    \begin{cases}
-        \operatorname*{argmax}_a Q_t(a) & \text{with } 1 - \varepsilon \\
-        \text{random } a                & \text{with }  \varepsilon    \\
-    \end{cases}
-$$
+First all action-values $Q_t(a)$ are initialized with the value $0$.Initially, we might choose a random lever and that yields a reward of $0$. As all $ Q_t $ are still $0$ we choose another random lever giving us a reward of 1. Then, according to the greedy policy, we just repeatedly pull this lever indefinitely. The lever has the maximum action-value. We just get stuck on exploiting the small knowledge we have gained. To allow for some exploration of other actions. we introduce a small probability $\varepsilon $ of choosing a different (random) action: With a probability of $ 1- \varepsilon $ the agent chooses the greedy action, with a probability $ \varepsilon $ a different action.
 
-If we continue for an infinite number of times $ Q_t $ is guaranteed to converge to $ q_{*} $ as we sample each action enough to estimate its stationary distribution. We might also let the $ \epsilon $ decay over time to ensure we exploit the optimal lever eventually. This shows how we have to carefully consider what knowledge we have and how we plan to expand it further.
+If we continue for an infinite number of times the sample average for each action is guaranteed to converge to $ q_{*} $. Each action is sampled enough to estimate its stationary distribution. We might also let the $ \epsilon $ decay over time to ensure we exploit the optimal lever eventually. This shows how we have to carefully consider what knowledge we have and how we plan to expand it further. This also indicates the difficulty that is introduced when the problem is not stationary, which creates the necessity of continuous exploration.
+
 \section{Deep Reinforcement Learning}
+As reinforcement learning is a very general framework things like the value function $ v(s)$ are just left as an abstract function. There are many different methods that build on the foundation of MDPs and fill these abstract functions with concrete instructions. One such method is deep RL, where the RL is combined with deep neural networks. Deep neural networks are \textit{general function approximators}. Hence, they could be used to approximate the optimal value function $ v_{*}(s) $ to maximize rewards.
+
 \subsection{(Deep) Neural Networks}
 \label{neural_networks}
-As reinforcement learning is a very general framework things like the value function $ v(s)$ are just left as an abstract function. As neural networks are a general function approximator, we could use them to approximate the optimal value function $ v_{*}(s) $ to maximize rewards. Hence, we should introduce the basic building blocks of this technique to gauge whether we might utilize them further.
 
 Neural networks are one specific machine learning method that has had large success in the recent past. Machine learning has been a paradigm shift in the way we think about building programs. In the classical development one uses the data and predefined rules as input for the development. This means we have to have intricate knowledge about the problem domain to produce the answers we want. For tasks like image classification this is a difficult process as it is very hard to think of patterns and conditions an image has to have, to find cats in them.
 
@@ -328,11 +330,18 @@ Neural networks are one specific machine learning method that has had large succ
 
 In machine learning we use the answers and the data as input to the development process and the rules are the output we produce. Figure \ref{programming_paradigm_shift} contrasts this change in programming.
 
+\begin{figure}
+    \centering
+    \includegraphics[height=5cm, keepaspectratio]{loss_curve.png}
+    \caption{(a) Data points of price versus floor space of houses for sale in Berkeley, CA, in July 2009, along with the linear function hypothesis that minimizes squared-error loss: y = 0.232x + 246. (b) Plot of the loss function for various values of $ w_0 $, $ w_1 $. Note that the loss function is convex, with a single global minimum. \cite[p. 1251]{russell_artificial_2021}}
+    \label{loss_curve}
+\end{figure}
+
 Consider any linear function of the form:
 $$
     f(x) = w_1x + w_0,
 $$
-with $ x, w_1, w_0 \in \mathbb{R} $. We could use this function to make predictions about one dimensional input data. For example we might have a (training) dataset of living space of houses in $ m^2 $ $ X $ and their corresponding price $ Y $. Each row $X_i$ corresponds to the row $Y_i$. We could choose the bias $ w_0 $ and the \textit{weight} $ w_1 $ such that the squared error for all rows $i$ is minimal in a process we know as linear regression. When given new data our linear model can make predictions of the potential prices of the houses.
+with $ x, w_1, w_0 \in \mathbb{R} $. We could use this function to make predictions about one dimensional input data. For example we might have a (training) dataset of living space of houses in $ m^2 $ $ X $ and their corresponding price $ Y $. Each row $X_i$ corresponds to the row $Y_i$. We could choose the bias $ w_0 $ and the \textit{weight} $ w_1 $ such that the squared error for all rows $i$ is minimal in a process we know as linear regression. When given new data our linear model can make predictions of the potential prices of the houses as described in figure \ref{loss_curve}.
 
 
 \begin{figure}
@@ -352,7 +361,7 @@ with $ x, w_1, w_0 \in \mathbb{R} $. We could use this function to make predicti
 \paragraph{Activation function}
 An important component is not only the linear function but also the activation function: Before we pass the value of the function f(x) on, we apply some function $ \phi $. An activation function applied to a linear function is referred to as \textit{neuron}. The activation function allows us to introduce a non-linearity, which in turn makes smaller networks of neurons able to perform much better on more complex tasks than just a simple linear activation. Common functions used are:
 \begin{itemize}
-    \item ReLu: $ \phi : max(0, f(x)) $
+    \item ReLU: $ \phi : max(0, f(x)) $
     \item Sigmoid: $ \phi : \frac{1}{1 + e^{f(x)}} $
     \item Binary step: $ \phi : \begin{cases}
                   0 & f(x) < 0    \\
@@ -376,12 +385,6 @@ But this poses a problem. We can find globally optimal solutions for linear neur
 
 This is one type of \textit{loss function}, which in general is a measure to describe the error we seek to \textit{minimize} in an optimization process.
 
-\begin{figure}
-    \centering
-    \includegraphics[height=5cm, keepaspectratio]{loss_curve.png}
-    \caption{(a) Data points of price versus floor space of houses for sale in Berkeley, CA, in July 2009, along with the linear function hypothesis that minimizes squared-error loss: y = 0.232x + 246. (b) Plot of the loss function for various values of $ w_0 $, $ w_1 $. Note that the loss function is convex, with a single global minimum. \cite[p. 1251]{russell_artificial_2021}}
-    \label{loss_curve}
-\end{figure}
 
 \paragraph{(Stochastic) gradient descent and backpropagation} By utilizing the loss function we can feed an input into the network and measure for any permutation of the weights $ w_i $ how big the error of the network is. By measuring the loss of the training set $ X $ we can find out how well the current configuration of the network fits the data.
 
@@ -431,26 +434,31 @@ This makes the neural networks one type of \textit{computational graph}, which h
     \label{computational_graph}
 \end{figure}
 
-In summary, by defining a neural network, we define a weight space. This space is essentially a room of all possible values of the weights. We can think of neural networks as functions or programs. Thus, the architecture of the neural network decides on a range of possible programs. Each of these programs is more or less suited for the task given. The feedback given by the loss function indicates the suitability. With gradient descent we search this space of programs for one that minimizes the error. Due to the nature of gradient descent, we are not guaranteed to find the globally optimal program.
+In summary, the neural network architecture describes a space of possible functions (or programs). The training data describes the desired output of the function. The loss function measures how much the output of the current configuration of the neural network differs from the desired output. Gradient descent adjusts the weights of the network in such a way that the ouput of the network fits the training data better: Gradient descent searches this space of functions for one that minimizes the error. Due to the nature of gradient descent, we are not guaranteed to find the globally optimal program. A different architecture might define a function space that contains more suitable functions than others.
 
 \subsection{Convolutional Neural Network}
+\begin{figure}
+    \centering
+    \includegraphics[width=\textwidth, keepaspectratio]{typical_cnn.png}
+    \caption{A typical CNN architecture \cite{noauthor_convolutional_2022}}
+    \label{typical_cnn}
+\end{figure}
+
 As already stated, the neural network or computational graph is not limited to one specific type of function as long as the function can be differentiated. As shown in \ref{neural_network_layers} in its basic form, neural networks have a $n$-dimensional vector as input. If we have an input like an image, we would have to break down the information about the adjacency to fit the form of a vector.
 
-Furthermore, the computational requirements for such an approach would grow rapidly. A fully connected first layer would need $n^2$ weights for an image of the size $n$. A small image of the size $ 256 \cdot 256$ would need $65,536$ weights for the first layer alone. Ideally we would also like the output of the network to be invariant to translation. This means that a pattern found in the corner should produce the same response as a pattern found in the center of the image.
+Furthermore, the computational requirements for such an approach would grow rapidly. A fully connected first layer would need $n^2$ weights for an image of the size $n$. A small image of the size $ 256 \cdot 256$ would need $65,536$ weights for the first layer alone.
 
 To achieve this we can utilize convolution. In general terms a "convolution is an integral that expresses the amount of overlap of one function $g$ as it is shifted over another function $f$." \cite{weisstein_convolution_nodate}
 
 $$
-    (f * )g(x) = \int_{-\infty}^{\infty} f(t)g(x - t) dt
+    (f * g)(x) = \int_{-\infty}^{\infty} f(t)g(x - t) dt
 $$
 
-This might seem very abstract but firstly, only the discrete case is relevant to us and secondly, only the finite case. This boils down the convolution to filtering $F$, which also comes up in image processing:
+This might seem very abstract but firstly, only the discrete case is relevant to us and secondly, only the finite case. This boils down the convolution to filtering $F$, which also comes up in image processing (technically this is the cross-correlation):
 
 $$
     F(u, v) = \sum_{x} \sum_{y} I(u+x, v+y)H(x, y)
 $$
-
-For a given coordinate $u,v$ each value in the kernel $H$ is multiplied by the  corresponding value of the image returned by function $I$. The figure \ref{convolution} illustrates how a convolution would look on a black and white image. In image processing for example, we might use a Laplacian filter to extract certain features like edges. By using convolutions in a neural network we move away from these hand-crafted features by letting the parameters of the kernels be trained to fit the desired outcome. By combining multiple layers of convolutions the network can extract higher level abstractions of the image. \cite{ilin_abstraction_2017}
 
 \begin{figure}
     \centering
@@ -459,11 +467,17 @@ For a given coordinate $u,v$ each value in the kernel $H$ is multiplied by the  
     \label{convolution}
 \end{figure}
 
+For a given coordinate $u,v$ each value in the matrix $H$ (also called \textit{kernel}) is multiplied by the  corresponding value of the image returned by function $I$. The figure \ref{convolution} illustrates how a convolution would look on a black and white image. In image processing for example, we might use a Laplacian filter to extract certain features like edges. By using convolutions in a neural network we move away from these hand-crafted features by letting the parameters of the kernels be trained to fit the desired outcome. The result is a \textit{convolutional neural network} (CNN) as depicted in figure \ref{typical_cnn}. The properties (and advantages) of CNNs are:
+
+\begin{itemize}
+    \item By combining multiple layers of convolutions the network can extract higher level abstractions of the image \cite{ilin_abstraction_2017}. This also introduces sparsity between the layers, as a neuron is only connected to a part of the previous layer.
+    \item The output of the network is equivariant to translation. This means that a pattern found in the corner produces the same magnitude of a response as a pattern found in the center of the image. However, the response is in a different location. \cite{208949}.
+\end{itemize}
 
 The application of this method for image related tasks has become very popular. The first large scale application in 2012 by Krizhevsky et al. \cite{krizhevsky_imagenet_2017} vastly outperformed any previous methods. This approach is very relevant to the board game setting in Abalone as each board position is essentially an image. Patterns of marbles are relevant in different positions of the board just as different shapes and objects in different places in an image.
 
 \subsection{Residual Networks}
-By stacking many layers a network can fit more complex domains. Their size has earned them the name \textit{deep neural networks}. But a central issue with increasing the size of the network is the problem of \textit{vanishing gradients}. For example the sigmoid function is in it's limit $0$ for $-\infty$ and $1$ for $\infty$ and its derivative approaches $0$ for both cases as depicted in figure \ref{residual_network} (a). That means in backpropagation larger input values produce very small output values when passed through such a neuron. As the derivatives are multiplied during the backpropagation (chain rule) they become even smaller, thus vanishing as they further approach $0$ with each added layer.
+By stacking many layers a network can fit more complex domains. Their size has earned them the name \textit{deep neural networks}. But a central issue with increasing the size of the network is the problem of \textit{vanishing gradients}. For example, as the arguments approach $-\infty$ and $\infty$, the sigmoid function is in it's limit $0$ and $1$ respectively. The derivative approaches $0$ for both cases as depicted in figure \ref{residual_network} (a). That means in backpropagation, larger input values produce very small output values when passed through such a neuron. As the derivatives are multiplied during the backpropagation (chain rule) they become even smaller, thus vanishing as they further approach $0$ with each added layer.
 
 \begin{figure}[!h]
     \centering
@@ -478,14 +492,15 @@ By stacking many layers a network can fit more complex domains. Their size has e
     \label{residual_network}
 \end{figure}
 
-To mitigate this issue one could either use different activation functions like the ReLu or use residual connections. The value of the input before passing through the neuron is added with some weight to the output as shown in figure \ref{residual_network}(b).
+To mitigate this issue one could use different activation functions like the ReLU or use \textit{residual connections}. In a residual (or skip) connection the value of the input before passing through the neuron is added with some weight to the output as shown in figure \ref{residual_network}(b). A \textit{residual block} is comprised of a group of layers and a residual connection as shown in figure \ref{residual_network}. These units can be stacked together very "deeply" without issues.
 
-This section on neural networks has only touched the raw fundamentals of neural networks very swiftly. Nevertheless it shows that the core ideas are quite simple (in hindsight of course), especially compared to the very comprehensive methods of classical AI. The theoretic foundations to these methods are actually quite old. With the unlocking of more and more computational power and data researchers discovered the "unreasonable effectiveness of data \cite{halevy_unreasonable_2009} and the combination of neural networks and gradient descent. To dive deeper the book "Artificial Intelligence: A Modern Approach" \cite{russell_artificial_2021} offers a very good first impression.
+This section on neural networks has only touched the raw fundamentals of neural networks very swiftly. Nevertheless it shows that the core ideas are quite simple (in hindsight of course), especially compared to the very comprehensive methods of classical AI. The theoretic foundations to these methods are actually quite old. With the unlocking of more and more computational power and data researchers discovered the "unreasonable effectiveness of data" \cite{halevy_unreasonable_2009} and the combination of neural networks and gradient descent. To dive deeper the book "Artificial Intelligence: A Modern Approach" \cite{russell_artificial_2021} offers a very good first impression.
 
 \subsection{AlphaGo}
-All the components we introduced so far constitute the knowledge necessary to understand AlphaGo and AlphaZero. Go was invented 2,500 years ago in China making it likely "the oldest continuously played board game" \cite{noauthor_go_2022}. The complexity of Go's state space and search space surpasses that of chess significantly (cf. table \ref{complexity_table}). At the time when there was a lot of success in other games with minimax many people saw Go as the most challenging board game \cite{muller_computer_2002}. The only successful method at the time was MCTS, for which we already saw two influential papers in the context of Go and MCTS by David Silver.
+% S. 32: Hier erschließt sich mir beim Lesen nicht alles sofort, insb. nochmal überlegen, welche Formeln sie brauchen und welche Erklärungen für später wichtig sind (ansonsten evtl. einfach weglassen). Oder Sie könnten erwähnen, dass Sie AlphaGo vor allem deshalb darstellen, um die Komplexität deutlich zu machen (und warum AlphaZero demgegenüber ein Fortschritt ist).
+All the components we introduced so far constitute the knowledge necessary to understand AlphaGo and AlphaZero. Go was invented 2,500 years ago in China making it likely "the oldest continuously played board game" \cite{noauthor_go_2022}. The complexity of Go's state space and search space surpasses that of chess significantly (cf. table \ref{complexity_table}). At the time when there was a lot of success in other games with minimax, many people saw Go as the most challenging board game \cite{muller_computer_2002}. The only successful method at the time was MCTS, for which we already saw two influential papers in the context of Go by David Silver.
 
-By combining the reinforcement learning framework with MCTS and neural networks David Silver et al. achieved the milestone of beating Lee Seedol. The program AlphaGo consists of three key components:
+By combining the reinforcement learning framework with MCTS and neural networks, David Silver et al. achieved the milestone of beating Lee Seedol. The program AlphaGo consists of three key components:
 
 \begin{enumerate}
     \item A rollout policy network $p_{\pi}$ and a policy network $p_{\sigma}$ trained by supervised learning
@@ -502,7 +517,7 @@ The first step is the supervised training based on the KGS Go Server dataset of 
     \label{alpha_go_prediction_quality}
 \end{figure}
 
-The policy network $p_{\sigma}$ is trained in the same fashion except it is larger in size and thus is computationally more expensive. The policy network $p_{\sigma}$ is used for the next step. The goal is to adjust "the policy towards the correct goal of winning games, rather than maximizing predictive accuracy" \cite[p.484]{silver_mastering_2016} by using policy gradient RL and self-play. Initially, the network $p_{\rho}$ is initialized with structure and weights equivalent to $p_{\sigma}$. Then games with the current version of the policy network $p_{p}$ are played against random previous versions of the network. At timestep $t$, for a mini-batch of $n$ games, the results of the games are taken and the REINFORCE algorithm is used to fit the weights of the networks to the outcome of the game $z_t$. The newly trained policy network $p_{\rho}$ wins 80\% of the games against $p_{\sigma}$.
+The policy network $p_{\sigma}$ is trained in the same fashion except it is larger in size and thus is computationally more expensive. The policy network $p_{\sigma}$ is used for the next step. The goal is to adjust "the policy towards the correct goal of winning games, rather than maximizing predictive accuracy" \cite[p.484]{silver_mastering_2016} by using policy gradient RL and self-play. Initially, the network $p_{\rho}$ is initialized with structure and weights equivalent to $p_{\sigma}$. Then games with the current version of the policy network $p_{p}$ are played against random previous versions of the network. At timestep $t$, for a mini-batch of $n$ games, the results of the games are taken and the REINFORCE algorithm \cite{williams_simple_1992} is used to fit the weights of the networks to the outcome of the game $z_t$. The newly trained policy network $p_{\rho}$ wins 80\% of the games against $p_{\sigma}$ \cite[p. 485]{silver_mastering_2016}.
 
 Lastly, $p_{\rho}$ is used to train a neural network with weights $\theta$ for the evaluation function $v_{\theta}(s)$. This evaluation function approaches the state-value function $v_{p_{\rho}}(s)$, so the expected outcome of the game given the policy $p_{\rho}$: $v_{\theta}(s) \approx v_{p_{\rho}}(s)$. Figure \ref{alpha_go_prediction_quality} shows how $v_{\theta}$ approaches the same prediction accuracy as doing 15,000 rollouts with policy $p_{\rho}$.
 
@@ -513,15 +528,15 @@ Lastly, $p_{\rho}$ is used to train a neural network with weights $\theta$ for t
     \label{alpha_go_mcts}
 \end{figure}
 
-During live play against an opponent, AlphaGo uses MCTS to improve the performance versus just using the pure output of the policy network. The edges, or state $s$ action $a$ pairs, of the search tree store an action value $Q(s, a)$, a visit count $N(s, a)$ and a prior probability $P(s, a)$ (cf. figure \ref{alpha_go_mcts}).
+During live play against an opponent, AlphaGo uses MCTS search. The search has performance versus just using the pure output of the policy network. The edges, or the pairs $(s,a)$ of state $s$ and action $a$, of the search tree store an action value $Q(s, a)$, a visit count $N(s, a)$ and a prior probability $P(s, a)$ (cf. figure \ref{alpha_go_mcts}).
 
 \begin{itemize}
-    \item During the \textbf{selection} phase the next child is selected by taking the action with maximum action value. To encourage exploration in the beginning an additional term $u(s,a)$ is added to the action value $Q$. Each step during selection can be described as $t$ yielding
+    \item During the \textbf{selection} phase the next child is selected by taking the action with maximum action value. To encourage exploration in the beginning an additional term $u(s,a)$ is added to the action value $Q$. Each step $t$ during selection an action is selected by:
           \begin{equation}
               a_t = \operatorname*{argmax}_a (Q(s_t,a) + u(s_t, a))
           \end{equation}
           with $u(s_t, a)$ being a variant of the PUCT algorithm \cite{rosin_multi-armed_2011}. Just like the UCB1 \ref{eq:UCB1} it encourages exploration in the beginning and then increasingly prefers moves with high action value.
-    \item When a leaf node is reached at timestep $T$, the state $s_T$ is \textbf{expanded} by the policy network $p_{\sigma}$ (Note that $p_{\sigma}$ is being used instead of $p_{\rho}$, empirical analysis be the team showed this performs better). The resulting probability distribution over the actions is stored as prior probabilities: $P(s_T, a) = p_{a|s_T}$.
+    \item When a leaf node is reached at timestep $T$, the state $s_T$ is \textbf{expanded} by the policy network $p_{\sigma}$ (Note that $p_{\sigma}$ is being used instead of $p_{\rho}$, empirical analysis by the team showed this performs better). The resulting probability distribution over the actions is stored as prior probabilities: $P(s_T, a) = p_(a|s_T)$.
     \item The \textbf{evaluation} of the leaf node $s_L$ is done by combining the evaluation function $v_{\theta}$ and the results of the rollouts $z_L$ played with the rollout network $p_{\pi}$. Both elements are weighted by a mixing parameter $\lambda$:
           \begin{equation}
               V(s_L) = (1 - \lambda)v_{\theta}(s_L) + \lambda z_L
@@ -530,7 +545,7 @@ During live play against an opponent, AlphaGo uses MCTS to improve the performan
           \begin{equation}
               Q(s,a) = \frac{1}{N(s,a)}\sum_{i=1}^{n}1(s,a,i)V(s_L^i)
           \end{equation}
-          where $n$ is the number of simulations "$s_L^i$ is the leaf node from the $i$th simulation, and $1(s,a,i)$ indicates whether the edge was traversed during the $i$th simulation" \cite[p. 529]{silver_mastering_2016}.
+          where $n$ is the number of simulations "$s_L^i$ is the leaf node from the $i$th simulation, and $1(s,a,i)$ indicates whether the edge was traversed during the $i$th simulation" \cite[p. 529]{silver_mastering_2016}. The action values stored on the edges of the search tree are the average of all evaluations of the child nodes.
 \end{itemize}
 
 The computational requirements for AlphaGo are significant. During training, the team utilized 50 GPUs. The supervised learning stage ran for three weeks regardless. During live play, they utilized a machine with 48 CPUs and 8 GPUs. A distributed variant with 1,202 CPUs and 176 GPUs was tested as well.
@@ -538,7 +553,7 @@ The computational requirements for AlphaGo are significant. During training, the
 A more detailed introduction to the topic is provided by the nature article "Mastering the game of Go with deep neural networks and tree search". \cite{silver_mastering_2016}
 
 \subsection{AlphaZero}
-A problem with AlphaGo's architecture is its complexity. There are many hyperparameters for the four different neural networks and many other moving parts. AlphaZero is a simplification that conveniently performs even better and is easier to generalize.
+A problem with AlphaGo's architecture is its complexity. There are many hyperparameters for the four different neural networks and many other moving parts. In a first step DeepMind simplified AlphaGo to AlphaGo Zero, which conveniently performs even better. In a next step the architecture was adapted to fit other games like chess and shogi as well, called AlphaZero \cite{silver_mastering_2017-1}. We will stick with Go to illustrate the concept, but refer to the algorithm as AlphaZero, even though it is a bit imprecise.
 
 AlphaZero learns "tabula rasa" from a blank slate. Essentially, AlphaZero only uses a modified version of the self-play RL mechanism from AlphaGo. All other parts from the training pipeline are scrapped. The two main components of AlphaZero are:
 
@@ -576,12 +591,20 @@ The network $f_{\theta}$ takes the current board state and the last seven boards
 As shown by figure \ref{alpha_zero_neural_network} (a), the network is divided into four types of blocks:
 
 \begin{itemize}
-    \item The convolutional block and residual tower hold their main chunk of trainable parameters.
+    \item The residual blocks arranged in the residual tower hold the main chunk of trainable parameters. Two sizes for the residual tower were tested, 19 and 39 blocks. The variant with 19 blocks performed better.
+    \item The single convolutional block is composed of the same layers as the residual block, just without the skip connection.
     \item The value head outputs a scalar representing the value function.
     \item The policy head returns a probability distribution over all possible moves.
 \end{itemize}
 
-The team showed empirically \cite[p. 9]{silver_mastering_2017} that this \textit{dueling-network} \cite{wang_dueling_2016} architecture works significantly better for Go than other architectures.
+\begin{figure}
+    \centering
+    \includegraphics[height=6cm, keepaspectratio]{dueling_network.png}
+    \caption{A comparison of a "single-stream" network (top) and a dueling network (bottom) \cite{wang_dueling_2016}}
+    \label{dueling_network}
+\end{figure}
+
+The team showed empirically \cite[p. 9]{silver_mastering_2017} that this \textit{dueling-network} \cite{wang_dueling_2016} architecture works significantly better for Go than other architectures. A dueling-network, as depicted in figure \ref{dueling_network}, has two "heads" for the state-value function and the actions or policy. Both heads share the underlying model layers. This improved performance for Atari-playing algorithms \cite[p. 7]{wang_dueling_2016} and also performed better than separate networks in AlphaGo Zero \cite[p. 9]{silver_mastering_2017}.
 
 \begin{figure}[!h]
     \centering
@@ -623,4 +646,4 @@ The visit counts $N(s_0, a)$ in relation to the sum of all visits to other nodes
     \label{eq:move_selection}
 \end{equation}
 
-As $\tau$ approaches $0$, the move with the maximum number is selected deterministically, and if $\tau = 1$, other moves are selected proportional to their probability. For self-play, $\tau$ was set to $1$ for the first 30 moves and $\tau \rightarrow 0$ for the rest of a game and during the face-off of the new and the current best network.
+As $\tau$ approaches $0$, the move with the maximum number is selected deterministically, and if $\tau = 1$, other moves are selected proportional to their probability. For self-play, $\tau$ was set to $1$ for the first 30 moves and $\tau \rightarrow 0$ for the rest of a game and during the matches of the new and the current best network.
