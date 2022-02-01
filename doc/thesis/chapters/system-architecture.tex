@@ -135,7 +135,18 @@ In order to apply the neural network architecture proposed by AlphaZero (cf. fig
 
 \subsection{Architecture}
 \label{neural_network_architecture}
-% explain pi and v
+We implemented the neural network architecture of AlphaGo Zero in PyTorch with the help of Bruåsdal's implementation. We used a residual tower height of five (cf. section \ref{neural_network_architecture}) which has $5,911,127$ trainable parameters. It will be referred to as "large".
+
+Additionally, we tested the simplified neural network proposed in the implementation of Thakoor \cite{thakoor_suragnairalpha-zero-general_nodate}, which is less deep but still offers $21,470,125$ trainable parameters. It will be referred to as "mini".
+
+\begin{figure}
+    \centering
+    \includegraphics[height=\textheight, keepaspectratio]{neural_network_alternative.png}
+    \caption{The neural network used in AlphaZero General \cite{thakoor_suragnairalpha-zero-general_nodate}}
+    \label{neural_network_alternative}
+\end{figure}
+
+
 \section{Training Pipeline}
 \subsection{Components}
 \label{components}
