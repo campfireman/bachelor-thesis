@@ -1,8 +1,10 @@
 # Bachelor thesis 2021
 
-## Run training pipeline
+## Abstract
 
-If on Ubuntu just run the included script:
+AlphaGo's victory against Lee Sedol in the game of Go has been a milestone in artificial intelligence. After this success, the team behind the program further refined the architecture and applied it to many other games such as chess or shogi. In the following thesis, we try to apply the theory behind AlphaGo and its successor AlphaZero to the game of Abalone. Due to limitations in computational resources, we could not replicate the same exceptional performance.
+
+## Run training pipeline
 
 ```[bash]
 ./install_ubuntu.sh
