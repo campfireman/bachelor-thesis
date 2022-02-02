@@ -205,16 +205,16 @@ A multitude of parameters controls the behavior of the system. The most relevant
     \caption{The parameters for the validation runs}
 \end{table}
 
-\paragraph{Result} The experience buffer during different iterations of the training run looks promising. The distribution shows much higher rewards, many games even ending before the cutoff of 200 moves, cf. figure \ref{performance_remote_warmed_up_exp_buffer}.
+\paragraph{Result} The agent maintains it's strength against the random agent throughout training. The performance against the heuristic agent begins to improve. About half of the games are drawn and the marble losses incurred decrease, cf. figure \ref{performance_remote_warmed_up} The experience buffer during different iterations of the training run looks promising. The distribution shows much higher rewards, many games even ending before the cutoff of 200 moves, cf. figure \ref{performance_remote_warmed_up_exp_buffer}.
 
 \begin{figure}[!h]
     \centering
     \subfloat[The win-ratio]{
-        \includegraphics[height=5cm, keepaspectratio]{performance_remote_naive_win_ratio.png}
+        \includegraphics[height=5cm, keepaspectratio]{performance_remote_warmed_win_ratio.png}
     }
     \hfill
     \subfloat[The cumulative reward]{
-        \includegraphics[height=5cm, keepaspectratio]{performance_remote_naive_reward.png}
+        \includegraphics[height=5cm, keepaspectratio]{performance_remote_warmed_cumul_reward.png}
     }
     \caption{The training performance for the scaled warmed-up run}
     \label{performance_remote_warmed_up}
