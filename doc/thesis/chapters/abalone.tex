@@ -61,7 +61,7 @@ A move pushing the opponent's marbles is called "sumito" and comes in three vari
 
 A sumito might be blocked by other marbles, as shown in figure  \ref{additional_relevant_positions} (a). In 1) the sumito by black is blocked by the black marble, in 2) there is a free space between the marbles, and 3) shows how a side-step cannot push a marble. Sumito moves are the only moves that allow for pushing the enemy's marbles. Therefore, they are the only attacking moves. Figure \ref{additional_relevant_positions} (b) shows a situation in which we can push an enemy marble from the board. The player that pushes six of the opponent's marbles from the board has won. The basic ruleset does not account for a draw, but there are, in theory, positions like a stalemate in chess, where no move is possible for one player. In figure \ref{additional_relevant_positions} (c), the black player is locked to the brink of the board and has no move available. Moreover, to force a more eventful game, games are often limited by time or the number of moves. Thus, a draw might occur when the number of marbles left on the board is equal for each player.
 
-\section{Task environment}
+\section{Task Environment}
 Based on the PEAS framework, we can specify Abalone as a task environment and show the key components for the implementation of our agent. \cite[p.107]{russell_artificial_2021}
 
 \begin{description}
@@ -102,7 +102,7 @@ A different representation is advantageous to store the board state in a program
     \label{abalone_matrix_representation}
 \end{figure}
 
-\section{Move notation}
+\section{Move Notation}
 \label{abalone_move_notation}
 There is no officially standardized notation for the moves of Abalone. The notation described by Aichholzer \cite{aichholzer_abalone_2006} has wide adoption in the papers investigated. To contribute to the proliferation of standards \cite{xkcd_standards_nodate} we used a different notation that stems from the Abalone engine Abalone-BoAI \cite{scriptim_scriptimabalone-boai_2021}.
 
@@ -182,7 +182,7 @@ As those numbers in isolation are hard to grasp, it is helpful to put Abalone's 
     \label{complexity_table}
 \end{table}
 
-\section{Existing game playing agents}
+\section{Existing Game-Playing Agents}
 \label{existing_game_playing_agents}
 \subsection{Minimax}
 For all the previously discussed methods, game-playing agents based on minimax have been the most successful so far. Heuristic functions are quite similar to those mentioned for chess. Some of the more significant game situations optimized for are:
