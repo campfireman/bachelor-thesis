@@ -22,6 +22,7 @@ log = logging.getLogger(__name__)
 class MCTS():
     """
     This class handles the MCTS tree.
+    Based on: https://github.com/suragnair/alpha-zero-general/blob/master/MCTS.py
     """
 
     def __init__(self, game: Game, nnet: NNetWrapper, args: CoachArguments):

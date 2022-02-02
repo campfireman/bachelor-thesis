@@ -1,10 +1,8 @@
 import logging
-import os
-from typing import Generator, Iterable, List, Tuple, Union
+from typing import Iterable, List, Tuple, Union
 
 import numpy as np
 import numpy.typing as npt
-# from alpha_zero_general.MCTS import MCTS
 from abalone_engine.enums import Direction, Player, Space
 from abalone_engine.game import Game as Engine
 from abalone_engine.game import Move
@@ -29,13 +27,7 @@ log = logging.getLogger(__name__)
 
 class AbaloneGame(Game):
     """
-    This class specifies the base Game class. To define your own game, subclass
-    this class and implement the functions below. This works when the game is
-    two-player, adversarial and turn-based.
-
-    Use 1 for player1 and -1 for player2.
-
-    See othello/OthelloGame.py for an example implementation.
+    Based on https://github.com/suragnair/alpha-zero-general/blob/master/Game.py
     """
 
     def __init__(self):

@@ -13,6 +13,10 @@ log = logging.getLogger(__name__)
 
 
 class ParallelArena():
+    """
+    Based on https://github.com/suragnair/alpha-zero-general/blob/master/Arena.py
+    """
+
     def __init__(
         self,
         player1_class: object,

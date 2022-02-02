@@ -11,27 +11,26 @@ from random import shuffle
 from typing import Tuple
 
 import numpy as np
-# import torch.multiprocessing as mp
-from abalone_engine.players import AbaProPlayer, AlphaBetaPlayer, RandomPlayer
-from alpha_zero_general.Arena import Arena
-from alpha_zero_general.Coach import Coach
+from abalone_engine.players import AlphaBetaPlayer, RandomPlayer
 from alpha_zero_general.Game import Game
 from tensorflow.python.lib.io import file_io
 
 from src.abalone_game import AbaloneNNPlayer
 from src.mcts import MCTS
 from src.neural_net import NNetWrapperBase
-from src.othello_game import GreedyOthelloPlayer
-from src.othello_game import RandomPlayer as OthelloRandomPlayer
 from src.settings import CoachArguments
 from src.utils import CsvTable
 
-# from .arena import ParallelArena as Arena
+from .arena import ParallelArena as Arena
 
 log = logging.getLogger(__name__)
 
 
 class ParallelCoach:
+    """
+    Based on: https://github.com/suragnair/alpha-zero-general/blob/master/Coach.py
+    """
+
     NNET_NAME_CURRENT = 'temp.pth.tar'
     NNET_NAME_NEW = 'temp_new.pth.tar'
     NNET_NAME_BEST = 'best.pth.tar'
@@ -267,26 +266,21 @@ class ParallelCoach:
                     folder=self.args.checkpoint, filename=self.NNET_NAME_NEW)
 
                 log.info('PITTING AGAINST PREVIOUS VERSION')
-                # arena = Arena(
-                #     AbaloneNNPlayer,
-                #     (),
-                #     {'nnet_fullpath': os.path.join(self.args.checkpoint, self.NNET_NAME_CURRENT),
-                #      'args': self.args},
-                #     AbaloneNNPlayer,
-                #     (),
-                #     {'nnet_fullpath': os.path.join(self.args.checkpoint, self.NNET_NAME_NEW),
-                #      'args': self.args},
-                #     self.args,
-                #     verbose=False
-                # )
-                pmcts = MCTS(self.game, self.pnet, self.args)
-                nmcts = MCTS(self.game, self.nnet, self.args)
-                arena = Arena(lambda x: np.argmax(pmcts.get_action_prob(x, temp=0)),
-                              lambda x: np.argmax(nmcts.get_action_prob(x, temp=0)), self.game)
-                pwins, nwins, draws = arena.playGames(
+                arena = Arena(
+                    AbaloneNNPlayer,
+                    (),
+                    {'nnet_fullpath': os.path.join(self.args.checkpoint, self.NNET_NAME_CURRENT),
+                     'args': self.args},
+                    AbaloneNNPlayer,
+                    (),
+                    {'nnet_fullpath': os.path.join(self.args.checkpoint, self.NNET_NAME_NEW),
+                     'args': self.args},
+                    self.args,
+                    verbose=False
+                )
+                pwins, nwins, draws, prewards, nrewards = arena.play_games(
                     self.args.num_self_comparisons
                 )
-                prewards, nrewards = 0, 0
 
                 log.info('NEW/PREV WINS : %d / %d ; DRAWS : %d' %
                          (nwins, pwins, draws))
@@ -306,27 +300,19 @@ class ParallelCoach:
 
                 if self.args.agent_comparisons and ((not self.args.first_agent_comparison_skip and iteration == 1) or iteration % self.args.agent_comparisons_step_size == 0):
                     log.info('PITTING AGAINST RANDOM PLAYER')
-                    # arena = Arena(
-                    #     AbaloneNNPlayer,
-                    #     (),
-                    #     {'nnet_fullpath': os.path.join(self.args.checkpoint, self.NNET_NAME_CURRENT),
-                    #      'args': self.args},
-                    #     RandomPlayer,
-                    #     (),
-                    #     {},
-                    #     self.args,
-                    #     verbose=False
-                    # )
-                    # nwins, rwins, draws, nrewards, rrewards = arena.play_games(
-                    #     self.args.num_random_agent_comparisons)
-
-                    nmcts = MCTS(self.game, self.nnet, self.args)
-                    arena = Arena(lambda x: np.argmax(nmcts.get_action_prob(x, temp=0)),
-                                  OthelloRandomPlayer(self.game).play, self.game)
-                    nwins, rwins, draws = arena.playGames(
-                        self.args.num_self_comparisons
+                    arena = Arena(
+                        AbaloneNNPlayer,
+                        (),
+                        {'nnet_fullpath': os.path.join(self.args.checkpoint, self.NNET_NAME_CURRENT),
+                         'args': self.args},
+                        RandomPlayer,
+                        (),
+                        {},
+                        self.args,
+                        verbose=False
                     )
-                    prewards, rrewards = 0, 0
+                    nwins, rwins, draws, nrewards, rrewards = arena.play_games(
+                        self.args.num_random_agent_comparisons)
 
                     random_player_game_stats_csv.add_row(
                         [iteration, time.time(), nwins, rwins, draws, nrewards, rrewards])
@@ -334,26 +320,19 @@ class ParallelCoach:
                              (nwins, rwins, draws))
 
                     log.info('PITTING AGAINST HEURISTIC PLAYER')
-                    # arena = Arena(
-                    #     AbaloneNNPlayer,
-                    #     (),
-                    #     {'nnet_fullpath': os.path.join(self.args.checkpoint, self.NNET_NAME_CURRENT),
-                    #      'args': self.args},
-                    #     AlphaBetaPlayer,
-                    #     (),
-                    #     {},
-                    #     self.args,
-                    #     verbose=False
-                    # )
-                    # nwins, hwins, draws, nrewards, hrewards = arena.play_games(
-                    #     self.args.num_heuristic_agent_comparisons)
-
-                    arena = Arena(lambda x: np.argmax(nmcts.get_action_prob(x, temp=0)),
-                                  GreedyOthelloPlayer(self.game).play, self.game)
-                    nwins, hwins, draws = arena.playGames(
-                        self.args.num_self_comparisons
+                    arena = Arena(
+                        AbaloneNNPlayer,
+                        (),
+                        {'nnet_fullpath': os.path.join(self.args.checkpoint, self.NNET_NAME_CURRENT),
+                         'args': self.args},
+                        AlphaBetaPlayer,
+                        (),
+                        {},
+                        self.args,
+                        verbose=False
                     )
-                    prewards, hrewards = 0, 0
+                    nwins, hwins, draws, nrewards, hrewards = arena.play_games(
+                        self.args.num_heuristic_agent_comparisons)
 
                     heuristic_player_game_stats_csv.add_row(
                         [iteration, time.time(), nwins, hwins, draws, nrewards, hrewards])

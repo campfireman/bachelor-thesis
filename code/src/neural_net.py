@@ -91,6 +91,10 @@ class AbaloneNNet():
 
 
 class AbaloneNNetMini():
+    """
+    Based on: https://github.com/suragnair/alpha-zero-general/blob/master/othello/tensorflow/OthelloNNet.py
+    """
+
     def __init__(self, game, args):
         # game params
         self.board_x, self.board_y = game.get_board_size()
