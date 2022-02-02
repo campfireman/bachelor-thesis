@@ -108,15 +108,49 @@ The behavior of the system is controlled by a multitude of parameters. The most 
 \paragraph{Result} No improvement in playing performance, cf. figure \ref{performance_local_naive}
 \begin{figure}[!h]
     \centering
-    \subfloat[The win-ratio of the naive implementation]{
+    \subfloat[The win-ratio]{
         \includegraphics[height=5cm, keepaspectratio]{performance_local_win_ratio.png}
     }
     \hfill
-    \subfloat[The cumulative reward recieved by the naive implementation]{
+    \subfloat[The cumulative reward]{
         \includegraphics[height=5cm, keepaspectratio]{performance_local_reward.png}
     }
-    \caption{}
+    \caption{The training performance for the naive run}
     \label{performance_local_naive}
+\end{figure}
+
+\subsection{Naive Run with large NN}
+\paragraph{Hypothesis} The naive implementation without any Abalone specific modifications converges to optimal play with the large NN.
+\paragraph{Setup} Run pipeline on Balthazar.
+
+\begin{table}[!h]
+    \begin{center}
+        \begin{tabular}{ c|c }
+            Name                       & Value   \\
+            \hline
+            \hline
+            num\_MCTS\_sims            & 60      \\
+            num\_self\_play\_workers   & 2       \\
+            num\_arena\_workers        & 2       \\
+            maxlen\_experience\_buffer & 960,000 \\
+            nnet\_size                 & large   \\
+        \end{tabular}
+    \end{center}
+    \caption{The parameters for the naive run on Balthazar}
+\end{table}
+
+\paragraph{Result} No improvement in playing performance, cf. figure \ref{performance_local_naive_large}. The network seems to have a bug leading to strong divergence. We decided to discard the implementation for the time being as the inference and training of the network took approximately 30\% longer.
+\begin{figure}[!h]
+    \centering
+    \subfloat[The win-ratio]{
+        \includegraphics[height=5cm, keepaspectratio]{performance_local_naive_large_win_ratio.png}
+    }
+    \hfill
+    \subfloat[The cumulative reward]{
+        \includegraphics[height=5cm, keepaspectratio]{performance_local_naive_large_cumul_reward.png}
+    }
+    \caption{The training performance for the naive run with the large NN}
+    \label{performance_local_naive_large}
 \end{figure}
 
 \subsection{Scaled naive Run}
