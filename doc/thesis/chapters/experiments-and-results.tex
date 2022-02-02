@@ -159,14 +159,14 @@ A multitude of parameters controls the behavior of the system. The most relevant
 \paragraph{Result} No improvement in playing performance, divergence, cf. figure \ref{performance_remote_naive}
 \begin{figure}[!h]
     \centering
-    \subfloat[The win-ratio of the naive implementation]{
+    \subfloat[The win-ratio]{
         \includegraphics[height=5cm, keepaspectratio]{performance_remote_naive_win_ratio.png}
     }
     \hfill
-    \subfloat[The cumulative reward recieved by the naive implementation]{
+    \subfloat[The cumulative reward]{
         \includegraphics[height=5cm, keepaspectratio]{performance_remote_naive_reward.png}
     }
-    \caption{}
+    \caption{The training performance for the scaled naive run}
     \label{performance_remote_naive}
 \end{figure}
 
@@ -209,14 +209,14 @@ A multitude of parameters controls the behavior of the system. The most relevant
 
 \begin{figure}[!h]
     \centering
-    \subfloat[The win-ratio of the naive implementation]{
+    \subfloat[The win-ratio]{
         \includegraphics[height=5cm, keepaspectratio]{performance_remote_naive_win_ratio.png}
     }
     \hfill
-    \subfloat[The cumulative reward recieved by the naive implementation]{
+    \subfloat[The cumulative reward]{
         \includegraphics[height=5cm, keepaspectratio]{performance_remote_naive_reward.png}
     }
-    \caption{}
+    \caption{The training performance for the scaled warmed-up run}
     \label{performance_remote_warmed_up}
 \end{figure}
 
@@ -245,21 +245,21 @@ A multitude of parameters controls the behavior of the system. The most relevant
     \label{performance_remote_warmed_up_heuristic}
 \end{figure}
 
-\subsection{Scaled Run with adjusted Reward $z$}
+\subsection{Scaled Run with adjusted Reward}
 \paragraph{Hypothesis} The reward function provides no penalty for long matches, that result in a draw.
 \paragraph{Setup} Run pipeline on Melchior with adjusted reward function. Each turn has a reward of $-0.001$, for a maximum game length of 200 that is a maximum of $-0.2$. The other rewards remain unchanged.
 
 \paragraph{Result} Inconclusive for the amount of iterations performed. A tendency of improvement is present.
 \begin{figure}[!h]
     \centering
-    \subfloat[The win-ratio of the naive implementation]{
+    \subfloat[The win-ratio]{
         \includegraphics[height=5cm, keepaspectratio]{performance_remote_diff_z_win_ratio.png}
     }
     \hfill
-    \subfloat[The cumulative reward recieved by the naive implementation]{
+    \subfloat[The cumulative reward]{
         \includegraphics[height=5cm, keepaspectratio]{performance_remote_diff_z_cumul_reward.png}
     }
-    \caption{}
+    \caption{The training performance for the scaled run with adjusted reward}
     \label{performance_remote_diff_z}
 \end{figure}
 
