@@ -78,7 +78,7 @@ Using the environment properties learned in \ref{environment} we can classify Ab
 
 There are multiple possible coordinate systems for the hexagonal boards to address the marble positions universally. In Abalone, the most common way is to label the rows alphabetically from A-I starting at the bottom row. The "columns" are labeled numerically from 1-9 as depicted in figure \ref{abalone_coordinate_systems} (a).
 
-Cube coordinates, as proposed by Patel \cite{noauthor_red_nodate}, are a convenient way to represent hexagonal boards. The idea is to imagine a cube with a cartesian coordinate system originating from its center. At $x + y + z = 0$ a diagonal plane is sliced out resulting in the coordinate system represented in figure \ref{abalone_coordinate_systems} (b). It allows for the simpler application of a wide variety of formulas and algorithms like Manhattan distance, accessing neighbors, finding paths, etc., to the hexagonal board. Later, the cube coordinates will be utilized to calculate heuristics and to create symmetrical boards.
+Cube coordinates, as proposed by Patel \cite{noauthor_red_nodate}, are a convenient way to represent hexagonal boards. The idea is to imagine a cube with a cartesian coordinate system originating from its center. At $x + y + z = 0$ a diagonal plane is sliced out resulting in the coordinate system represented in figure \ref{abalone_coordinate_systems} (b). It allows for the simpler application of a wide variety of formulas and algorithms like Manhattan distance, accessing neighbors, or finding paths to the hexagonal board. Later, the cube coordinates will be utilized to calculate heuristics and create symmetrical boards.
 
 \begin{figure}[!h]
     \centering
@@ -106,13 +106,13 @@ A different representation is advantageous to store the board state in a program
 \label{abalone_move_notation}
 There is no officially standardized notation for the moves of Abalone. The notation described by Aichholzer \cite{aichholzer_abalone_2006} has wide adoption in the papers investigated. To contribute to the proliferation of standards \cite{xkcd_standards_nodate} we used a different notation that stems from the Abalone engine Abalone-BoAI \cite{scriptim_scriptimabalone-boai_2021}.
 
-Inline moves have the structure of "\{MarbleCoordinate\}\{Direction\}" and broadside moves the structure of "\{MarbleCoordinate\}\{MarbleCoordinate\}\{Direction\}". Additionally, the marble coordinates are ordered for broadside moves. The marble coordinates have the form outlined in figure \ref{abalone_coordinate_systems} (a). The directions are always seen from the black player's starting position, north pointing straight in the direction of the white player (default position). This is the main difference to the notation described by Aichholzer, who uses a destination coordinate instead of a direction. The direction improves the readability and understandability of moves. The six directions are arranged just as in a compass, N for north, NW for north-west and so on. As follows, the regex for the notation:
+Inline moves have the structure of "\{MarbleCoordinate\}\{Direction\}" and broadside moves the structure of "\{MarbleCoordinate\}\{MarbleCoordinate\}\{Direction\}". Additionally, the marble coordinates are ordered for broadside moves. The marble coordinates have the form outlined in figure \ref{abalone_coordinate_systems} (a). The directions are always seen from the black player's starting position, north pointing straight in the direction of the white player (default position). This is the main difference to the notation described by Aichholzer, who uses a destination coordinate instead of a direction. The direction improves the readability and understandability of moves. The six directions are arranged just as in a compass: N for north, NW for the northwest, etc. As follows, the regex for the notation:
 
 \begin{BVerbatim}
     ([A-I][1-9]){1}([A-I][1-9]){0,1}((NE)|(E)|(SE)|(SE)|(SW)|(W)|(NW)){1}
 \end{BVerbatim}
 
-For example, an inline move with the marble at A1 as trailing marble in the direction north-east would be denoted as A1NE. A broadside move of a row of marbles from C3 until C5 in the direction of north-west would be denoted as C3C5NW.
+For example, an in-line move with the marble at A1 as trailing marble in the direction north-east would be denoted as A1NE. A broadside move of a row of marbles from C3 until C5 in the northwest direction would be denoted as C3C5NW.
 
 \section{Symmetries}
 \label{abalone_symmetries}
