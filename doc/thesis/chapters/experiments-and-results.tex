@@ -143,8 +143,14 @@ The behavior of the system is controlled by a multitude of parameters. The most 
 
 \begin{figure}[!h]
     \centering
-    \includegraphics[height=6cm, keepaspectratio]{distribution_of_z.png}
-    \caption{Distribution of $z$ in experience buffer}
+    \subfloat[The experience buffer after the fifth iteration]{
+        \includegraphics[height=5cm, keepaspectratio]{performance_local_exp_buffer_5.png}
+    }
+    \hfill
+    \subfloat[The experience buffer after the twentieth iteration]{
+        \includegraphics[height=5cm, keepaspectratio]{performance_local_exp_buffer_20.png}
+    }
+    \caption{Distribution of $z$ in experience buffer of the naive run on Balthazar.}
     \label{distribution_of_rewards}
 \end{figure}
 
