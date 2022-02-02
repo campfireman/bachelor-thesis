@@ -205,7 +205,7 @@ A multitude of parameters controls the behavior of the system. The most relevant
     \caption{The parameters for the validation runs}
 \end{table}
 
-\paragraph{Result} The agent maintains its strength against the random agent throughout the training. The performance against the heuristic agent begins to improve. About half of the games are drawn and the marble losses incurred decrease, cf. figure \ref{performance_remote_warmed_up}. However, during 16 iterations only four new networks were accepted. The rate of acceptance decreases over time. The experience buffer during different iterations of the training run looks promising. The distribution shows much higher rewards, many games even ending before the cutoff of 200 moves, cf. figure \ref{performance_remote_warmed_up_exp_buffer}.
+\paragraph{Result} The agent maintains its strength against the random agent throughout the training. The performance against the heuristic agent begins to improve. About half of the games are drawn and the marble losses incurred decrease, cf. figure \ref{performance_remote_warmed_up}. However, during 16 iterations only four new networks were accepted. The rate of acceptance decreases over time. The experience buffer during different iterations of the training run looks promising. The distribution shows much higher rewards, many games even ending before the cutoff of 200 moves, cf. figure \ref{performance_remote_warmed_up_exp_buffer}. Nevertheless, there seems to be a trend of the rewards to gravitate towards more draws.
 
 \begin{figure}[!h]
     \centering
@@ -228,6 +228,10 @@ A multitude of parameters controls the behavior of the system. The most relevant
     \hfill
     \subfloat[The experience buffer after the tenth iteration]{
         \includegraphics[height=5cm, keepaspectratio]{performance_remote_warmed_up_exp_buffer_10.png}
+    }
+    \hfill
+    \subfloat[The experience buffer after the fifteenth iteration]{
+        \includegraphics[height=5cm, keepaspectratio]{performance_remote_warmed_up_exp_buffer_15.png}
     }
     \caption{Initially the buffer is still filled with the experience from the prewarming phase, where all games ended with eiter -1 or 1 reward.}
     \label{performance_remote_warmed_up_exp_buffer}
