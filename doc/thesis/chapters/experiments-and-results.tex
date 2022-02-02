@@ -267,7 +267,7 @@ The behavior of the system is controlled by a multitude of parameters. The most 
 \paragraph{Hypothesis} The training of the neural network has become a bottlenet.
 \paragraph{Setup} Compare lengths of training iterations on Balthazar and Melchior.
 
-\paragraph{Result} Due to the parallel nature, self-play games are generated continuously. The longer one training iteration takes, the bigger the backlog of new games becomes. One iteration took on average 1h. The training of the network has become the limiting factor not, the generation of self-play games, cf. figure \ref{iteration_duration}.
+\paragraph{Result} Due to the parallel nature, self-play games are generated continuously. The longer one training iteration takes, the bigger the backlog of new games becomes. One iteration took on average 1h. The training of the network has become the limiting factor, not the generation of self-play games, cf. figure \ref{iteration_duration}. The serialized experience buffer (with Python pickle) with 1,000,000 items takes 10GB of storage. As the entire buffer is used for training, the long training duration is to be expected.
 
 \begin{figure}[!h]
     \centering

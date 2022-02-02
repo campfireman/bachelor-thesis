@@ -42,8 +42,6 @@
 (\textwidth,.4pt)
 {\pagemark\hfill Ture Claußen}
 {\hfill \pagemark}
-% {Version 1.0 from \today \hfill \pagemark}
-% {Version 1.0 from \today\hfill\pagemark} 
 }
 \pagestyle{meinstil} 
 
@@ -102,10 +100,8 @@ Hannover, \today \hfill Signature
 \pdfbookmark[0]{Inhalt}{contents}
 \tableofcontents
 
-\begin{abstract}
-    Explanation
-\end{abstract}
-
+\include{chapters/abstract}
+\include{chapters/preface}
 \include{chapters/introduction}
 \include{chapters/background-theory}
 \include{chapters/abalone}
